@@ -1,0 +1,13 @@
+
+# Ignorar arquivos desnecessários no deploy para deixar mais leve
+backend/venv
+.venv
+.git
+.DS_Store
+*.pyc
+__pycache__
+tests/
+frontend/node_modules
+*.pdf
+mare_alta.db
+init_supabase.py
