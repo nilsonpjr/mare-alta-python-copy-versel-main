@@ -26,7 +26,7 @@ def run_test():
     # 1. LOGIN
     print(f"{BOLD}1. Autenticação (Login){RESET}")
     try:
-        resp = session.post(f"{API_URL}/auth/token", data={"username": EMAIL, "password": SENHA})
+        resp = session.post(f"{API_URL}/auth/login", data={"username": EMAIL, "password": SENHA})
         if resp.status_code == 200:
             token = resp.json().get("access_token")
             session.headers.update({"Authorization": f"Bearer {token}"})

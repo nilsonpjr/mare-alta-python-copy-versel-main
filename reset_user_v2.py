@@ -7,7 +7,7 @@ API_URL = "https://mare-alta-python-copy-versel.onrender.com/api"
 def signup_user():
     print("Tentando cadastrar empresa e usuário admin...")
     
-    # Payload ajustado para o schema TenantSignup
+    # oi Payload ajustado para o schema TenantSignup
     payload = {
         "companyName": "Mare Alta Matriz",
         "cnpj": "00000000000100", # CNPJ Fictício para passar validação
