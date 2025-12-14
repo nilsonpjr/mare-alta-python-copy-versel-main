@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Part, Invoice, InvoiceItem, StockMovement } from '../types';
-import { StorageService } from '../services/storage';
+// import { StorageService } from '../services/storage';
 import {
     Plus, Search, AlertTriangle, ShoppingCart, UploadCloud, FileText,
     Barcode, CheckCircle, Package, History, ArrowRight, Printer, Camera, X, RefreshCw
@@ -80,10 +80,18 @@ export const InventoryView: React.FC = () => {
         };
     }, [isCameraOpen]);
 
-    const loadData = () => {
-        setParts(StorageService.getInventory());
-        setMovements(StorageService.getMovements());
-        setInvoices(StorageService.getInvoices());
+    const loadData = async () => {
+        try {
+            const [partsData, movementsData] = await Promise.all([
+                ApiService.getParts(),
+                ApiService.getMovements()
+            ]);
+            setParts(partsData);
+            setMovements(movementsData);
+            setInvoices([]); // Backend Invoice entity not yet implemented
+        } catch (error) {
+            console.error("Erro ao carregar dados do estoque:", error);
+        }
     };
 
     // --- XML PARSER LOGIC ---
@@ -148,35 +156,39 @@ export const InventoryView: React.FC = () => {
         reader.readAsText(file);
     };
 
-    const handleInvoiceSubmit = () => {
+    const handleInvoiceSubmit = async () => {
         if (!invoiceForm.number || !invoiceForm.supplier || !invoiceForm.items?.length) {
             alert("Preencha os dados obrigatórios da nota.");
             return;
         }
 
-        // Check if all items are linked to a system part
-        const unlinkedItems = invoiceForm.items.filter(i => !i.partId);
-        if (unlinkedItems.length > 0) {
-            if (!window.confirm(`Existem ${unlinkedItems.length} itens não vinculados ao cadastro de produtos. Eles serão ignorados no estoque. Deseja continuar?`)) {
-                return;
-            }
+        const itemsToProcess = invoiceForm.items.filter(i => i.partId);
+
+        if (itemsToProcess.length === 0) {
+            if (!window.confirm("Nenhum item vinculado. Deseja limpar o formulário?")) return;
+            setInvoiceForm({ items: [] });
+            return;
         }
 
-        const invoice: Invoice = {
-            id: Date.now().toString(),
-            number: invoiceForm.number,
-            supplier: invoiceForm.supplier,
-            date: invoiceForm.date || new Date().toISOString(),
-            items: invoiceForm.items,
-            totalValue: invoiceForm.items.reduce((acc, curr) => acc + curr.total, 0),
-            importedAt: new Date().toISOString()
-        };
-
-        StorageService.processInvoice(invoice, 'Admin'); // Hardcoded user for now
-        loadData();
-        setInvoiceForm({ items: [] });
-        setActiveTab('overview');
-        alert("Nota fiscal processada! Estoque atualizado.");
+        try {
+            for (const item of itemsToProcess) {
+                if (item.partId) {
+                    await ApiService.createMovement({
+                        partId: Number(item.partId),
+                        type: 'IN_INVOICE',
+                        quantity: item.quantity,
+                        description: `Entrada NF ${invoiceForm.number} - ${invoiceForm.supplier}`
+                    });
+                }
+            }
+            alert("Entrada de estoque processada com sucesso!");
+            setInvoiceForm({ items: [] });
+            await loadData();
+            setActiveTab('overview');
+        } catch (error) {
+            console.error("Erro ao processar nota:", error);
+            alert("Erro ao processar entrada de estoque.");
+        }
     };
 
     const linkItemToPart = (index: number, partId: string) => {
@@ -187,60 +199,62 @@ export const InventoryView: React.FC = () => {
     };
 
     // --- PART CRUD ---
-    const handleSavePart = () => {
+    const handleSavePart = async () => {
         if (!newPart.name || !newPart.sku || !newPart.price) return;
 
-        const part: Part = {
-            id: Date.now(),
-            name: newPart.name,
-            sku: newPart.sku,
-            barcode: newPart.barcode || '',
-            quantity: newPart.quantity || 0,
-            cost: newPart.cost || 0,
-            price: newPart.price,
-            minStock: newPart.minStock || 0,
-            location: newPart.location || ''
-        };
-
-        const updated = [...parts, part];
-        setParts(updated);
-        StorageService.saveInventory(updated);
-        setIsPartModalOpen(false);
-        setNewPart({});
+        try {
+            await ApiService.createPart({
+                name: newPart.name,
+                sku: newPart.sku,
+                barcode: newPart.barcode,
+                quantity: newPart.quantity || 0,
+                cost: newPart.cost || 0,
+                price: newPart.price,
+                minStock: newPart.minStock || 0,
+                location: newPart.location,
+                manufacturer: newPart.manufacturer
+            });
+            await loadData();
+            setIsPartModalOpen(false);
+            setNewPart({});
+        } catch (error) {
+            console.error("Erro ao criar peça:", error);
+            alert("Erro ao salvar peça.");
+        }
     };
 
     // --- INVENTORY COUNT LOGIC ---
-    const handleInventoryFinish = () => {
-        const adjustments: StockMovement[] = [];
+    const handleInventoryFinish = async () => {
+        const adjustments: any[] = [];
         const updatedParts = [...parts];
 
         updatedParts.forEach(part => {
             const counted = inventoryCounts[part.id];
             if (counted !== undefined && counted !== part.quantity) {
                 const diff = counted - part.quantity;
-                part.quantity = counted; // Update Stock
-
                 adjustments.push({
-                    id: Date.now() + Math.random(),
                     partId: part.id,
                     type: diff > 0 ? 'ADJUSTMENT_PLUS' : 'ADJUSTMENT_MINUS',
                     quantity: Math.abs(diff),
-                    date: new Date().toISOString(),
-                    description: 'Ajuste de Inventário Físico',
-                    user: 'Admin'
+                    description: 'Ajuste de Inventário Físico'
                 });
             }
         });
 
         if (adjustments.length > 0) {
-            StorageService.saveInventory(updatedParts);
-            const currentMovements = StorageService.getMovements();
-            StorageService.saveMovements([...currentMovements, ...adjustments]);
-
-            alert(`${adjustments.length} itens ajustados com sucesso.`);
-            loadData();
-            setInventoryCounts({});
-            setActiveTab('overview');
+            try {
+                // Execute sequentially to avoid overload
+                for (const adj of adjustments) {
+                    await ApiService.createMovement(adj);
+                }
+                alert(`${adjustments.length} ajustes realizados.`);
+                await loadData();
+                setInventoryCounts({});
+                setActiveTab('overview');
+            } catch (error) {
+                console.error("Erro ao processar ajustes:", error);
+                alert("Erro ao salvar ajustes de estoque.");
+            }
         } else {
             alert("Nenhuma divergência encontrada.");
         }
@@ -272,21 +286,29 @@ export const InventoryView: React.FC = () => {
         }
     };
 
-    const handleUpdateFromMercury = (mercuryItem: any) => {
+    const handleUpdateFromMercury = async (mercuryItem: any) => {
         // Find part by SKU/Code
         const existingPart = parts.find(p => p.sku === mercuryItem.codigo);
 
         if (existingPart) {
             if (window.confirm(`Deseja atualizar o preço da peça ${existingPart.name}?\nNovo Custo: ${mercuryItem.valorCusto}\nNova Venda: ${mercuryItem.valorVenda}`)) {
-                const updatedPart = {
-                    ...existingPart,
-                    cost: parseCurrency(mercuryItem.valorCusto),
-                    price: parseCurrency(mercuryItem.valorVenda)
-                };
-                const updatedParts = parts.map(p => p.id === existingPart.id ? updatedPart : p);
-                setParts(updatedParts);
-                StorageService.saveInventory(updatedParts);
-                alert("Preços atualizados com sucesso!");
+                try {
+                    await ApiService.updatePart(existingPart.id, {
+                        name: existingPart.name,
+                        sku: existingPart.sku,
+                        barcode: existingPart.barcode,
+                        minStock: existingPart.minStock,
+                        location: existingPart.location,
+                        manufacturer: existingPart.manufacturer,
+                        cost: parseCurrency(mercuryItem.valorCusto),
+                        price: parseCurrency(mercuryItem.valorVenda)
+                    });
+                    alert("Preços atualizados com sucesso!");
+                    loadData();
+                } catch (error) {
+                    console.error("Erro ao atualizar (Mercury):", error);
+                    alert("Erro ao atualizar estoque.");
+                }
             }
         } else {
             // Open New Part Modal pre-filled
@@ -342,18 +364,30 @@ export const InventoryView: React.FC = () => {
     const handleSaveEditedPart = async () => {
         if (!editingPart) return;
 
-        // Auto-apply markup if cost and price are equal (came from Mercury with same values)
         let updatedPart = { ...editingPart };
         if (updatedPart.cost === updatedPart.price && updatedPart.cost > 0) {
             updatedPart.price = updatedPart.cost * 1.60; // 60% markup
         }
 
-        const updatedParts = parts.map(p => p.id === updatedPart.id ? updatedPart : p);
-        setParts(updatedParts);
-        StorageService.saveInventory(updatedParts);
-        setIsEditModalOpen(false);
-        setEditingPart(null);
-        alert("Peça atualizada com sucesso!");
+        try {
+            await ApiService.updatePart(editingPart.id, {
+                name: updatedPart.name,
+                sku: updatedPart.sku,
+                barcode: updatedPart.barcode,
+                cost: updatedPart.cost,
+                price: updatedPart.price,
+                minStock: updatedPart.minStock,
+                location: updatedPart.location,
+                manufacturer: updatedPart.manufacturer
+            });
+            await loadData();
+            setIsEditModalOpen(false);
+            setEditingPart(null);
+            alert("Peça atualizada com sucesso!");
+        } catch (error) {
+            console.error("Erro ao editar peça:", error);
+            alert("Erro ao salvar alterações.");
+        }
     };
 
     // --- UPDATE PRICES FROM MERCURY API ---
