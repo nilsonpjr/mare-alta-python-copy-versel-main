@@ -28,9 +28,19 @@ def run_test():
     try:
         resp = session.post(f"{API_URL}/auth/login", data={"username": EMAIL, "password": SENHA})
         if resp.status_code == 200:
-            token = resp.json().get("access_token")
-            session.headers.update({"Authorization": f"Bearer {token}"})
-            log("Login bem-sucedido.")
+            print(f"DEBUG: Login Request Headers: {resp.request.headers}")
+            print(f"DEBUG: Login Response JSON: {resp.json()}")
+            token = resp.json().get("access_token") # Try snake_case first
+            if not token:
+                token = resp.json().get("accessToken") # Try camelCase
+            
+            if token:
+                session.headers.update({"Authorization": f"Bearer {token}"})
+                print(f"DEBUG: Auth Header Set: {session.headers['Authorization']}")
+                log("Login bem-sucedido.")
+            else:
+                log("Login OK, mas token não encontrado na resposta.", False)
+                return
         else:
             log(f"Falha no login: {resp.text}", False)
             return
@@ -46,7 +56,8 @@ def run_test():
             "name": "Cliente Teste Automatizado",
             "email": f"teste_{int(time.time())}@exemplo.com",
             "phone": "11999999999",
-            "address": "Rua Teste, 100"
+            "address": "Rua Teste, 100",
+            "document": "12345678900" 
         }
         resp = session.post(f"{API_URL}/clients", json=payload)
         if resp.status_code == 200:
@@ -154,7 +165,7 @@ def run_test():
                 "clientId": client_id,
                 "boatId": boat_id,
                 "description": "Revisão Geral de Teste",
-                "status": "ABERTA",
+                "status": "Pendente",
                 "priority": "normal"
             }
             resp = session.post(f"{API_URL}/orders", json=payload)
@@ -168,7 +179,7 @@ def run_test():
                     "client_id": client_id,
                     "boat_id": boat_id,
                     "description": "Revisão Geral de Teste",
-                    "status": "ABERTA",
+                    "status": "Pendente",
                     "priority": "normal"
                 }
                 resp = session.post(f"{API_URL}/orders", json=payload_snake)
