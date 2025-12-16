@@ -183,50 +183,39 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
             await frame.press("input[name='sSenha']", "Enter")
             await page.wait_for_load_state(timeout=60000)
             
-            # --- NAVEGAÇÃO PARA MÓDULO DE GARANTIA ---
-            # O sistema usa frames e selects para navegar
-            # Tentar operar no frame onde o formulário estava ou procurar o select
-            
-            target_frame = frame
-            # Se o seletor não estiver no frame atual, procurar em todos
-            if not await target_frame.query_selector("select[name='s_modulo']"):
-                for f in page.frames:
-                    if await f.query_selector("select[name='s_modulo']"):
-                        target_frame = f
-                        break
-            
-            # Selecionar Módulo Garantia
-            await target_frame.select_option("select[name='s_modulo']", label="Garantia - Tarefas", timeout=30000)
-            # Clicar no botão 'Registro do Motor' (input type button/submit)
-            # O código original usa click em input value='Registro do Motor'
-            await target_frame.click("input[value='Registro do Motor']", timeout=30000)
+            # --- NAVEGAÇÃO DIRETA (OTIMIZADA) ---
+            # Evita a navegação complexa de menus que causa timeout
+            print("Navegando direto para módulo de garantia...")
+            url_warranty_form = "https://portal.mercurymarine.com.br/epdv/ewr010.asp"
+            await page.goto(url_warranty_form, timeout=60000)
             await page.wait_for_load_state(timeout=60000)
 
             # --- PREENCHER SERIAL ---
-            # O input 'nro_motor' agora deve estar disponível (no novo reload da página/frame)
-            # Precisamos encontrar o frame novamente pois a página recarregou
-            motor_frame = page.main_frame
-            # Tentar achar o frame com input nro_motor
-            found_motor_input = False
-            for f in page.frames:
-                if await f.query_selector("input[name='nro_motor']"):
-                    motor_frame = f
-                    found_motor_input = True
-                    break
+            # Tentar achar o frame com input nro_motor (pode ser main ou frame)
+            motor_frame = None
             
-            if not found_motor_input:
-                # Se falhar a navegação via clique, tentar fallback URL direta (pode falhar se sessão validar steps)
-                # Mas vamos tentar seguir o fluxo oficial primeiro.
-                # Se não achou, talvez não carregou a tempo?
-                print("Input nro_motor não encontrado após navegação.")
-                # Fallback URL direta que eu usava antes, como última tentativa
-                # url_warranty = f"https://portal.mercurymarine.com.br/epdv/ewr010.asp?s_nr_serie={nro_motor}"
-                # await page.goto(url_warranty)
-                pass
-
-            await motor_frame.fill("input[name='nro_motor']", nro_motor, timeout=60000)
-            await motor_frame.click("input[value='Pesquisar']", timeout=30000)
-            await page.wait_for_load_state(timeout=60000)
+            # Reset frame
+            frame = page.main_frame
+            
+            # Procura pelo input
+            if await page.query_selector("input[name='nro_motor']"):
+                motor_frame = page.main_frame
+            else:
+                for f in page.frames:
+                    if await f.query_selector("input[name='nro_motor']"):
+                       motor_frame = f
+                       break
+            
+            if not motor_frame:
+                print("Input nro_motor não encontrado na URL direta.")
+                # Tentar navegar via URL com parâmetro (GET)
+                url_warranty_get = f"https://portal.mercurymarine.com.br/epdv/ewr010.asp?s_nr_serie={nro_motor}"
+                await page.goto(url_warranty_get, timeout=60000)
+                # O resultado já deve aparecer aqui se funcionar via GET
+            else:
+                await motor_frame.fill("input[name='nro_motor']", nro_motor, timeout=60000)
+                await motor_frame.click("input[value='Pesquisar']", timeout=30000)
+                await page.wait_for_load_state(timeout=60000)
 
             # --- TRATAR POPUP "ESTOU CIENTE" ---
             # Verificar se apareceu botão "Estou ciente" em algum frame

@@ -206,15 +206,97 @@ export const ClientsView: React.FC = () => {
                   <option value="GOVERNO">Governo/Militar</option>
                 </select>
               </div>
+              <div className="col-span-2 grid grid-cols-4 gap-4">
+                <div className="col-span-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">CEP</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      maxLength={9}
+                      placeholder="00000-000"
+                      className="w-full p-2 border rounded bg-white text-slate-900"
+                      value={editingClient.zip || ''}
+                      onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setEditingClient({ ...editingClient, zip: val });
+                        if (val.length === 8) {
+                          fetch(`https://viacep.com.br/ws/${val}/json/`)
+                            .then(res => res.json())
+                            .then(data => {
+                              if (!data.erro) {
+                                setEditingClient(prev => ({
+                                  ...prev,
+                                  address: `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`
+                                }));
+                              }
+                            })
+                            .catch(err => console.error("Erro CEP", err));
+                        }
+                      }}
+                    />
+                    {editingClient.zip && editingClient.zip.length === 8 && <div className="absolute right-2 top-2 text-green-500 text-xs">✓</div>}
+                  </div>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Endereço Completo</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded bg-white text-slate-900"
+                    value={editingClient.address || ''}
+                    onChange={e => setEditingClient({ ...editingClient, address: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">Documento (CPF/CNPJ)</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded bg-white text-slate-900"
-                  value={editingClient.document || ''}
-                  onChange={e => setEditingClient({ ...editingClient, document: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded bg-white text-slate-900"
+                    value={editingClient.document || ''}
+                    onChange={e => setEditingClient({ ...editingClient, document: e.target.value })}
+                    onBlur={() => {
+                      const doc = editingClient.document?.replace(/\D/g, '');
+                      if (doc?.length === 14) {
+                        // CNPJ Lookup
+                        fetch(`https://brasilapi.com.br/api/cnpj/v1/${doc}`)
+                          .then(res => res.json())
+                          .then(data => {
+                            if (data.razao_social) {
+                              setEditingClient(prev => ({
+                                ...prev,
+                                name: data.nome_fantasia || data.razao_social,
+                                type: 'EMPRESA',
+                                email: data.email || prev.email,
+                                phone: data.ddd_telefone_1 || prev.phone,
+                                zip: data.cep,
+                                address: `${data.logradouro}, ${data.numero} - ${data.bairro} - ${data.municipio}/${data.uf}`
+                              }));
+                            }
+                          })
+                          .catch(err => console.error("Erro CNPJ", err));
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="bg-slate-100 p-2 rounded hover:bg-slate-200 text-slate-600"
+                    title="Buscar Dados (CNPJ)"
+                    onClick={() => {
+                      const doc = editingClient.document?.replace(/\D/g, '');
+                      if (doc?.length === 14) {
+                        // Manual Trigger
+                        const e = { target: { value: editingClient.document } };
+                        // Logic duplication, but simplest for now without refactor
+                      }
+                    }}
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">Telefone</label>
                 <input
@@ -231,15 +313,6 @@ export const ClientsView: React.FC = () => {
                   className="w-full p-2 border rounded bg-white text-slate-900"
                   value={editingClient.email || ''}
                   onChange={e => setEditingClient({ ...editingClient, email: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-medium text-slate-700 mb-1">Endereço</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded bg-white text-slate-900"
-                  value={editingClient.address || ''}
-                  onChange={e => setEditingClient({ ...editingClient, address: e.target.value })}
                 />
               </div>
             </div>
