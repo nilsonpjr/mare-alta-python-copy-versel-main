@@ -41,17 +41,10 @@ export const StorageService = {
     const stored = localStorage.getItem(KEYS.CONFIG);
     if (stored) return JSON.parse(stored);
     const defaultConfig: SystemConfig = {
-      companyName: 'Mare Alta',
-      engineManufacturers: ['Mercury', 'Yamaha', 'Volvo Penta'],
-      boatManufacturers: ['Focker', 'Schaefer', 'Azimut', 'Real', 'Triton'],
-      serviceTypes: {
-        'MECANICA': { label: 'Mecânica', color: '#3b82f6' },
-        'ELETRICA': { label: 'Elétrica', color: '#eab308' },
-        'HIDRAULICA': { label: 'Hidráulica', color: '#06b6d4' },
-        'FIBRA': { label: 'Fibra/Pintura', color: '#a855f7' },
-        'ESTETICA': { label: 'Estética', color: '#ec4899' },
-        'DIAGNOSTICO': { label: 'Diagnóstico', color: '#f97316' },
-        'OUTROS': { label: 'Outros', color: '#64748b' }
+      engineManufacturers: {
+        'Mercury': ['Verado', 'SeaPro', 'FourStroke', 'ProXS'],
+        'Yamaha': ['V6', 'V8', 'F-Series'],
+        'Volvo Penta': ['D4', 'D6', 'IPS', 'V8-380']
       }
     };
     localStorage.setItem(KEYS.CONFIG, JSON.stringify(defaultConfig));
@@ -140,7 +133,7 @@ export const StorageService = {
   saveTransactions: (transactions: Transaction[]) => localStorage.setItem(KEYS.FINANCE, JSON.stringify(transactions)),
   addTransaction: (transaction: Transaction) => {
     const transactions = StorageService.getTransactions();
-    transactions.push({ ...transaction, id: Date.now().toString() });
+    transactions.push({ ...transaction, id: Date.now() });
     localStorage.setItem(KEYS.FINANCE, JSON.stringify(transactions));
   },
 
