@@ -43,7 +43,7 @@ def create_new_manufacturer(
     Requer autenticação.
     """
     # Chama a função CRUD para criar o fabricante no banco de dados.
-    return crud.create_manufacturer(db, manufacturer)
+    return crud.create_manufacturer(db, manufacturer, tenant_id=current_user.tenant_id)
 
 @router.delete("/manufacturers/{id}")
 def delete_existing_manufacturer(

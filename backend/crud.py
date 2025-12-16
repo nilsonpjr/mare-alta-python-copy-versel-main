@@ -615,16 +615,17 @@ def get_manufacturers(db: Session, tenant_id: int, type: Optional[str] = None):
         query = query.filter(models.Manufacturer.type == type)
     return query.all()
 
-def create_manufacturer(db: Session, manufacturer: schemas.ManufacturerCreate):
+def create_manufacturer(db: Session, manufacturer: schemas.ManufacturerCreate, tenant_id: int):
     """
     Cria um novo fabricante no banco de dados.
     Args:
         db (Session): Sessão do banco de dados.
         manufacturer (schemas.ManufacturerCreate): Dados do fabricante para criação.
+        tenant_id (int): ID do tenant.
     Returns:
         models.Manufacturer: O objeto fabricante recém-criado.
     """
-    db_manufacturer = models.Manufacturer(name=manufacturer.name, type=manufacturer.type)
+    db_manufacturer = models.Manufacturer(name=manufacturer.name, type=manufacturer.type, tenant_id=tenant_id)
     db.add(db_manufacturer)
     db.commit()
     db.refresh(db_manufacturer)
