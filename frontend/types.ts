@@ -398,6 +398,7 @@ export interface FiscalDataPayload {
 
 export interface SystemConfig {
   engineManufacturers: { [key: string]: string[] };
+  boatManufacturers: { [key: string]: string[] };
 }
 
 export interface ChecklistItem {

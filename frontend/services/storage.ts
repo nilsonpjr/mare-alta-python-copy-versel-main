@@ -45,7 +45,8 @@ export const StorageService = {
         'Mercury': ['Verado', 'SeaPro', 'FourStroke', 'ProXS'],
         'Yamaha': ['V6', 'V8', 'F-Series'],
         'Volvo Penta': ['D4', 'D6', 'IPS', 'V8-380']
-      }
+      },
+      boatManufacturers: {}
     };
     localStorage.setItem(KEYS.CONFIG, JSON.stringify(defaultConfig));
     return defaultConfig;
