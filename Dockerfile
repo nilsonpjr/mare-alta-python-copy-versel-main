@@ -22,7 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Browsers já estão instalados na imagem, não precisamos rodar playwright install
+# Instalar Playwright e dependências do Chromium
+RUN playwright install chromium
+RUN playwright install-deps chromium
 
 # Copiar código do backend
 COPY backend/ .
