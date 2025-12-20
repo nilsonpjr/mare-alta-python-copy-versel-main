@@ -23,8 +23,11 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Instalar Playwright e dependências do Chromium
+# Playwright browsers já devem estar na imagem, ou instalamos apenas se faltar.
+# A imagem mcr.microsoft.com/playwright/python já vem com browsers instalados na pasta correta.
+# Se precisar garantir:
 RUN playwright install chromium
-RUN playwright install-deps chromium
+# RUN playwright install-deps chromium  <-- Essa linha é a que demora muito (baixa deps do SO). A imagem base já deve ter.
 
 # Copiar código do backend
 COPY backend/ .
