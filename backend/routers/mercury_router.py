@@ -212,25 +212,9 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
             except Exception:
                 print("Warning: Networkidle timeout, continuando...")
 
-            motor_input_selector = "input[name='nro_motor']"
-            
-            # DEBUG: Listar todos os inputs da página para conferência
-            print("--- DEBUG INPUTS ---")
-            inputs = await page.evaluate('''() => {
-                return Array.from(document.querySelectorAll('input')).map(i => ({
-                    name: i.name,
-                    id: i.id,
-                    type: i.type,
-                    value: i.value,
-                    isVisible: i.offsetParent !== null
-                }));
-            }''')
-            for i, inp in enumerate(inputs):
-                print(f"Input {i}: {inp}")
-            
-            # Também listar iframes
-            frames = page.frames
-            print(f"--- FIM DEBUG ({len(frames)} frames detectados) ---")
+            # ID Correto descoberto no debug: warr_cardSearchs_nr_serie
+            # Name Correto descoberto no debug: s_nr_serie
+            motor_input_selector = "input[name='s_nr_serie']"
             
             motor_frame = None
             
@@ -244,33 +228,36 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
                 except: continue
 
             if not motor_frame:
-                 # Estratégia 2: Procurar qualquer input texto visível se o específico falhar
-                 print("Seletor exato não encontrado. Tentando heurística...")
-                 # Às vezes o ID é dinâmico, mas é o primeiro input text visível
-                 pass 
-
-            if not motor_frame and not inputs:
-                 print("Nenhum input detectado na página principal.")
+                 # Se não achou por name, tenta por ID (warr_cardSearchs_nr_serie)
+                 motor_input_selector = "#warr_cardSearchs_nr_serie"
+                 for f in page.frames:
+                    try:
+                        if await f.query_selector(motor_input_selector):
+                            motor_frame = f
+                            print(f"Alvo encontrado por ID no frame: {f.url}")
+                            break
+                    except: continue
 
             if not motor_frame:
-                print("ERRO CRÍTICO: Input nro_motor não encontrado após análise profunda.")
+                print("ERRO CRÍTICO: Input s_nr_serie não encontrado no módulo de garantia.")
                 
                 # Fallback: Tentar navegar via URL com parâmetro (GET)
                 print("Tentando fallback via URL GET...")
                 url_warranty_get = f"https://portal.mercurymarine.com.br/epdv/ewr010.asp?s_nr_serie={nro_motor}"
                 await page.goto(url_warranty_get, timeout=60000)
-                # Assume-se que o GET preenche e já mostra ou submete
             else:
                 print(f"Preenchendo {motor_input_selector} no frame escolhido...")
                 await motor_frame.fill(motor_input_selector, nro_motor)
                 print("Clicando em Pesquisar...")
-                # Tentar clicar no botão de imagem ou submit
-                # Baseado no HTML padrão CodeCharge, costuma ser input type image name=Button_DoSearch
+                
+                # Botão descoberto no debug: name='Button_DoSearch', id='warr_cardSearchButton_DoSearch'
+                btn_selector = "input[name='Button_DoSearch']"
+                
                 try:
-                    await motor_frame.click("input[name='Button_DoSearch']", timeout=5000)
+                    await motor_frame.click(btn_selector, timeout=5000)
                 except:
-                    print("Botão Button_DoSearch não achado, tentando genérico...")
-                    await motor_frame.click("input[type='submit'], button, input[value='Pesquisar']", timeout=10000)
+                    print("Botão Button_DoSearch não clicável, tentando submit genérico...")
+                    await motor_frame.click("input[type='submit']", timeout=10000)
                 
                 await page.wait_for_load_state(timeout=60000)
 
