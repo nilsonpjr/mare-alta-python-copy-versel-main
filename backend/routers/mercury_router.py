@@ -206,54 +206,72 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
             await page.wait_for_load_state(timeout=60000)
 
             # --- PREENCHER SERIAL ---
-            # Tentar achar o frame com input nro_motor. Adicionando retry para garantir carregamento.
-            motor_frame = None
+            print("Aguardando carregamento completo (networkidle)...")
+            try:
+                await page.wait_for_load_state('networkidle', timeout=10000)
+            except Exception:
+                print("Warning: Networkidle timeout, continuando...")
+
             motor_input_selector = "input[name='nro_motor']"
             
-            for attempt in range(5):
-                print(f"Tentativa {attempt+1} buscando input...")
-                # Check Main Frame
-                if await page.query_selector(motor_input_selector):
-                    motor_frame = page.main_frame
-                    print("Input encontrado no Main Frame.")
-                    break
-                
-                # Check Child Frames
-                all_frames = page.frames
-                print(f"Verificando {len(all_frames)} frames...")
-                for i, f in enumerate(all_frames):
-                    try:
-                        # Log frame info par ajudar debug
-                        # print(f"Frame {i}: {f.url}") 
-                        if await f.query_selector(motor_input_selector):
-                            motor_frame = f
-                            print(f"Input encontrado no Frame {i} ({f.url})")
-                            break
-                    except Exception:
-                        continue
-                
-                if motor_frame:
-                    break
-                
-                print(f"Input serial não encontrado. URL Atual: {page.url}")
-                await asyncio.sleep(3)
+            # DEBUG: Listar todos os inputs da página para conferência
+            print("--- DEBUG INPUTS ---")
+            inputs = await page.evaluate('''() => {
+                return Array.from(document.querySelectorAll('input')).map(i => ({
+                    name: i.name,
+                    id: i.id,
+                    type: i.type,
+                    value: i.value,
+                    isVisible: i.offsetParent !== null
+                }));
+            }''')
+            for i, inp in enumerate(inputs):
+                print(f"Input {i}: {inp}")
+            
+            # Também listar iframes
+            frames = page.frames
+            print(f"--- FIM DEBUG ({len(frames)} frames detectados) ---")
+            
+            motor_frame = None
+            
+            # Estratégia 1: Tentar encontrar o seletor exato em qualquer frame
+            for f in page.frames:
+                try:
+                    if await f.query_selector(motor_input_selector):
+                        motor_frame = f
+                        print(f"Alvo encontrado no frame: {f.url}")
+                        break
+                except: continue
 
             if not motor_frame:
-                print("ERRO CRÍTICO: Input nro_motor não encontrado na URL direta após retries.")
-                print(f"URL Final: {page.url}")
-                print(f"Title Final: {await page.title()}")
-                # Dump parcial do HTML para debug (primeiros 1000 caracteres) e frames
-                content_sample = await page.content()
-                print(f"HTML Sample: {content_sample[:500]}...")
+                 # Estratégia 2: Procurar qualquer input texto visível se o específico falhar
+                 print("Seletor exato não encontrado. Tentando heurística...")
+                 # Às vezes o ID é dinâmico, mas é o primeiro input text visível
+                 pass 
+
+            if not motor_frame and not inputs:
+                 print("Nenhum input detectado na página principal.")
+
+            if not motor_frame:
+                print("ERRO CRÍTICO: Input nro_motor não encontrado após análise profunda.")
                 
-                # Tentar navegar via URL com parâmetro (GET) como última esperança
-                # ... (restante do código original)
+                # Fallback: Tentar navegar via URL com parâmetro (GET)
+                print("Tentando fallback via URL GET...")
                 url_warranty_get = f"https://portal.mercurymarine.com.br/epdv/ewr010.asp?s_nr_serie={nro_motor}"
                 await page.goto(url_warranty_get, timeout=60000)
-                # O resultado já deve aparecer aqui se funcionar via GET
+                # Assume-se que o GET preenche e já mostra ou submete
             else:
-                await motor_frame.fill("input[name='nro_motor']", nro_motor, timeout=60000)
-                await motor_frame.click("input[value='Pesquisar']", timeout=30000)
+                print(f"Preenchendo {motor_input_selector} no frame escolhido...")
+                await motor_frame.fill(motor_input_selector, nro_motor)
+                print("Clicando em Pesquisar...")
+                # Tentar clicar no botão de imagem ou submit
+                # Baseado no HTML padrão CodeCharge, costuma ser input type image name=Button_DoSearch
+                try:
+                    await motor_frame.click("input[name='Button_DoSearch']", timeout=5000)
+                except:
+                    print("Botão Button_DoSearch não achado, tentando genérico...")
+                    await motor_frame.click("input[type='submit'], button, input[value='Pesquisar']", timeout=10000)
+                
                 await page.wait_for_load_state(timeout=60000)
 
             # --- TRATAR POPUP "ESTOU CIENTE" ---
