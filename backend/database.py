@@ -15,7 +15,8 @@ import os
 from dotenv import load_dotenv # Biblioteca para carregar variáveis de ambiente de um arquivo .env
 
 # Carrega as variáveis de ambiente do arquivo .env.
-load_dotenv()
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+load_dotenv(env_path)
 
 # Define a URL do banco de dados.
 # Tenta obter a URL da variável de ambiente "DATABASE_URL".
@@ -23,9 +24,8 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    # Fallback para SQLite local
-    DATABASE_URL = "sqlite:///./mare_alta.db"
-    connect_args = {"check_same_thread": False}
+    # Em produção, DATABASE_URL deve ser obrigatória (Supabase)
+    raise ValueError("A variável de ambiente DATABASE_URL não está definida. Configure a conexão com o Supabase.")
 else:
     # Correção para SQLAlchemy (postgres:// -> postgresql://)
     if DATABASE_URL.startswith("postgres://"):

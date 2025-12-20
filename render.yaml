@@ -1,3 +1,9 @@
+databases:
+  - name: mare-alta-db
+    databaseName: mare_alta
+    user: mare_alta_user
+    plan: free # Ajuste para starter/standard se necessário, free expira em 30 dias em alguns casos ou é limitado
+
 services:
   - type: web
     name: mare-alta
@@ -9,4 +15,8 @@ services:
     envVars:
       - key: PORT
         value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mare-alta-db
+          property: connectionString
     autoDeploy: true
