@@ -270,41 +270,59 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
                     await page.wait_for_load_state(timeout=60000)
                     break
 
-            # --- PARSE RESULTADOS ---
-            content = await page.content() # Pega conteúdo de tudo (com iframes expandidos se possível ou source)
-            # Melhor pegar o frame onde os dados estão
-            # O resultado costuma estar num frame principal
-            
+            # --- PARSE RESULTADOS (COM DUMP SE FALHAR) ---
+            print("Extraindo dados da página...")
+            content = await page.content()
             soup = BeautifulSoup(content, "html.parser")
             
-            # Verificar se encontrou (código original procura string "Modelo do Motor")
-            # Minha lógica anterior de procurar tabela row é boa, mas vamos combinar
-            
-            # Tentar achar linha com "Modelo do Motor" (como no repo original)
-            linha_modelo = soup.find("td", string=lambda text: text and "Modelo do Motor" in text)
-            
-            if not linha_modelo:
-                # Tentar lógica anterior minha (busca por classes Row em tabela específica)
-                # Fallback
-                return None
-            
-            # Se achou modelo, tenta extrair dados
-            # O repo original só retorna modelo. Eu retornava mais dados.
-            # Vou tentar extrair tudo que der.
+            # Debug: Salvar HTML se não achar nada
+            # with open("debug_warranty.html", "w") as f: f.write(content)
+
+            # A tabela de resultados geralmente tem a classe 'Header' ou está dentro de um form específico
+            # Padrão Mercury antigo: Label na TD, Valor na TD seguinte
             
             modelo = "Não identificado"
-            prox = linha_modelo.find_next_sibling("td")
-            if prox:
-                modelo = prox.text.strip()
-                
-            # Tentar extrair Data Venda e Status também se possível
             dt_venda = ""
-            status_garantia = ""
             
-            linha_venda = soup.find("td", string=lambda text: text and "Data da Venda" in text)
-            if linha_venda:
-                p_v = linha_venda.find_next_sibling("td")
-                if p_v: dt_venda = p_v.text.strip()
+            # Tenta encontrar labels comuns (case insensitive)
+            def find_value_by_label(label_text):
+                # Busca cell com o texto
+                label_cell = soup.find("td", string=re.compile(label_text, re.IGNORECASE))
+                if label_cell:
+                    # O valor costuma estar no próximo 'td'
+                    next_cell = label_cell.find_next_sibling("td")
+                    if next_cell:
+                        return next_cell.text.strip()
+                return None
+
+            modelo = find_value_by_label("Modelo do Motor") or find_value_by_label("Produto") or "Não encontrado"
+            dt_venda = find_value_by_label("Data da Venda") or find_value_by_label("Data Venda") or ""
+            
+            # Se ainda não achou modelo, pode ser que a pesquisa falhou silenciosamente (mesmo sem 404)
+            if modelo == "Não encontrado":
+                print("Aviso: Label 'Modelo do Motor' não encontrado no HTML.")
+                match_records = soup.find(string=re.compile("Nenhum registro encontrado|No records"))
+                if match_records:
+                     print("Página indica que não há registros.")
+                     return None
+                
+                # Tentar pegar qualquer dado relevante da tabela principal se houver
+                # Procura por tabelas com class 'Grid' ou 'Record'
+                # ... Lógica de fallback se necessário
+                
+                # Se realmente falhar, retornar None para disparar 404 na API
+                return None
+
+            print(f"Dados extraídos - Modelo: {modelo}, Data: {dt_venda}")
+
+            return {
+                "nro_motor": nro_motor,
+                "modelo": modelo,
+                "dt_venda": dt_venda,
+                "status_garantia": "Consultar Portal",
+                "vld_garantia": "",
+                "nome_cli": "", 
+            }
 
             # Retorno estruturado
             return {
