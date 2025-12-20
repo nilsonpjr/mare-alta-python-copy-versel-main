@@ -18,7 +18,7 @@ fi
 
 # Instalar dependências de teste se necessário
 echo "Verificando dependências de teste..."
-pip install -q pytest pytest-cov httpx
+pip install -q -r requirements.txt
 
 echo ""
 echo "=========================================="

@@ -191,23 +191,32 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
             await page.wait_for_load_state(timeout=60000)
 
             # --- PREENCHER SERIAL ---
-            # Tentar achar o frame com input nro_motor (pode ser main ou frame)
+            # Tentar achar o frame com input nro_motor. Adicionando retry para garantir carregamento.
             motor_frame = None
+            motor_input_selector = "input[name='nro_motor']"
             
-            # Reset frame
-            frame = page.main_frame
-            
-            # Procura pelo input
-            if await page.query_selector("input[name='nro_motor']"):
-                motor_frame = page.main_frame
-            else:
+            for attempt in range(5):
+                # Check Main Frame
+                if await page.query_selector(motor_input_selector):
+                    motor_frame = page.main_frame
+                    break
+                # Check Child Frames
                 for f in page.frames:
-                    if await f.query_selector("input[name='nro_motor']"):
-                       motor_frame = f
-                       break
-            
+                    try:
+                        if await f.query_selector(motor_input_selector):
+                            motor_frame = f
+                            break
+                    except Exception:
+                        continue
+                
+                if motor_frame:
+                    break
+                
+                print(f"Tentativa {attempt+1}: Input serial não encontrado, aguardando...")
+                await asyncio.sleep(2)
+
             if not motor_frame:
-                print("Input nro_motor não encontrado na URL direta.")
+                print("Input nro_motor não encontrado na URL direta após retries.")
                 # Tentar navegar via URL com parâmetro (GET)
                 url_warranty_get = f"https://portal.mercurymarine.com.br/epdv/ewr010.asp?s_nr_serie={nro_motor}"
                 await page.goto(url_warranty_get, timeout=60000)
