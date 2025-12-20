@@ -183,6 +183,21 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
             await frame.press("input[name='sSenha']", "Enter")
             await page.wait_for_load_state(timeout=60000)
             
+            # --- VERIFICAR LOGIN ---
+            # Esperar um pouco para processar o login
+            await page.wait_for_timeout(5000)
+            
+            # Verificar se ainda estamos no login (erro) ou se mudou
+            current_url = page.url
+            current_title = await page.title()
+            print(f"URL Pós-Login: {current_url}")
+            print(f"Título Pós-Login: {current_title}")
+
+            if "epdv001" in current_url and "mensagem" in await page.content():
+                 # Tentar capturar mensagem de erro
+                 print("Provável falha no login. URL ainda contém epdv001.")
+                 # Opcional: tentar ler mensagem de erro da página
+
             # --- NAVEGAÇÃO DIRETA (OTIMIZADA) ---
             # Evita a navegação complexa de menus que causa timeout
             print("Navegando direto para módulo de garantia...")
@@ -196,15 +211,23 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
             motor_input_selector = "input[name='nro_motor']"
             
             for attempt in range(5):
+                print(f"Tentativa {attempt+1} buscando input...")
                 # Check Main Frame
                 if await page.query_selector(motor_input_selector):
                     motor_frame = page.main_frame
+                    print("Input encontrado no Main Frame.")
                     break
+                
                 # Check Child Frames
-                for f in page.frames:
+                all_frames = page.frames
+                print(f"Verificando {len(all_frames)} frames...")
+                for i, f in enumerate(all_frames):
                     try:
+                        # Log frame info par ajudar debug
+                        # print(f"Frame {i}: {f.url}") 
                         if await f.query_selector(motor_input_selector):
                             motor_frame = f
+                            print(f"Input encontrado no Frame {i} ({f.url})")
                             break
                     except Exception:
                         continue
@@ -212,12 +235,19 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
                 if motor_frame:
                     break
                 
-                print(f"Tentativa {attempt+1}: Input serial não encontrado, aguardando...")
-                await asyncio.sleep(2)
+                print(f"Input serial não encontrado. URL Atual: {page.url}")
+                await asyncio.sleep(3)
 
             if not motor_frame:
-                print("Input nro_motor não encontrado na URL direta após retries.")
-                # Tentar navegar via URL com parâmetro (GET)
+                print("ERRO CRÍTICO: Input nro_motor não encontrado na URL direta após retries.")
+                print(f"URL Final: {page.url}")
+                print(f"Title Final: {await page.title()}")
+                # Dump parcial do HTML para debug (primeiros 1000 caracteres) e frames
+                content_sample = await page.content()
+                print(f"HTML Sample: {content_sample[:500]}...")
+                
+                # Tentar navegar via URL com parâmetro (GET) como última esperança
+                # ... (restante do código original)
                 url_warranty_get = f"https://portal.mercurymarine.com.br/epdv/ewr010.asp?s_nr_serie={nro_motor}"
                 await page.goto(url_warranty_get, timeout=60000)
                 # O resultado já deve aparecer aqui se funcionar via GET
