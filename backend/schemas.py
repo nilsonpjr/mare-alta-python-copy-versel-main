@@ -537,3 +537,133 @@ class MaintenanceKit(MaintenanceKitBase):
     items: List[MaintenanceKitItem] = []
 
 
+# --- PARTNER SCHEMAS ---
+# Schemas para rede de parceiros (Fase 3)
+
+# Importar novos enums
+from models import PartnerType, InspectionStatus, ChecklistItemSeverity, QuoteStatus
+
+class PartnerBase(CamelModel):
+    """Schema base para um parceiro."""
+    name: str
+    partner_type: PartnerType
+    phone: str
+    email: Optional[str] = None
+    company_name: Optional[str] = None
+    document: Optional[str] = None
+    address: Optional[str] = None
+    notes: Optional[str] = None
+
+class PartnerCreate(PartnerBase):
+    """Schema para criação de um novo parceiro."""
+    pass
+
+class PartnerUpdate(CamelModel):
+    """Schema para atualização de um parceiro."""
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    company_name: Optional[str] = None
+    document: Optional[str] = None
+    address: Optional[str] = None
+    partner_type: Optional[PartnerType] = None
+    active: Optional[bool] = None
+    notes: Optional[str] = None
+
+class Partner(PartnerBase):
+    """Schema de resposta para um parceiro."""
+    id: int
+    rating: float
+    total_jobs: int
+    active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+# --- TECHNICAL INSPECTION SCHEMAS ---
+
+class InspectionChecklistItemBase(CamelModel):
+    """Schema base para item de checklist de inspeção."""
+    category: str
+    item_description: str
+    severity: ChecklistItemSeverity
+    notes: Optional[str] = None
+    photo_url: Optional[str] = None
+    estimated_cost: Optional[float] = None
+    recommended_partner_type: Optional[PartnerType] = None
+
+class InspectionChecklistItemCreate(InspectionChecklistItemBase):
+    """Schema para criação de item de checklist."""
+    pass
+
+class InspectionChecklistItem(InspectionChecklistItemBase):
+    """Schema de resposta para item de checklist."""
+    id: int
+    inspection_id: int
+    created_at: datetime
+
+
+class TechnicalInspectionBase(CamelModel):
+    """Schema base para inspeção técnica."""
+    boat_id: int
+    inspector_user_id: int
+    scheduled_date: Optional[datetime] = None
+    general_notes: Optional[str] = None
+
+class TechnicalInspectionCreate(TechnicalInspectionBase):
+    """Schema para criação de inspeção."""
+    pass
+
+class TechnicalInspectionUpdate(CamelModel):
+    """Schema para atualização de inspeção."""
+    status: Optional[InspectionStatus] = None
+    scheduled_date: Optional[datetime] = None
+    completed_date: Optional[datetime] = None
+    general_notes: Optional[str] = None
+
+class TechnicalInspection(TechnicalInspectionBase):
+    """Schema de resposta para inspeção."""
+    id: int
+    status: InspectionStatus
+    completed_date: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
+    checklist_items: List[InspectionChecklistItem] = []
+
+
+# --- PARTNER QUOTE SCHEMAS ---
+
+class PartnerQuoteBase(CamelModel):
+    """Schema base para orçamento de parceiro."""
+    inspection_id: int
+    partner_id: int
+    service_description: str
+
+class PartnerQuoteCreate(PartnerQuoteBase):
+    """Schema para solicitação de orçamento."""
+    pass
+
+class PartnerQuoteUpdate(CamelModel):
+    """Schema para atualização de orçamento (pelo parceiro ou interno)."""
+    quoted_value: Optional[float] = None
+    estimated_days: Optional[int] = None
+    status: Optional[QuoteStatus] = None
+    partner_notes: Optional[str] = None
+    internal_notes: Optional[str] = None
+    rating: Optional[float] = None
+    rating_comment: Optional[str] = None
+
+class PartnerQuote(PartnerQuoteBase):
+    """Schema de resposta para orçamento."""
+    id: int
+    status: QuoteStatus
+    quoted_value: Optional[float]
+    estimated_days: Optional[int]
+    requested_date: datetime
+    response_date: Optional[datetime]
+    partner_notes: Optional[str]
+    internal_notes: Optional[str]
+    rating: Optional[float]
+    rating_comment: Optional[str]
+    created_at: datetime
+    updated_at: datetime

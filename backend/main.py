@@ -25,6 +25,7 @@ from routers.fiscal_router import router as fiscal_router
 from routers.mercury_router import router as mercury_router
 from routers.transactions_router import router as transactions_router
 from routers.config_router import router as config_router
+from routers.partners_router import router as partners_router
 
 # Cria todas as tabelas definidas nos modelos (models.py) no banco de dados.
 # Isso é feito apenas uma vez na inicialização da aplicação.
@@ -102,6 +103,7 @@ app.include_router(fiscal_router) # Roteador para operações fiscais.
 app.include_router(mercury_router) # Roteador para funcionalidades relacionadas ao Mercury.
 app.include_router(transactions_router) # Roteador para gerenciamento de transações financeiras.
 app.include_router(config_router) # Roteador para configurações gerais da aplicação (ex: fabricantes, modelos).
+app.include_router(partners_router) # Roteador para rede de parceiros (Fase 3).
 
 
 from fastapi.staticfiles import StaticFiles
