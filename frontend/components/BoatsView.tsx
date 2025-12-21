@@ -28,6 +28,10 @@ export const BoatsView: React.FC = () => {
     const [loadingMercury, setLoadingMercury] = useState(false);
     const [mercurySearchResult, setMercurySearchResult] = useState<any>(null);
 
+    // Loading States - Prevent double-click
+    const [loadingSaveBoat, setLoadingSaveBoat] = useState(false);
+    const [loadingSaveEngine, setLoadingSaveEngine] = useState(false);
+
     useEffect(() => {
         loadData();
     }, []);
@@ -87,11 +91,14 @@ export const BoatsView: React.FC = () => {
     };
 
     const handleSaveBoat = async () => {
-        if (!editingBoat.name || !editingBoat.hullId || !editingBoat.clientId) {
-            alert("Preencha campos obrigatórios (Nome, Inscrição, Proprietário).");
+        if (!editingBoat.name || !editingBoat.hullId || !editingBoat.clientId || loadingSaveBoat) {
+            if (!editingBoat.name || !editingBoat.hullId || !editingBoat.clientId) {
+                alert("Preencha campos obrigatórios (Nome, Inscrição, Proprietário).");
+            }
             return;
         }
 
+        setLoadingSaveBoat(true);
         try {
             if (editingBoat.id) {
                 // Update
@@ -129,6 +136,8 @@ export const BoatsView: React.FC = () => {
         } catch (error) {
             console.error("Erro ao salvar barco:", error);
             alert("Erro ao salvar embarcação.");
+        } finally {
+            setLoadingSaveBoat(false);
         }
     };
 

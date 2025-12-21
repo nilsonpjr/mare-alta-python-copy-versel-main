@@ -25,6 +25,11 @@ export const MaintenanceBudgetView: React.FC = () => {
     const [newKitName, setNewKitName] = useState('');
     const [selectedBoatId, setSelectedBoatId] = useState('');
 
+    // Loading States - Prevent double-click
+    const [loadingCreateOS, setLoadingCreateOS] = useState(false);
+    const [loadingSaveKit, setLoadingSaveKit] = useState(false);
+    const [loadingDeleteKit, setLoadingDeleteKit] = useState(false);
+
     // State management updated to use real data
     const [partsInventory, setPartsInventory] = useState<any[]>([]);
 
@@ -211,7 +216,7 @@ export const MaintenanceBudgetView: React.FC = () => {
     };
 
     const handleCreatePreOrder = async () => {
-        if (!selectedKit || !selectedBoatId) return;
+        if (!selectedKit || !selectedBoatId || loadingCreateOS) return;
 
         const boat = boats.find(b => b.id === Number(selectedBoatId));
         if (!boat) {
@@ -250,6 +255,7 @@ export const MaintenanceBudgetView: React.FC = () => {
 
         const totalValue = orderItems.reduce((acc, item) => acc + item.total, 0);
 
+        setLoadingCreateOS(true);  // ← PREVENT DOUBLE-CLICK
         try {
             // CORRECT FLOW:
             // 1. Create Order
@@ -277,6 +283,8 @@ export const MaintenanceBudgetView: React.FC = () => {
         } catch (error) {
             console.error("Erro ao criar ordem:", error);
             alert("Erro ao criar ordem de serviço.");
+        } finally {
+            setLoadingCreateOS(false);  // ← RESET LOADING
         }
     };
 
@@ -731,10 +739,10 @@ export const MaintenanceBudgetView: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleCreatePreOrder}
-                                    disabled={!selectedBoatId}
+                                    disabled={!selectedBoatId || loadingCreateOS}
                                     className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Confirmar e Criar OS
+                                    {loadingCreateOS ? 'Criando...' : 'Confirmar e Criar OS'}
                                 </button>
                             </div>
                         </div>
