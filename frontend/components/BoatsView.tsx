@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Boat, Client, Engine, Marina, SystemConfig } from '../types';
 import { ApiService } from '../services/api';
-import { Plus, Search, Anchor, Edit2, UserCircle, Save, Trash, MapPin, Settings } from 'lucide-react';
+import { Plus, Search, Anchor, Edit2, UserCircle, Save, Trash, MapPin, Settings, Trash2 } from 'lucide-react';
 import { MercuryWarrantyCard } from './MercuryWarrantyCard';
 
 export const BoatsView: React.FC = () => {
@@ -129,6 +129,18 @@ export const BoatsView: React.FC = () => {
         } catch (error) {
             console.error("Erro ao salvar barco:", error);
             alert("Erro ao salvar embarcação.");
+        }
+    };
+
+    const handleDeleteBoat = async (id: number) => {
+        if (confirm('Tem certeza que deseja excluir esta embarcação?')) {
+            try {
+                await ApiService.deleteBoat(id.toString());
+                await loadData();
+            } catch (error) {
+                console.error("Erro ao excluir embarcação:", error);
+                alert("Erro ao excluir embarcação.");
+            }
         }
     };
 
@@ -299,9 +311,14 @@ export const BoatsView: React.FC = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button onClick={() => openEdit(boat)} className="text-slate-400 hover:text-cyan-600 transition-colors">
-                                            <Edit2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            <button onClick={() => openEdit(boat)} className="text-slate-400 hover:text-cyan-600 transition-colors">
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => handleDeleteBoat(boat.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Excluir Embarcação">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

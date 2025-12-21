@@ -312,6 +312,24 @@ def update_boat(db: Session, boat_id: int, boat_update: schemas.BoatUpdate):
     db.refresh(db_boat)
     return db_boat
 
+def delete_boat(db: Session, boat_id: int):
+    """
+    Deleta uma embarcação e seus motores associados.
+    Args:
+        db (Session): Sessão do banco de dados.
+        boat_id (int): ID da embarcação a ser deletada.
+    Returns:
+        bool: True se deletado com sucesso, False se não encontrado.
+    """
+    db_boat = get_boat(db, boat_id)
+    if not db_boat:
+        return False
+    
+    # Os motores serão deletados automaticamente devido ao cascade
+    db.delete(db_boat)
+    db.commit()
+    return True
+
 # --- PART CRUD ---
 # Funções para operações CRUD na tabela de peças (models.Part).
 
@@ -379,6 +397,23 @@ def update_part(db: Session, part_id: int, part_update: schemas.PartUpdate):
     db.commit()
     db.refresh(db_part)
     return db_part
+
+def delete_part(db: Session, part_id: int):
+    """
+    Deleta uma peça do estoque.
+    Args:
+        db (Session): Sessão do banco de dados.
+        part_id (int): ID da peça a ser deletada.
+    Returns:
+        bool: True se deletado com sucesso, False se não encontrado.
+    """
+    db_part = get_part(db, part_id)
+    if not db_part:
+        return False
+    
+    db.delete(db_part)
+    db.commit()
+    return True
 
 # --- SERVICE ORDER CRUD ---
 # Funções para operações CRUD na tabela de ordens de serviço (models.ServiceOrder).

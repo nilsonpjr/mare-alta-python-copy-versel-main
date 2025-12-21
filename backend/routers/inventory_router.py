@@ -87,6 +87,22 @@ def update_existing_part(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Peça não encontrada")
     return updated_part
 
+@router.delete("/parts/{part_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_existing_part(
+    part_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Deleta uma peça do estoque pelo seu ID.
+    Requer autenticação.
+    Levanta um HTTPException 404 se a peça não for encontrada.
+    """
+    success = crud.delete_part(db, part_id=part_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Peça não encontrada")
+    return None
+
 # --- MOVEMENTS (Movimentações de Estoque) ---
 # Endpoints para gerenciar o histórico de movimentações de estoque.
 

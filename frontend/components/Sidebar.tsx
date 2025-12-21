@@ -1,6 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck } from 'lucide-react';
 import { UserRole, User } from '../types';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface SidebarProps {
   currentView: string;
@@ -122,6 +123,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
               </p>
             </div>
           </div>
+
+          {/* Language Switcher */}
+          <div className="px-4 mb-3">
+            <LanguageSwitcher />
+          </div>
+
           <button
             onClick={onLogout}
             className="w-full flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-red-900/30 hover:border-red-900/50 border border-transparent rounded transition-all"

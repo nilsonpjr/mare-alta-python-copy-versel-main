@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Marina } from '../types';
 import { ApiService } from '../services/api';
-import { Plus, Search, MapPin, Phone, Edit2, Anchor, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Search, MapPin, Phone, Edit2, Anchor, Clock, AlertCircle, Trash2 } from 'lucide-react';
 
 export const MarinasView: React.FC = () => {
   const [marinas, setMarinas] = useState<Marina[]>([]);
@@ -66,6 +66,21 @@ export const MarinasView: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleDelete = async (id: number) => {
+    if (confirm('Tem certeza que deseja excluir esta marina?')) {
+      setLoading(true);
+      try {
+        await ApiService.deleteMarina(id);
+        await loadMarinas();
+      } catch (error) {
+        console.error("Erro ao excluir marina:", error);
+        alert("Erro ao excluir marina.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const filteredMarinas = marinas.filter(m =>
     m.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -115,10 +130,14 @@ export const MarinasView: React.FC = () => {
             filteredMarinas.map(marina => (
               <div key={marina.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-slate-50 relative">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-slate-800 text-lg pr-6">{marina.name}</h3>
-                  <button onClick={() => openEdit(marina)} className="text-slate-400 hover:text-cyan-600 absolute top-4 right-4">
-                    <Edit2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-2 absolute top-4 right-4">
+                    <button onClick={() => openEdit(marina)} className="text-slate-400 hover:text-cyan-600" title="Editar">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(marina.id!)} className="text-slate-400 hover:text-red-600" title="Apagar">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3 text-sm text-slate-600 mt-4">

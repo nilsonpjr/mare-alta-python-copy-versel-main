@@ -545,7 +545,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
         ).slice(0, 50); // Limit results for performance
 
         const selectPart = (part: Part) => {
-            setSelectedPartId(part.id);
+            setSelectedPartId(part.id.toString());
             setPartPrice(part.price);
             setPartCost(part.cost);
             setPartSearch(`${part.name} (${part.sku})`); // Update display text

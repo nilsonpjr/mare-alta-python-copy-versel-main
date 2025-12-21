@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models import Marina
+from models import Marina, Tenant
 
 # Lista Atualizada de Marinas (Paraná)
 MARINAS_DATA = [
@@ -47,35 +47,42 @@ MARINAS_DATA = [
 
 def populate_marinas():
     db = SessionLocal()
-    tenant_id = 1 # Default Tenant
     try:
-        print("Iniciando cadastro das Marinas do Paraná...")
-        count_new = 0
-        count_existing = 0
+        print("Iniciando cadastro das Marinas do Paraná para TODOS os Tenants...")
+        tenants = db.query(Tenant).all()
         
-        for data in MARINAS_DATA:
-            existing = db.query(Marina).filter(
-                Marina.name == data["name"],
-                Marina.tenant_id == tenant_id
-            ).first()
+        if not tenants:
+            print("Nenhum tenant encontrado! Criando tenant default...")
+            default_tenant = Tenant(name="Default Tenant", plan="START")
+            db.add(default_tenant)
+            db.commit()
+            db.refresh(default_tenant)
+            tenants = [default_tenant]
+
+        total_new = 0
+        
+        for tenant in tenants:
+            print(f"Processando Tenant ID: {tenant.id} - {tenant.name}")
+            for data in MARINAS_DATA:
+                existing = db.query(Marina).filter(
+                    Marina.name == data["name"],
+                    Marina.tenant_id == tenant.id
+                ).first()
+                
+                if not existing:
+                    marina = Marina(
+                        tenant_id=tenant.id,
+                        name=data["name"],
+                        address=data.get("address"),
+                        contact_name=data.get("contact_name"),
+                        operating_hours="08:00 - 18:00" # Default
+                    )
+                    db.add(marina)
+                    total_new += 1
             
-            if not existing:
-                marina = Marina(
-                    tenant_id=tenant_id,
-                    name=data["name"],
-                    address=data.get("address"),
-                    contact_name=data.get("contact_name"),
-                    operating_hours="08:00 - 18:00" # Default
-                )
-                db.add(marina)
-                # print(f" [+] Criada: {data['name']}")
-                count_new += 1
-            else:
-                # print(f" [.] Já existe: {data['name']}")
-                count_existing += 1
+            db.commit() # Commit per tenant
         
-        db.commit()
-        print(f"\nConcluído! {count_new} novas marinas cadastradas. {count_existing} já existiam.")
+        print(f"\nConcluído! {total_new} novas marinas cadastradas no total.")
             
     except Exception as e:
         print(f"Erro: {e}")

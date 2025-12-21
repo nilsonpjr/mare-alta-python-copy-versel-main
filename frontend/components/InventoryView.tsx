@@ -3,7 +3,7 @@ import { Part, Invoice, InvoiceItem, StockMovement } from '../types';
 // import { StorageService } from '../services/storage';
 import {
     Plus, Search, AlertTriangle, ShoppingCart, UploadCloud, FileText,
-    Barcode, CheckCircle, Package, History, ArrowRight, Printer, Camera, X, RefreshCw
+    Barcode, CheckCircle, Package, History, ArrowRight, Printer, Camera, X, RefreshCw, Trash2
 } from 'lucide-react';
 import { ApiService } from '../services/api';
 
@@ -390,6 +390,18 @@ export const InventoryView: React.FC = () => {
         }
     };
 
+    const handleDeletePart = async (id: number) => {
+        if (confirm('Tem certeza que deseja excluir esta peça? O histórico de movimentações será mantido.')) {
+            try {
+                await ApiService.deletePart(id);
+                await loadData();
+            } catch (error) {
+                console.error("Erro ao excluir peça:", error);
+                alert("Erro ao excluir peça.");
+            }
+        }
+    };
+
     // --- UPDATE PRICES FROM MERCURY API ---
     const handleUpdatePricesFromMercury = async () => {
         if (!window.confirm(`Atualizar preços de peças Mercury consultando a API?\n\nIsso pode levar alguns minutos...`)) {
@@ -575,12 +587,21 @@ export const InventoryView: React.FC = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <button
-                                                    onClick={() => handleEditPart(part)}
-                                                    className="text-blue-600 hover:text-blue-800 font-medium text-xs"
-                                                >
-                                                    Editar
-                                                </button>
+                                                <div className="flex justify-center gap-2">
+                                                    <button
+                                                        onClick={() => handleEditPart(part)}
+                                                        className="text-blue-600 hover:text-blue-800 font-medium text-xs"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeletePart(part.id)}
+                                                        className="text-slate-400 hover:text-red-600 transition-colors"
+                                                        title="Apagar"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

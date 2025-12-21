@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { INITIAL_MAINTENANCE_KITS } from '../data/maintenance_kits';
 import { MaintenanceKit, calculateKitTotal } from '../types/maintenance';
-import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle, Plus, Save } from 'lucide-react';
+import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle, Plus, Save, Trash2 } from 'lucide-react';
 
 import { StorageService } from '../services/storage';
 import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType, ApiMaintenanceKit } from '../types';
@@ -186,8 +186,27 @@ export const MaintenanceBudgetView: React.FC = () => {
         }
     };
 
-    const handleRemoveItem = (originalId: number) => {
+    const handleDeleteKit = async () => {
+        if (!selectedKit || !selectedKit.id || selectedKit.id === 'custom') return;
 
+        if (confirm(`Tem certeza que deseja excluir o modelo "${selectedKit.description}"?`)) {
+            try {
+                // Assuming id is numeric string for API kits
+                await ApiService.deleteMaintenanceKit(Number(selectedKit.id));
+                alert('Modelo excluído com sucesso!');
+                loadData();
+                // Reset selection
+                setSelectedBrand('');
+                setSelectedModel('');
+                setSelectedInterval(null);
+            } catch (error) {
+                console.error("Erro ao excluir modelo:", error);
+                alert("Erro ao excluir modelo.");
+            }
+        }
+    };
+
+    const handleRemoveItem = (originalId: number) => {
         setCustomItems(prev => prev.filter(i => i.id !== originalId));
     };
 
@@ -628,6 +647,15 @@ export const MaintenanceBudgetView: React.FC = () => {
                                         >
                                             <Save className="w-4 h-4" />
                                             Salvar Modelo
+                                        </button>
+                                    )}
+                                    {!isCustomMode && selectedKit && selectedKit.id !== 'custom' && (
+                                        <button
+                                            onClick={handleDeleteKit}
+                                            className="flex items-center gap-2 px-4 py-2 text-red-600 border border-red-200 hover:bg-red-50 rounded-lg font-medium transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Apagar Modelo
                                         </button>
                                     )}
                                     <button

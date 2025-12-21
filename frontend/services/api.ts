@@ -205,6 +205,14 @@ export const ApiService = {
     },
 
     /**
+     * Deleta uma peça.
+     * @param id O ID da peça a ser deletada.
+     */
+    deletePart: async (id: number) => {
+        await api.delete(`/inventory/parts/${id}`);
+    },
+
+    /**
      * Obtém o histórico de movimentações de estoque.
      * @param partId Opcional: filtra as movimentações por ID da peça.
      * @returns Uma lista de movimentações de estoque.
@@ -304,6 +312,14 @@ export const ApiService = {
     updateBoat: async (id: number, boat: BoatUpdate) => {
         const response = await api.put<Boat>(`/boats/${id}`, boat);
         return response.data;
+    },
+
+    /**
+     * Deleta uma embarcação.
+     * @param id O ID da embarcação a ser deletada.
+     */
+    deleteBoat: async (id: string) => {
+        await api.delete(`/boats/${id}`);
     },
 
     // --- FISCAL ---

@@ -74,3 +74,19 @@ def update_existing_boat(
         # Se a função CRUD retornar None, a embarcação não foi encontrada.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Embarcação não encontrada")
     return db_boat
+
+@router.delete("/{boat_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_existing_boat(
+    boat_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Deleta uma embarcação existente pelo seu ID.
+    Requer autenticação.
+    Levanta um HTTPException 404 se a embarcação não for encontrada.
+    """
+    success = crud.delete_boat(db, boat_id=boat_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Embarcação não encontrada")
+    return None

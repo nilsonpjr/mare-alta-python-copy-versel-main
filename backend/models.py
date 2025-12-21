@@ -48,15 +48,76 @@ class MovementType(str, enum.Enum):
     Enum para os tipos de movimentos que podem ocorrer no estoque de peças.
     IN_INVOICE: Entrada por nota fiscal.
     OUT_OS: Saída por ordem de serviço.
-    ADJUSTMENT_PLUS: Ajuste positivo (adição).
-    ADJUSTMENT_MINUS: Ajuste negativo (remoção).
-    RETURN_OS: Retorno de peça de OS.
+    ADJUSTMENT_PLUS: Ajuste positivo de inventário.
+    ADJUSTMENT_MINUS: Ajuste negativo de inventário.
+    RETURN_OS: Devolução de uma ordem de serviço (reabertura).
     """
     IN_INVOICE = "IN_INVOICE"
     OUT_OS = "OUT_OS"
     ADJUSTMENT_PLUS = "ADJUSTMENT_PLUS"
     ADJUSTMENT_MINUS = "ADJUSTMENT_MINUS"
     RETURN_OS = "RETURN_OS"
+
+class InvoiceType(str, enum.Enum):
+    """
+    Enum para tipos de nota fiscal.
+    NFE: Nota Fiscal Eletrônica (produtos/peças)
+    NFSE: Nota Fiscal de Serviços Eletrônica
+    """
+    NFE = "NFE"
+    NFSE = "NFSE"
+
+class InvoiceStatus(str, enum.Enum):
+    """
+    Enum para status de emissão de nota fiscal.
+    """
+    DRAFT = "Rascunho"
+    PROCESSING = "Processando"
+    AUTHORIZED = "Autorizada"
+    CANCELED = "Cancelada"
+    REJECTED = "Rejeitada"
+    ERROR = "Erro"
+
+class PartnerType(str, enum.Enum):
+    """
+    Enum para tipos de parceiros.
+    """
+    ELECTRICIAN = "Eletricista"
+    UPHOLSTERER = "Capoteiro"
+    PAINTER = "Pintor"
+    MECHANIC = "Mecânico"
+    REFRIGERATION = "Refrigeração"
+    ELECTRONICS = "Eletrônica"
+    FIBERGLASS = "Fibra de Vidro"
+    OTHER = "Outro"
+
+class InspectionStatus(str, enum.Enum):
+    """
+    Enum para status de inspeção técnica.
+    """
+    SCHEDULED = "Agendada"
+    IN_PROGRESS = "Em Andamento"
+    COMPLETED = "Concluída"
+    CANCELED = "Cancelada"
+
+class ChecklistItemSeverity(str, enum.Enum):
+    """
+    Enum para severidade de item de checklist.
+    """
+    OK = "OK"
+    ATTENTION = "Atenção"
+    URGENT = "Urgente"
+    CRITICAL = "Crítico"
+
+class QuoteStatus(str, enum.Enum):
+    """
+    Enum para status de orçamento de parceiro.
+    """
+    REQUESTED = "Solicitado"
+    RECEIVED = "Recebido"
+    APPROVED = "Aprovado"
+    REJECTED = "Rejeitado"
+    COMPLETED = "Concluído"
 
 # --- MODELS ---
 # Cada classe abaixo representa uma tabela no banco de dados.
