@@ -504,5 +504,47 @@ export const ApiService = {
 
     deleteMaintenanceKit: async (id: number) => {
         await api.delete(`/config/maintenance-kits/${id}`);
+    },
+
+    // === Partners (Parceiros - Fase 3) ===
+
+    /**
+     * Obtém todos os parceiros.
+     */
+    getPartners: async (activeOnly: boolean = false) => {
+        const params = activeOnly ? '?active_only=true' : '';
+        const response = await api.get(`/partners${params}`);
+        return response.data;
+    },
+
+    /**
+     * Cria um novo parceiro.
+     */
+    createPartner: async (partner: any) => {
+        const response = await api.post('/partners', partner);
+        return response.data;
+    },
+
+    /**
+     * Atualiza um parceiro.
+     */
+    updatePartner: async (id: number, partner: any) => {
+        const response = await api.put(`/partners/${id}`, partner);
+        return response.data;
+    },
+
+    /**
+     * Deleta um parceiro.
+     */
+    deletePartner: async (id: number) => {
+        await api.delete(`/partners/${id}`);
+    },
+
+    /**
+     * Avalia um parceiro (0-5 estrelas).
+     */
+    ratePartner: async (id: number, rating: number) => {
+        const response = await api.put(`/partners/${id}/rate?rating=${rating}`);
+        return response.data;
     }
 };

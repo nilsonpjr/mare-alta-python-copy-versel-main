@@ -32,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'inventory', label: 'Estoque', icon: Package },
       { id: 'finance', label: 'Financeiro', icon: DollarSign },
       { id: 'users', label: 'Usuários', icon: Users },
+      { id: 'partners', label: 'Parceiros', icon: Users },
       { id: 'settings', label: 'Configurações', icon: Settings },
     ];
   } else if (role === UserRole.TECHNICIAN) {
