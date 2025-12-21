@@ -143,6 +143,11 @@ if os.path.exists(frontend_dist):
             return FileResponse(file_path)
         
         print(f"DEBUG: Asset not found: {file_path}")
+        if os.path.exists(assets_path):
+             print(f"DEBUG: Available assets: {os.listdir(assets_path)}")
+        else:
+             print(f"DEBUG: Assets folder not found at {assets_path}")
+
         return JSONResponse(status_code=404, content={"message": "Arquivo não encontrado"})
 
     # Mantemos o mount como fallback ou para outros arquivos estáticos se houver
@@ -160,7 +165,13 @@ if os.path.exists(frontend_dist):
         # Para qualquer outra rota, tenta servir o 'index.html' do frontend.
         index_path = os.path.join(frontend_dist, "index.html")
         if os.path.exists(index_path):
-            return FileResponse(index_path)
+            response = FileResponse(index_path)
+            # Desabilita cache para o index.html para garantir que o cliente sempre receba a versão mais recente
+            # o que evita problemas com hashes antigos de assets.
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+            return response
         # Se 'index.html' não for encontrado, significa que o frontend não foi construído.
         return {"message": "Frontend não foi construído (dist/index.html não encontrado)."}
 else:
