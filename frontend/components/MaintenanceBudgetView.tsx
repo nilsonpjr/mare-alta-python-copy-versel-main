@@ -68,7 +68,7 @@ export const MaintenanceBudgetView: React.FC = () => {
         }
     };
 
-    const allKits = [...INITIAL_MAINTENANCE_KITS, ...savedKits];
+    const allKits = savedKits;
 
     // Filter Logic
     const availableBrands = Array.from(new Set(allKits.map(k => k.brand)));

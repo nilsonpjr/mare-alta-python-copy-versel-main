@@ -105,14 +105,14 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
             setBoats(boatsData);
             setParts(partsData);
             setClients(clientsData);
-            
+
             // Mock Services Catalog (Backend integration pending)
             setServicesCatalog([
-                 { id: '1', name: 'Mão de Obra Mecânica', category: 'Serviço', defaultPrice: 250 },
-                 { id: '2', name: 'Mão de Obra Elétrica', category: 'Serviço', defaultPrice: 280 },
-                 { id: '3', name: 'Lavagem Completa', category: 'Serviço', defaultPrice: 150 },
-                 { id: '4', name: 'Polimento', category: 'Serviço', defaultPrice: 800 },
-                 { id: '5', name: 'Diagnóstico Computadorizado', category: 'Serviço', defaultPrice: 350 }
+                { id: '1', name: 'Mão de Obra Mecânica', category: 'Serviço', defaultPrice: 250 },
+                { id: '2', name: 'Mão de Obra Elétrica', category: 'Serviço', defaultPrice: 280 },
+                { id: '3', name: 'Lavagem Completa', category: 'Serviço', defaultPrice: 150 },
+                { id: '4', name: 'Polimento', category: 'Serviço', defaultPrice: 800 },
+                { id: '5', name: 'Diagnóstico Computadorizado', category: 'Serviço', defaultPrice: 350 }
             ]);
             setMarinas([]); // Backend doesn't support marinas listing yet
         } catch (error) {
@@ -126,7 +126,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
         try {
             // Optimistic update
             setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-            
+
             // Persist to Backend (Only supported fields)
             // Note: Checklist, TimeLogs, Attachments are not yet supported by Backend schema
             await ApiService.updateOrder(parseInt(updatedOrder.id), {
@@ -145,11 +145,11 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
         try {
             if (newStatus === OSStatus.COMPLETED) {
                 if (!window.confirm("CONFIRMAÇÃO DE BAIXA:\n\n1. O estoque dos itens utilizados será baixado.\n2. A receita será lançada no financeiro.\n3. A OS será bloqueada para edição.\n\nDeseja concluir o serviço?")) return;
-                
+
                 await ApiService.completeOrder(parseInt(id));
                 alert("Ordem concluída com sucesso!");
                 refreshData();
-                setSelectedOrder(prev => prev ? ({...prev, status: OSStatus.COMPLETED}) : null);
+                setSelectedOrder(prev => prev ? ({ ...prev, status: OSStatus.COMPLETED }) : null);
             } else if (newStatus === OSStatus.CANCELED) {
                 if (!window.confirm("Deseja cancelar esta ordem?")) return;
                 await ApiService.updateOrder(parseInt(id), { status: OSStatus.CANCELED });
@@ -159,7 +159,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
                 refreshData();
                 // Update local selected order status immediately for UI responsiveness
                 if (selectedOrder && selectedOrder.id === id) {
-                    setSelectedOrder({...selectedOrder, status: newStatus});
+                    setSelectedOrder({ ...selectedOrder, status: newStatus });
                 }
             }
         } catch (error) {
@@ -187,9 +187,9 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
             await refreshData();
             setIsCreating(false);
             // Optionally auto-select:
-             const freshOrders = await ApiService.getOrders();
-             const created = freshOrders.find((o: ServiceOrder) => o.id.toString() === newOrder.id.toString()); // flexible compare
-             if (created) setSelectedOrder(created);
+            const freshOrders = await ApiService.getOrders();
+            const created = freshOrders.find((o: ServiceOrder) => o.id.toString() === newOrder.id.toString()); // flexible compare
+            if (created) setSelectedOrder(created);
 
         } catch (error) {
             console.error("Erro ao criar OS:", error);
@@ -342,7 +342,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
                 unitPrice: partPrice,
                 total: partQty * partPrice
             });
-            
+
             // Reload order to reflect items
             const updated = await ApiService.getOrder(parseInt(selectedOrder.id));
             setSelectedOrder(updated);
@@ -353,7 +353,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
             setPartPrice(0);
             setPartCost(0);
             setPartSearch('');
-            
+
         } catch (error) {
             console.error("Erro ao adicionar peça:", error);
             alert("Não foi possível adicionar o item.");
@@ -383,16 +383,16 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
                 total: servicePrice
             });
 
-             // Reload order to reflect items
-             const updated = await ApiService.getOrder(parseInt(selectedOrder.id));
-             setSelectedOrder(updated);
-             
-             setSelectedServiceId('');
-             setServicePrice(0);
+            // Reload order to reflect items
+            const updated = await ApiService.getOrder(parseInt(selectedOrder.id));
+            setSelectedOrder(updated);
+
+            setSelectedServiceId('');
+            setServicePrice(0);
 
         } catch (error) {
-             console.error("Erro ao adicionar serviço:", error);
-             alert("Não foi possível adicionar o serviço.");
+            console.error("Erro ao adicionar serviço:", error);
+            alert("Não foi possível adicionar o serviço.");
         }
     };
 
@@ -404,8 +404,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
     };
 
     const handleSaveItem = () => {
-       alert("Edição de serviço/item não suportada pelo backend no momento.");
-       setEditingItemId(null);
+        alert("Edição de serviço/item não suportada pelo backend no momento.");
+        setEditingItemId(null);
     };
 
     const handleCancelEdit = () => {
@@ -420,7 +420,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
         const boat = boats.find(b => b.id === order.boatId);
         const client = clients.find(c => c.id === boat?.clientId);
         const matchesText =
-            order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            String(order.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
             boat?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.description.toLowerCase().includes(searchTerm.toLowerCase());
