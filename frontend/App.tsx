@@ -17,6 +17,7 @@ import { UsersView } from './components/UsersView';
 import { MaintenanceBudgetView } from './components/MaintenanceBudgetView';
 import { WarrantyLookupView } from './components/WarrantyLookupView';
 import { PartnersView } from './components/PartnersView';
+import { InspectionView } from './components/InspectionView';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { UserRole, User } from './types';
 import { Menu, Anchor } from 'lucide-react';
@@ -101,6 +102,8 @@ function App() {
         return <WarrantyLookupView />;
       case 'partners':
         return <PartnersView />;
+      case 'inspection':
+        return <InspectionView />;
       default:
         return <Dashboard setView={handleSetView} />;
     }

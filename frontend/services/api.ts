@@ -579,5 +579,40 @@ export const ApiService = {
     ratePartner: async (id: number, rating: number) => {
         const response = await api.put(`/partners/${id}/rate?rating=${rating}`);
         return response.data;
+    },
+
+    // === Inspections (Inspeções Técnicas) ===
+
+    /**
+     * Obtém todas as inspeções.
+     */
+    getInspections: async (boatId?: number) => {
+        const params = boatId ? `?boat_id=${boatId}` : '';
+        const response = await api.get(`/partners/inspections${params}`);
+        return response.data;
+    },
+
+    /**
+     * Cria uma nova inspeção.
+     */
+    createInspection: async (inspection: any) => {
+        const response = await api.post('/partners/inspections', inspection);
+        return response.data;
+    },
+
+    /**
+     * Atualiza uma inspeção.
+     */
+    updateInspection: async (id: number, inspection: any) => {
+        const response = await api.put(`/partners/inspections/${id}`, inspection);
+        return response.data;
+    },
+
+    /**
+     * Adiciona item ao checklist de uma inspeção.
+     */
+    addChecklistItem: async (inspectionId: number, item: any) => {
+        const response = await api.post(`/partners/inspections/${inspectionId}/checklist`, item);
+        return response.data;
     }
 };

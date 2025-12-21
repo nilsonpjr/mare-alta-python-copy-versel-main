@@ -49,6 +49,17 @@ class UserCreate(UserBase):
     """
     password: str # Senha do usuário (texto puro, será hashed antes de salvar).
 
+class UserUpdate(CamelModel):
+    """
+    Schema para atualização de um usuário.
+    Todos os campos são opcionais.
+    """
+    name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[UserRole] = None
+    client_id: Optional[int] = None
+
 class User(UserBase):
     """
     Schema para representação completa de um usuário (para leitura/resposta da API).

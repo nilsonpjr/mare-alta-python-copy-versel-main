@@ -39,6 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
     menuItems = [
       { id: 'tech-orders', label: 'Meus Serviços', icon: ClipboardList },
       { id: 'schedule', label: 'Minha Agenda', icon: Calendar },
+      { id: 'inspection', label: 'Inspeção Técnica', icon: ClipboardList },
     ];
   } else {
     // Client
