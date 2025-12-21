@@ -167,29 +167,51 @@ def delete_client(db: Session, client_id: int):
 # --- MARINA CRUD ---
 # Funções para operações CRUD na tabela de marinas (models.Marina).
 
-def get_marinas(db: Session):
+def get_marinas(db: Session, tenant_id: int):
     """
-    Retorna uma lista de todas as marinas.
+    Retorna uma lista de todas as marinas de um tenant.
     Args:
         db (Session): Sessão do banco de dados.
+        tenant_id (int): ID do tenant.
     Returns:
         List[models.Marina]: Lista de objetos marina.
     """
-    return db.query(models.Marina).all()
+    return db.query(models.Marina).filter(models.Marina.tenant_id == tenant_id).all()
 
-def create_marina(db: Session, marina: schemas.MarinaCreate):
+def create_marina(db: Session, marina: schemas.MarinaCreate, tenant_id: int):
     """
     Cria uma nova marina no banco de dados.
     Args:
         db (Session): Sessão do banco de dados.
         marina (schemas.MarinaCreate): Dados da marina para criação.
+        tenant_id (int): ID do tenant.
     Returns:
         models.Marina: O objeto marina recém-criada.
     """
-    db_marina = models.Marina(**marina.model_dump())
+    db_marina = models.Marina(**marina.model_dump(), tenant_id=tenant_id)
     db.add(db_marina)
     db.commit()
     db.refresh(db_marina)
+    return db_marina
+
+def update_marina(db: Session, marina_id: int, marina_update: schemas.MarinaCreate):
+    db_marina = db.query(models.Marina).filter(models.Marina.id == marina_id).first()
+    if not db_marina:
+        return None
+    
+    update_data = marina_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_marina, key, value)
+    
+    db.commit()
+    db.refresh(db_marina)
+    return db_marina
+
+def delete_marina(db: Session, marina_id: int):
+    db_marina = db.query(models.Marina).filter(models.Marina.id == marina_id).first()
+    if db_marina:
+        db.delete(db_marina)
+        db.commit()
     return db_marina
 
 # --- BOAT CRUD ---
@@ -713,3 +735,44 @@ def update_company_info(db: Session, info: schemas.CompanyInfoCreate, tenant_id:
     db.commit()
     db.refresh(db_info)
     return db_info
+
+# --- MAINTENANCE KIT CRUD ---
+
+def get_maintenance_kits(db: Session, tenant_id: int):
+    """
+    Retorna a lista de kits de manutenção do tenant.
+    """
+    return db.query(models.MaintenanceKit).filter(models.MaintenanceKit.tenant_id == tenant_id).options(
+        joinedload(models.MaintenanceKit.items)
+    ).all()
+
+def create_maintenance_kit(db: Session, kit: schemas.MaintenanceKitCreate, tenant_id: int):
+    """
+    Cria um novo kit de manutenção e seus itens.
+    """
+    kit_data = kit.model_dump()
+    items_data = kit_data.pop("items", [])
+    
+    db_kit = models.MaintenanceKit(**kit_data, tenant_id=tenant_id)
+    db.add(db_kit)
+    db.commit()
+    db.refresh(db_kit)
+    
+    for item_data in items_data:
+        db_item = models.MaintenanceKitItem(**item_data, kit_id=db_kit.id)
+        db.add(db_item)
+        
+    db.commit()
+    db.refresh(db_kit)
+    return db_kit
+
+def delete_maintenance_kit(db: Session, kit_id: int):
+    """
+    Remove um kit de manutenção.
+    """
+    db_kit = db.query(models.MaintenanceKit).filter(models.MaintenanceKit.id == kit_id).first()
+    if db_kit:
+        db.delete(db_kit)
+        db.commit()
+    return db_kit
+

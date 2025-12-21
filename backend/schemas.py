@@ -496,3 +496,44 @@ class CompanyInfo(CompanyInfoBase):
     """
     id: int # ID único.
 
+
+# --- MAINTENANCE KIT SCHEMAS ---
+
+class MaintenanceKitItemBase(CamelModel):
+    type: ItemType
+    part_id: Optional[int] = None
+    item_description: str
+    quantity: float = 1
+    unit_price: float = 0
+
+class MaintenanceKitItemCreate(MaintenanceKitItemBase):
+    pass
+
+class MaintenanceKitItem(MaintenanceKitItemBase):
+    id: int
+    kit_id: int
+
+class MaintenanceKitBase(CamelModel):
+    name: str
+    brand: Optional[str] = None
+    engine_model: Optional[str] = None
+    interval_hours: Optional[int] = None
+    description: Optional[str] = None
+
+class MaintenanceKitCreate(MaintenanceKitBase):
+    items: List[MaintenanceKitItemCreate] = []
+
+class MaintenanceKitUpdate(CamelModel):
+    name: Optional[str] = None
+    brand: Optional[str] = None
+    engine_model: Optional[str] = None
+    interval_hours: Optional[int] = None
+    description: Optional[str] = None
+    items: Optional[List[MaintenanceKitItemCreate]] = None
+
+class MaintenanceKit(MaintenanceKitBase):
+    id: int
+    created_at: datetime
+    items: List[MaintenanceKitItem] = []
+
+

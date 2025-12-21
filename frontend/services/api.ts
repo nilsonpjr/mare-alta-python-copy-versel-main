@@ -5,7 +5,8 @@ import {
     PartCreate, PartUpdate, StockMovementCreate,
     TransactionCreate, Transaction,
     Manufacturer, Model, CompanyInfo,
-    BoatCreate, BoatUpdate, TenantSignup, ClientCreate, ClientUpdate
+    BoatCreate, BoatUpdate, TenantSignup, ClientCreate, ClientUpdate,
+    ApiMaintenanceKit, ApiMaintenanceKitCreate, MarinaCreate
 } from '../types';
 
 /**
@@ -453,4 +454,39 @@ export const ApiService = {
         const response = await api.put<CompanyInfo>('/config/company', info);
         return response.data;
     },
+
+    // --- MAINTENANCE KITS ---
+    getMaintenanceKits: async () => {
+        const response = await api.get<ApiMaintenanceKit[]>('/config/maintenance-kits');
+        return response.data;
+    },
+
+    createMaintenanceKit: async (kit: ApiMaintenanceKitCreate) => {
+        const response = await api.post<ApiMaintenanceKit>('/config/maintenance-kits', kit);
+        return response.data;
+    },
+
+    // --- MARINAS ---
+    getMarinas: async () => {
+        const response = await api.get<Marina[]>('/config/marinas');
+        return response.data;
+    },
+
+    createMarina: async (marina: MarinaCreate) => {
+        const response = await api.post<Marina>('/config/marinas', marina);
+        return response.data;
+    },
+
+    updateMarina: async (id: number, marina: MarinaCreate) => {
+        const response = await api.put<Marina>(`/config/marinas/${id}`, marina);
+        return response.data;
+    },
+
+    deleteMarina: async (id: number) => {
+        await api.delete(`/config/marinas/${id}`);
+    },
+
+    deleteMaintenanceKit: async (id: number) => {
+        await api.delete(`/config/maintenance-kits/${id}`);
+    }
 };

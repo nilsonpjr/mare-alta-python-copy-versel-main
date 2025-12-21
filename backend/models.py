@@ -368,6 +368,41 @@ class CompanyInfo(Base):
     environment = Column(String(20)) # Ambiente de operação (production ou homologation)
 
     # Integrações
-    mercury_username = Column(String(100))
     mercury_password = Column(String(100))
+
+
+class MaintenanceKit(Base):
+    """
+    Modelo para a tabela 'maintenance_kits'. Armazena modelos/templates de orçamento de manutenção.
+    """
+    __tablename__ = "maintenance_kits"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False, index=True)
+    name = Column(String(200), nullable=False) # Nome do Kit (ex: "Revisão 100h Yamaha")
+    brand = Column(String(100)) # Fabricante (ex: Mercury, Yamaha)
+    engine_model = Column(String(100)) # Modelo do Motor
+    interval_hours = Column(Integer, nullable=True) # Intervalo em horas
+    description = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    items = relationship("MaintenanceKitItem", back_populates="kit", cascade="all, delete-orphan")
+
+
+class MaintenanceKitItem(Base):
+    """
+    Modelo para a tabela 'maintenance_kit_items'. Itens que compõem um kit de manutenção.
+    """
+    __tablename__ = "maintenance_kit_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    kit_id = Column(Integer, ForeignKey("maintenance_kits.id"), nullable=False)
+    type = Column(Enum(ItemType), nullable=False) # PART ou LABOR
+    part_id = Column(Integer, ForeignKey("parts.id"), nullable=True) # Opcional: link com peça real
+    item_description = Column(String(200), nullable=False) # Descrição do item (nome da peça ou serviço)
+    quantity = Column(Float, default=1)
+    unit_price = Column(Float, default=0)
+    
+    kit = relationship("MaintenanceKit", back_populates="items")
+
 

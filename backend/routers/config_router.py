@@ -130,3 +130,94 @@ def update_company_information(
     except Exception as e:
         print(f"ERROR in update_company_information: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro interno: {str(e)}")
+
+# --- MAINTENANCE KITS ---
+
+@router.get("/maintenance-kits", response_model=List[schemas.MaintenanceKit])
+def get_maintenance_kits(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Retorna todos os kits de manutenção cadastrados.
+    """
+    return crud.get_maintenance_kits(db, tenant_id=current_user.tenant_id)
+
+@router.post("/maintenance-kits", response_model=schemas.MaintenanceKit)
+def create_maintenance_kit(
+    kit: schemas.MaintenanceKitCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Cria um novo kit de manutenção.
+    """
+    return crud.create_maintenance_kit(db, kit, tenant_id=current_user.tenant_id)
+
+@router.delete("/maintenance-kits/{id}")
+def delete_maintenance_kit(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Remove um kit de manutenção.
+    """
+    result = crud.delete_maintenance_kit(db, id)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kit não encontrado")
+    return {"status": "success", "message": "Kit deletado com sucesso"}
+
+# --- MARINAS ---
+# Endpoints para gerenciamento de marinas.
+
+@router.get("/marinas", response_model=List[schemas.Marina])
+def get_all_marinas(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Retorna a lista de marinas cadastradas.
+    """
+    return crud.get_marinas(db, tenant_id=current_user.tenant_id)
+
+@router.post("/marinas", response_model=schemas.Marina)
+def create_new_marina(
+    marina: schemas.MarinaCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Cadastra uma nova marina.
+    """
+    return crud.create_marina(db, marina, tenant_id=current_user.tenant_id)
+
+@router.put("/marinas/{id}", response_model=schemas.Marina)
+def update_existing_marina(
+    id: int,
+    marina: schemas.MarinaCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Atualiza uma marina existente.
+    """
+    db_marina = crud.update_marina(db, marina_id=id, marina_update=marina)
+    if not db_marina:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Marina não encontrada")
+    return db_marina
+
+@router.delete("/marinas/{id}")
+def delete_existing_marina(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Remove uma marina.
+    """
+    result = crud.delete_marina(db, marina_id=id)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Marina não encontrada")
+    return {"status": "success", "message": "Marina deletada com sucesso"}
+

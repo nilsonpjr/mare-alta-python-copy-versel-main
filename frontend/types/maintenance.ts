@@ -14,7 +14,7 @@ export interface MaintenanceService {
 
 export interface MaintenanceKit {
     id: string;
-    brand: 'Mercury' | 'Yamaha' | 'Volvo Penta' | 'Mercruiser';
+    brand: 'Mercury' | 'Yamaha' | 'Volvo Penta' | 'Mercruiser' | 'Mercury Racing';
     engineModel: string; // ex: "Verado 300 V8", "Yamaha F150"
     intervalHours: number; // 50, 100, 200, 300...
     description: string; // ex: "Revisão de 100 Horas / Anual"

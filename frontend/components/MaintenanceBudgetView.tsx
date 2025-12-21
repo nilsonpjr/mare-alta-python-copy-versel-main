@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { INITIAL_MAINTENANCE_KITS } from '../data/maintenance_kits';
 import { MaintenanceKit, calculateKitTotal } from '../types/maintenance';
-import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle, Plus } from 'lucide-react';
+import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle, Plus, Save } from 'lucide-react';
 
 import { StorageService } from '../services/storage';
-import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType } from '../types';
+import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType, ApiMaintenanceKit } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -17,9 +17,12 @@ export const MaintenanceBudgetView: React.FC = () => {
 
     // Data State
     const [boats, setBoats] = useState<Boat[]>([]);
+    const [savedKits, setSavedKits] = useState<MaintenanceKit[]>([]);
 
     // Modal State
     const [isPreOrderModalOpen, setIsPreOrderModalOpen] = useState(false);
+    const [isSaveKitModalOpen, setIsSaveKitModalOpen] = useState(false);
+    const [newKitName, setNewKitName] = useState('');
     const [selectedBoatId, setSelectedBoatId] = useState('');
 
     // State management updated to use real data
@@ -29,48 +32,88 @@ export const MaintenanceBudgetView: React.FC = () => {
         loadData();
     }, []);
 
+    const transformApiKitToFrontend = (apiKit: ApiMaintenanceKit): MaintenanceKit => {
+        return {
+            id: apiKit.id.toString(),
+            brand: (apiKit.brand as any) || 'Genérico',
+            engineModel: apiKit.engineModel || 'Custom',
+            intervalHours: apiKit.intervalHours || 0,
+            description: apiKit.description || apiKit.name,
+            parts: apiKit.items.filter(i => i.type === ItemType.PART).map(i => ({
+                partNumber: 'N/A',
+                name: i.itemDescription,
+                quantity: i.quantity,
+                unitPrice: i.unitPrice
+            })),
+            labor: apiKit.items.filter(i => i.type === ItemType.LABOR).map(i => ({
+                description: i.itemDescription,
+                hours: i.quantity,
+                hourlyRate: i.unitPrice
+            }))
+        };
+    };
+
     const loadData = async () => {
         try {
-            const [boatsData, partsData] = await Promise.all([
+            const [boatsData, partsData, kitsData] = await Promise.all([
                 ApiService.getBoats(),
-                ApiService.getParts()
+                ApiService.getParts(),
+                ApiService.getMaintenanceKits()
             ]);
             setBoats(boatsData);
             setPartsInventory(partsData);
+            setSavedKits(kitsData.map(transformApiKitToFrontend));
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
         }
     };
 
-    // Filter Logic... (Keep existing logic for now but ideally should come from backend too)
-    const availableBrands = Array.from(new Set(INITIAL_MAINTENANCE_KITS.map(k => k.brand)));
+    const allKits = [...INITIAL_MAINTENANCE_KITS, ...savedKits];
+
+    // Filter Logic
+    const availableBrands = Array.from(new Set(allKits.map(k => k.brand)));
 
     const availableModels = selectedBrand
-        ? Array.from(new Set(INITIAL_MAINTENANCE_KITS
+        ? Array.from(new Set(allKits
             .filter(k => k.brand === selectedBrand)
             .map(k => k.engineModel)))
         : [];
 
     const availableIntervals = selectedBrand && selectedModel
-        ? INITIAL_MAINTENANCE_KITS
+        ? allKits
             .filter(k => k.brand === selectedBrand && k.engineModel === selectedModel)
             .map(k => k.intervalHours)
             .sort((a, b) => a - b)
         : [];
 
+
+
     const [customItems, setCustomItems] = useState<ServiceItem[]>([]);
+    const [isCustomMode, setIsCustomMode] = useState(false);
 
     // Reset custom items when selection changes
     useEffect(() => {
-        setCustomItems([]);
-    }, [selectedBrand, selectedModel, selectedInterval]);
+        if (!isCustomMode) {
+            setCustomItems([]);
+        }
+    }, [selectedBrand, selectedModel, selectedInterval, isCustomMode]);
 
-    const selectedKitBase = selectedBrand && selectedModel && selectedInterval
-        ? INITIAL_MAINTENANCE_KITS.find(k =>
-            k.brand === selectedBrand &&
-            k.engineModel === selectedModel &&
-            k.intervalHours === selectedInterval)
-        : null;
+    const selectedKitBase = isCustomMode
+        ? {
+            id: 'custom',
+            brand: selectedBrand || 'Personalizado',
+            engineModel: selectedModel || 'Manual',
+            intervalHours: 0,
+            description: 'Orçamento Personalizado (Itens avulsos do estoque)',
+            parts: [],
+            labor: []
+        }
+        : (selectedBrand && selectedModel && selectedInterval
+            ? allKits.find(k =>
+                k.brand === selectedBrand &&
+                k.engineModel === selectedModel &&
+                k.intervalHours === selectedInterval)
+            : null);
 
     // Helper to merge base kit with custom items
     const getFullBudget = () => {
@@ -81,7 +124,7 @@ export const MaintenanceBudgetView: React.FC = () => {
         return {
             ...selectedKitBase,
             parts: [
-                ...selectedKitBase.parts.map(p => ({ ...p, isCustom: false })),
+                ...selectedKitBase.parts.map((p: any) => ({ ...p, isCustom: false })),
                 ...customItems.filter(i => i.type === ItemType.PART).map(i => ({
                     partNumber: i.description.split('(PN: ')[1]?.replace(')', '') || 'N/A',
                     name: i.description.split(' (PN:')[0],
@@ -104,7 +147,47 @@ export const MaintenanceBudgetView: React.FC = () => {
 
     const selectedKit = getFullBudget();
 
+    const handleSaveKit = async () => {
+        if (!newKitName) return alert("Nome é obrigatório");
+        if (!selectedKit) return;
+
+        try {
+            const items = [
+                ...selectedKit.parts.map(p => ({
+                    type: ItemType.PART,
+                    itemDescription: p.name,
+                    quantity: p.quantity,
+                    unitPrice: p.unitPrice
+                })),
+                ...selectedKit.labor.map(serv => ({
+                    type: ItemType.LABOR,
+                    itemDescription: serv.description,
+                    quantity: serv.hours,
+                    unitPrice: serv.hourlyRate
+                }))
+            ];
+
+            await ApiService.createMaintenanceKit({
+                name: newKitName,
+                brand: selectedKit.brand,
+                engineModel: selectedKit.engineModel,
+                intervalHours: Number(selectedKit.intervalHours),
+                description: selectedKit.description,
+                items: items
+            });
+
+            alert("Modelo salvo com sucesso!");
+            setIsSaveKitModalOpen(false);
+            setNewKitName('');
+            loadData(); // Reload to show new kit
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao salvar modelo");
+        }
+    };
+
     const handleRemoveItem = (originalId: number) => {
+
         setCustomItems(prev => prev.filter(i => i.id !== originalId));
     };
 
@@ -153,7 +236,9 @@ export const MaintenanceBudgetView: React.FC = () => {
             // 1. Create Order
             const newOrder = await ApiService.createOrder({
                 boatId: boat.id,
-                description: `REVISÃO ${selectedKitBase?.intervalHours} HORAS - ${selectedKitBase?.brand} ${selectedKitBase?.engineModel}`,
+                description: isCustomMode
+                    ? `ORÇAMENTO PERSONALIZADO - ${selectedKitBase?.brand} ${selectedKitBase?.engineModel}`
+                    : `REVISÃO ${selectedKitBase?.intervalHours} HORAS - ${selectedKitBase?.brand} ${selectedKitBase?.engineModel}`,
                 status: OSStatus.PENDING,
                 estimatedDuration: selectedKit.labor.reduce((acc, l) => acc + l.hours, 0)
             });
@@ -165,7 +250,7 @@ export const MaintenanceBudgetView: React.FC = () => {
 
             // 3. Add initial note
             await ApiService.addOrderNote(Number(newOrder.id), {
-                text: `Orçamento gerado automaticamente (Ref: Kit ${selectedKitBase?.intervalHours}h)`
+                text: `Orçamento gerado automaticamente via Sistema`
             });
 
             alert(`Pré-Ordem #${newOrder.id} gerada com sucesso!`);
@@ -231,7 +316,9 @@ export const MaintenanceBudgetView: React.FC = () => {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(6, 182, 212); // cyan-500
-        doc.text(`REVISÃO ${selectedKit.intervalHours} HORAS`, 14, 58);
+        doc.text(isCustomMode
+            ? `ORÇAMENTO PERSONALIZADO`
+            : `REVISÃO ${selectedKit.intervalHours} HORAS`, 14, 58);
 
         doc.setFontSize(11);
         doc.setTextColor(71, 85, 105); // slate-600
@@ -347,8 +434,33 @@ export const MaintenanceBudgetView: React.FC = () => {
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-600 mb-1">Fabricante</label>
-                            <div className="grid grid-cols-2 gap-2">
+                            {/* Custom Toggle */}
+                            <button
+                                onClick={() => {
+                                    setIsCustomMode(!isCustomMode);
+                                    setSelectedBrand('');
+                                    setSelectedModel('');
+                                    setSelectedInterval(null);
+                                }}
+                                className={`w-full mb-4 px-4 py-3 rounded-lg border-2 border-dashed font-bold flex items-center justify-center gap-2 transition-all ${isCustomMode
+                                    ? 'bg-cyan-50 border-cyan-500 text-cyan-700'
+                                    : 'border-slate-300 text-slate-500 hover:border-cyan-400 hover:text-cyan-600 bg-slate-50'}`}
+                            >
+                                {isCustomMode ? (
+                                    <>
+                                        <CheckCircle className="w-5 h-5" />
+                                        Modo Personalizado Ativo
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="w-5 h-5" />
+                                        Criar Orçamento Manual (Em Branco)
+                                    </>
+                                )}
+                            </button>
+
+                            <label className={`block text-sm font-medium text-slate-600 mb-1 ${isCustomMode ? 'opacity-50 pointer-events-none' : ''}`}>Fabricante</label>
+                            <div className={`grid grid-cols-2 gap-2 ${isCustomMode ? 'opacity-50 pointer-events-none' : ''}`}>
                                 {availableBrands.map(brand => (
                                     <button
                                         key={brand}
@@ -509,6 +621,15 @@ export const MaintenanceBudgetView: React.FC = () => {
                                         <Printer className="w-4 h-4" />
                                         Imprimir / PDF
                                     </button>
+                                    {isCustomMode && (
+                                        <button
+                                            onClick={() => setIsSaveKitModalOpen(true)}
+                                            className="flex items-center gap-2 px-4 py-2 text-cyan-600 border border-cyan-200 hover:bg-cyan-50 rounded-lg font-medium transition-colors"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            Salvar Modelo
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => setIsPreOrderModalOpen(true)}
                                         className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg shadow hover:shadow-lg hover:from-cyan-500 hover:to-blue-500 transition-all font-bold"
@@ -654,6 +775,50 @@ export const MaintenanceBudgetView: React.FC = () => {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SAVE KIT MODAL */}
+            {isSaveKitModalOpen && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <Save className="w-6 h-6 text-cyan-600" />
+                            Salvar Modelo
+                        </h3>
+                        <p className="text-sm text-slate-500 mb-4">
+                            Salve o orçamento atual como um novo modelo reutilizável.
+                        </p>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">Nome do Modelo</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Revisão 100h Mercury V8 Custom"
+                                    className="w-full p-3 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-cyan-500 outline-none"
+                                    value={newKitName}
+                                    onChange={(e) => setNewKitName(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                                <button
+                                    onClick={() => setIsSaveKitModalOpen(false)}
+                                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSaveKit}
+                                    className="px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-bold shadow-md"
+                                >
+                                    Salvar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

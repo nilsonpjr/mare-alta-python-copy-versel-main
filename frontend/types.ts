@@ -76,6 +76,15 @@ export interface Marina {
   operatingHours?: string;
 }
 
+export interface MarinaCreate {
+  name: string;
+  address?: string;
+  contactName?: string;
+  phone?: string;
+  coordinates?: string;
+  operatingHours?: string;
+}
+
 export interface Engine {
   id: number;
   serialNumber: string;
@@ -424,4 +433,39 @@ export interface MercuryWarrantyData {
   status_garantia: string;
   vld_garantia: string;
   nome_cli: string;
+}
+
+export interface ApiMaintenanceKitItem {
+  id: number;
+  kitId: number;
+  type: ItemType;
+  partId?: number;
+  itemDescription: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface ApiMaintenanceKit {
+  id: number;
+  name: string; // Nome do template
+  brand?: string;
+  engineModel?: string;
+  intervalHours?: number;
+  description?: string;
+  items: ApiMaintenanceKitItem[];
+}
+
+export interface ApiMaintenanceKitCreate {
+  name: string;
+  brand?: string;
+  engineModel?: string;
+  intervalHours?: number;
+  description?: string;
+  items: {
+    type: ItemType;
+    partId?: number; // Para itens linkados ao estoque (se houver)
+    itemDescription: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
 }
