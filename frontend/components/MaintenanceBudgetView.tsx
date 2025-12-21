@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { INITIAL_MAINTENANCE_KITS } from '../data/maintenance_kits';
 import { MaintenanceKit, calculateKitTotal } from '../types/maintenance';
-import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle } from 'lucide-react';
+import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle, Plus } from 'lucide-react';
 
 import { StorageService } from '../services/storage';
 import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType } from '../types';
@@ -22,11 +22,27 @@ export const MaintenanceBudgetView: React.FC = () => {
     const [isPreOrderModalOpen, setIsPreOrderModalOpen] = useState(false);
     const [selectedBoatId, setSelectedBoatId] = useState('');
 
+    // State management updated to use real data
+    const [partsInventory, setPartsInventory] = useState<any[]>([]);
+
     useEffect(() => {
-        setBoats(StorageService.getBoats());
+        loadData();
     }, []);
 
-    // Filter Logic
+    const loadData = async () => {
+        try {
+            const [boatsData, partsData] = await Promise.all([
+                ApiService.getBoats(),
+                ApiService.getParts()
+            ]);
+            setBoats(boatsData);
+            setPartsInventory(partsData);
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error);
+        }
+    };
+
+    // Filter Logic... (Keep existing logic for now but ideally should come from backend too)
     const availableBrands = Array.from(new Set(INITIAL_MAINTENANCE_KITS.map(k => k.brand)));
 
     const availableModels = selectedBrand
@@ -42,90 +58,148 @@ export const MaintenanceBudgetView: React.FC = () => {
             .sort((a, b) => a - b)
         : [];
 
-    const selectedKit = selectedBrand && selectedModel && selectedInterval
+    const [customItems, setCustomItems] = useState<ServiceItem[]>([]);
+
+    // Reset custom items when selection changes
+    useEffect(() => {
+        setCustomItems([]);
+    }, [selectedBrand, selectedModel, selectedInterval]);
+
+    const selectedKitBase = selectedBrand && selectedModel && selectedInterval
         ? INITIAL_MAINTENANCE_KITS.find(k =>
             k.brand === selectedBrand &&
             k.engineModel === selectedModel &&
             k.intervalHours === selectedInterval)
         : null;
 
-    // Actions
-    const handleCreatePreOrder = () => {
+    // Helper to merge base kit with custom items
+    const getFullBudget = () => {
+        if (!selectedKitBase) return null;
+
+        // Convert custom items to kit-like structure for display transparency
+        // or just manage them separately. For now, let's treat "selectedKit" as the combined view object.
+        return {
+            ...selectedKitBase,
+            parts: [
+                ...selectedKitBase.parts.map(p => ({ ...p, isCustom: false })),
+                ...customItems.filter(i => i.type === ItemType.PART).map(i => ({
+                    partNumber: i.description.split('(PN: ')[1]?.replace(')', '') || 'N/A',
+                    name: i.description.split(' (PN:')[0],
+                    quantity: i.quantity,
+                    unitPrice: i.unitPrice,
+                    isCustom: true,
+                    originalId: i.id
+                }))
+            ],
+            labor: [
+                ...selectedKitBase.labor,
+                ...customItems.filter(i => i.type === ItemType.LABOR).map(i => ({
+                    description: i.description,
+                    hours: i.quantity,
+                    hourlyRate: i.unitPrice
+                }))
+            ]
+        };
+    };
+
+    const selectedKit = getFullBudget();
+
+    const handleRemoveItem = (originalId: number) => {
+        setCustomItems(prev => prev.filter(i => i.id !== originalId));
+    };
+
+    const handleCreatePreOrder = async () => {
         if (!selectedKit || !selectedBoatId) return;
 
-        const boat = boats.find(b => b.id === selectedBoatId.toString() || b.id === Number(selectedBoatId));
+        const boat = boats.find(b => b.id === Number(selectedBoatId));
         if (!boat) {
             alert("Embarcação não encontrada.");
             return;
         }
 
-        const existingOrders = StorageService.getOrders();
-        const inventory = StorageService.getInventory(); // Get current inventory
-
         // Convert Kit Items to Order Items
-        const orderItems: ServiceItem[] = [];
+        const orderItems: any[] = []; // Using any for create payload
 
-        // 1. Add Parts (with inventory linking)
-        selectedKit.parts.forEach(part => {
-            // Try to find the part in inventory by Part Number (SKU)
-            const inventoryPart = inventory.find(p => p.sku === part.partNumber);
+        // 1. Add Parts
+        selectedKit.parts.forEach((part: any) => {
+            // Try to find exact match in inventory by SKU/PartNumber
+            const inventoryPart = partsInventory.find(p => p.sku === part.partNumber);
 
             orderItems.push({
-                id: Date.now() + Math.random(),
                 type: ItemType.PART,
                 description: `${part.name} (PN: ${part.partNumber})`,
-                partId: inventoryPart ? inventoryPart.id : undefined, // Link if found
+                partId: inventoryPart ? inventoryPart.id : undefined,
                 quantity: part.quantity,
                 unitPrice: part.unitPrice,
-                unitCost: inventoryPart ? inventoryPart.cost : part.unitPrice * 0.6, // Use real cost if available
-                total: part.quantity * part.unitPrice,
-                orderId: '', // Will be set later or ignored by type
+                total: part.quantity * part.unitPrice
             });
         });
 
         // 2. Add Labor
         selectedKit.labor.forEach(serv => {
             orderItems.push({
-                id: Date.now() + Math.random(),
                 type: ItemType.LABOR,
                 description: serv.description,
-                quantity: serv.hours,
+                quantity: serv.hours, // used as quantity for labor
                 unitPrice: serv.hourlyRate,
-                unitCost: 0,
-                total: serv.hours * serv.hourlyRate,
-                orderId: '',
+                total: serv.hours * serv.hourlyRate
             });
         });
 
         const totalValue = orderItems.reduce((acc, item) => acc + item.total, 0);
 
-        const newOrder: ServiceOrder = {
-            id: `OS-${new Date().getFullYear()}-${existingOrders.length + 1}`.padStart(6, '0'),
-            boatId: boat.id,
-            description: `REVISÃO ${selectedKit?.intervalHours} HORAS - ${selectedKit?.brand} ${selectedKit?.engineModel}`,
-            status: OSStatus.PENDING,
-            items: orderItems,
-            totalValue: totalValue,
-            createdAt: new Date().toISOString(),
-            requester: 'Orçador Automático',
-            notes: [{
-                id: Date.now(),
-                orderId: `OS-${new Date().getFullYear()}-${existingOrders.length + 1}`.padStart(6, '0'), // Re-calculating same ID or using variable
-                text: `Gerado automaticamente pelo kit: ${selectedKit?.description}`,
-                createdAt: new Date().toISOString()
-            }],
-            estimatedDuration: selectedKit?.labor.reduce((acc, l) => acc + l.hours, 0) || 4,
-            checklist: []
-        };
+        try {
+            // CORRECT FLOW:
+            // 1. Create Order
+            const newOrder = await ApiService.createOrder({
+                boatId: boat.id,
+                description: `REVISÃO ${selectedKitBase?.intervalHours} HORAS - ${selectedKitBase?.brand} ${selectedKitBase?.engineModel}`,
+                status: OSStatus.PENDING,
+                estimatedDuration: selectedKit.labor.reduce((acc, l) => acc + l.hours, 0)
+            });
 
-        const updatedOrders = [newOrder, ...existingOrders];
-        StorageService.saveOrders(updatedOrders);
+            // 2. Add Items loop
+            for (const item of orderItems) {
+                await ApiService.addOrderItem(Number(newOrder.id), item);
+            }
 
-        alert(`Pré-Ordem #${newOrder.id} gerada com sucesso!`);
-        setIsPreOrderModalOpen(false);
-        // Optional: Redirect to orders?
-        // window.location.reload(); // Simple way to reset or users navigate manually
+            // 3. Add initial note
+            await ApiService.addOrderNote(Number(newOrder.id), {
+                text: `Orçamento gerado automaticamente (Ref: Kit ${selectedKitBase?.intervalHours}h)`
+            });
+
+            alert(`Pré-Ordem #${newOrder.id} gerada com sucesso!`);
+            setIsPreOrderModalOpen(false);
+        } catch (error) {
+            console.error("Erro ao criar ordem:", error);
+            alert("Erro ao criar ordem de serviço.");
+        }
     };
+
+    // New Feature: Add Custom Item (Part from Stock)
+    const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+    const [itemSearch, setItemSearch] = useState('');
+
+    const handleAddCustomPart = (part: any) => {
+        const newItem: ServiceItem = {
+            id: Date.now(),
+            type: ItemType.PART,
+            description: `${part.name} (PN: ${part.sku})`,
+            quantity: 1,
+            unitPrice: part.price,
+            unitCost: part.cost,
+            total: part.price,
+            orderId: '',
+        };
+        setCustomItems([...customItems, newItem]);
+        setIsAddItemModalOpen(false);
+        setItemSearch('');
+    };
+
+    const filteredParts = partsInventory.filter(p =>
+        p.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
+        p.sku.toLowerCase().includes(itemSearch.toLowerCase())
+    );
 
     const generatePDF = () => {
         if (!selectedKit) return;
@@ -357,9 +431,17 @@ export const MaintenanceBudgetView: React.FC = () => {
 
                                 {/* Parts Section */}
                                 <div>
-                                    <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 pb-2 border-b">
-                                        <Settings className="w-4 h-4 text-slate-400" />
-                                        Peças & Insumos Originais
+                                    <h4 className="font-bold text-slate-700 mb-3 flex items-center justify-between pb-2 border-b">
+                                        <div className="flex items-center gap-2">
+                                            <Settings className="w-4 h-4 text-slate-400" />
+                                            Peças & Insumos Originais (e Extras)
+                                        </div>
+                                        <button
+                                            onClick={() => setIsAddItemModalOpen(true)}
+                                            className="text-xs bg-cyan-50 text-cyan-700 px-2 py-1 rounded hover:bg-cyan-100 transition-colors flex items-center gap-1"
+                                        >
+                                            <Plus className="w-3 h-3" /> Add Item Extra
+                                        </button>
                                     </h4>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm text-left">
@@ -370,16 +452,28 @@ export const MaintenanceBudgetView: React.FC = () => {
                                                     <th className="p-2 text-center">Qtd</th>
                                                     <th className="p-2 text-right">Unitário</th>
                                                     <th className="p-2 text-right">Total</th>
+                                                    <th className="p-2 w-8"></th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100">
-                                                {selectedKit.parts.map((part, idx) => (
+                                                {selectedKit.parts.map((part: any, idx: number) => (
                                                     <tr key={idx} className="hover:bg-slate-50">
                                                         <td className="p-2 font-mono text-xs text-slate-500">{part.partNumber}</td>
                                                         <td className="p-2 font-medium text-slate-800">{part.name}</td>
                                                         <td className="p-2 text-center text-slate-600">{part.quantity}</td>
                                                         <td className="p-2 text-right text-slate-600">{formatCurrency(part.unitPrice)}</td>
                                                         <td className="p-2 text-right font-bold text-slate-700">{formatCurrency(part.quantity * part.unitPrice)}</td>
+                                                        <td className="p-2 text-center">
+                                                            {part.isCustom && (
+                                                                <button
+                                                                    onClick={() => handleRemoveItem(part.originalId)}
+                                                                    className="text-red-400 hover:text-red-600"
+                                                                    title="Remover Item"
+                                                                >
+                                                                    X
+                                                                </button>
+                                                            )}
+                                                        </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -494,6 +588,72 @@ export const MaintenanceBudgetView: React.FC = () => {
                                     Confirmar e Criar OS
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ADD ITEM MODAL */}
+            {isAddItemModalOpen && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl h-[600px] flex flex-col">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                <Plus className="w-6 h-6 text-cyan-600" />
+                                Adicionar Item do Estoque
+                            </h3>
+                            <button onClick={() => setIsAddItemModalOpen(false)} className="text-slate-400 hover:text-red-500">X</button>
+                        </div>
+
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                placeholder="Buscar peça por nome ou SKU..."
+                                className="w-full p-3 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-cyan-500 outline-none"
+                                value={itemSearch}
+                                onChange={(e) => setItemSearch(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto border border-slate-100 rounded-lg">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 text-slate-600 sticky top-0">
+                                    <tr>
+                                        <th className="p-3">SKU</th>
+                                        <th className="p-3">Nome</th>
+                                        <th className="p-3 text-right">Preço</th>
+                                        <th className="p-3 text-center">Estoque</th>
+                                        <th className="p-3"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {filteredParts.length > 0 ? (
+                                        filteredParts.map(part => (
+                                            <tr key={part.id} className="hover:bg-cyan-50 group">
+                                                <td className="p-3 font-mono text-xs text-slate-500">{part.sku}</td>
+                                                <td className="p-3 font-medium text-slate-800">{part.name}</td>
+                                                <td className="p-3 text-right text-green-600 font-medium">{formatCurrency(part.price)}</td>
+                                                <td className="p-3 text-center text-slate-500">{part.quantity}</td>
+                                                <td className="p-3 text-right">
+                                                    <button
+                                                        onClick={() => handleAddCustomPart(part)}
+                                                        className="px-3 py-1 bg-cyan-600 text-white rounded-lg text-xs font-bold hover:bg-cyan-700 opacity-0 group-hover:opacity-100 transition-all"
+                                                    >
+                                                        Adicionar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={5} className="p-8 text-center text-slate-400">
+                                                Nenhuma peça encontrada.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
