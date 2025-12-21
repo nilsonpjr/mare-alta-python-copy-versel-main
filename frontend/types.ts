@@ -415,3 +415,13 @@ export interface ServiceDefinition {
   category: string;
   defaultPrice: number;
 }
+
+export interface MercuryWarrantyData {
+  nro_motor: string;
+  nro_serie?: string;
+  modelo: string;
+  dt_venda: string;
+  status_garantia: string;
+  vld_garantia: string;
+  nome_cli: string;
+}

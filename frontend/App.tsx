@@ -15,6 +15,7 @@ import { SignupView } from './components/SignupView';
 import { LoginView } from './components/LoginView';
 import { UsersView } from './components/UsersView';
 import { MaintenanceBudgetView } from './components/MaintenanceBudgetView';
+import { WarrantyLookupView } from './components/WarrantyLookupView';
 import { UserRole, User } from './types';
 import { Menu, Anchor } from 'lucide-react';
 import { StorageService } from './services/storage';
@@ -94,6 +95,8 @@ function App() {
         return <FinanceView />;
       case 'settings':
         return <SettingsView />;
+      case 'warranty-lookup':
+        return <WarrantyLookupView />;
       default:
         return <Dashboard setView={handleSetView} />;
     }

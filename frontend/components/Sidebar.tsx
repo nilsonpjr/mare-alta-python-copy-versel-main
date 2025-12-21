@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X } from 'lucide-react';
+import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck } from 'lucide-react';
 import { UserRole, User } from '../types';
 
 interface SidebarProps {
@@ -22,6 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'orders', label: 'Ordens de Serviço', icon: Wrench },
       { id: 'maintenance-budget', label: 'Orçador de Revisão', icon: ClipboardList },
       { id: 'crm', label: 'CRM & Fidelização', icon: UserCheck },
+      { id: 'warranty-lookup', label: 'Consulta Garantia', icon: ShieldCheck },
       { id: 'sep1', type: 'separator', label: 'Gestão' },
       { id: 'clients', label: 'Clientes', icon: Users },
       { id: 'boats', label: 'Embarcações', icon: Ship },
@@ -94,8 +95,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
                 key={item.id}
                 onClick={() => setView(item.id)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
-                    ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-900/20'
-                    : 'hover:bg-slate-800 hover:text-white'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-900/20'
+                  : 'hover:bg-slate-800 hover:text-white'
                   }`}
               >
                 <div className="flex items-center">

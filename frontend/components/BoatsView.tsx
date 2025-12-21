@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Boat, Client, Engine, Marina, SystemConfig } from '../types';
 import { ApiService } from '../services/api';
 import { Plus, Search, Anchor, Edit2, UserCircle, Save, Trash, MapPin, Settings } from 'lucide-react';
+import { MercuryWarrantyCard } from './MercuryWarrantyCard';
 
 export const BoatsView: React.FC = () => {
     const [boats, setBoats] = useState<Boat[]>([]);
@@ -25,6 +26,7 @@ export const BoatsView: React.FC = () => {
 
     // Mercury Lookup State
     const [loadingMercury, setLoadingMercury] = useState(false);
+    const [mercurySearchResult, setMercurySearchResult] = useState<any>(null);
 
     useEffect(() => {
         loadData();
@@ -93,8 +95,6 @@ export const BoatsView: React.FC = () => {
         try {
             if (editingBoat.id) {
                 // Update
-                // Note: Updating nested engines might not be fully supported by backend CRUD depending on implementation.
-                // Sending core fields for sure.
                 await ApiService.updateBoat(editingBoat.id, {
                     name: editingBoat.name,
                     hullId: editingBoat.hullId,
@@ -102,12 +102,9 @@ export const BoatsView: React.FC = () => {
                     usageType: editingBoat.usageType,
                     clientId: Number(editingBoat.clientId),
                     marinaId: editingBoat.marinaId ? Number(editingBoat.marinaId) : undefined,
-                    // engines: editingBoat.engines // Commented out to avoid issues if backend doesn't handle nested update sync
                 } as any);
             } else {
                 // Create
-                // Prepare engines (strip temporary IDs if needed, but backend EngineCreate doesn't have ID so it ignores or errors?)
-                // EngineCreate: serialNumber, model, hours, year.
                 const enginesPayload = editingBoat.engines?.map(e => ({
                     serialNumber: e.serialNumber,
                     model: e.model,
@@ -167,6 +164,7 @@ export const BoatsView: React.FC = () => {
         setTempEngine({});
         setSelectedEngineBrand('');
         setSelectedEngineModel('');
+        setMercurySearchResult(null); // Clear search result
     };
 
     const removeEngine = (engineId: string) => {
@@ -201,11 +199,14 @@ export const BoatsView: React.FC = () => {
             return;
         }
         setLoadingMercury(true);
+        setMercurySearchResult(null);
+
         try {
             // Force type to any to avoid TS errors if interface mismatch for now
             const response: any = await ApiService.getMercuryWarranty(tempEngine.serialNumber);
             if (response.status === 'success' && response.data) {
                 const data = response.data;
+                setMercurySearchResult(data);
 
                 // Try parse year from sale date (dd/mm/yyyy)
                 let year = undefined;
@@ -221,8 +222,6 @@ export const BoatsView: React.FC = () => {
                 });
 
                 setSelectedEngineBrand('Mercury'); // Auto-select Mercury if possible
-
-                alert(`Dados encontrados no Portal Mercury!\n\nModelo: ${data.modelo}\nCliente: ${data.nome_cli}\nGarantia: ${data.status_garantia} (Val: ${data.vld_garantia})`);
             }
         } catch (error) {
             console.error("Erro busca mercury:", error);
@@ -539,6 +538,13 @@ export const BoatsView: React.FC = () => {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* CARD DE RESULTADO DA MERCURY AQUI */}
+                                {mercurySearchResult && (
+                                    <div className="mt-4">
+                                        <MercuryWarrantyCard data={mercurySearchResult} loading={loadingMercury} error={null} />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
