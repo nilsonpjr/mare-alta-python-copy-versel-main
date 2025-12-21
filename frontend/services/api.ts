@@ -506,6 +506,39 @@ export const ApiService = {
         await api.delete(`/config/maintenance-kits/${id}`);
     },
 
+    // === Users (Usuários) ===
+
+    /**
+     * Obtém todos os usuários.
+     */
+    getUsers: async () => {
+        const response = await api.get('/auth/users');
+        return response.data;
+    },
+
+    /**
+     * Cria um novo usuário.
+     */
+    createUser: async (user: any) => {
+        const response = await api.post('/auth/register', user);
+        return response.data;
+    },
+
+    /**
+     * Atualiza um usuário.
+     */
+    updateUser: async (id: number, user: any) => {
+        const response = await api.put(`/auth/users/${id}`, user);
+        return response.data;
+    },
+
+    /**
+     * Deleta um usuário.
+     */
+    deleteUser: async (id: number) => {
+        await api.delete(`/auth/users/${id}`);
+    },
+
     // === Partners (Parceiros - Fase 3) ===
 
     /**

@@ -194,3 +194,68 @@ def signup(
     
     return crud.register_tenant(db=db, signup_data=signup_data)
 
+
+# === USER MANAGEMENT ENDPOINTS ===
+
+@router.get("/users", response_model=List[schemas.User])
+def get_all_users(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """Lista todos os usuários do tenant."""
+    users = db.query(models.User).filter(models.User.tenant_id == current_user.tenant_id).all()
+    return users
+
+@router.put("/users/{user_id}", response_model=schemas.User)
+def update_user(
+    user_id: int,
+    user_update: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """Atualiza um usuário."""
+    db_user = db.query(models.User).filter(
+        models.User.id == user_id,
+        models.User.tenant_id == current_user.tenant_id
+    ).first()
+    
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Atualizar campos
+    update_data = user_update.model_dump(exclude_unset=True)
+    
+    # Se senha foi fornecida, fazer hash
+    if  'password' in update_data and update_data['password']:
+        update_data['hashed_password'] = auth.get_password_hash(update_data['password'])
+        del update_data['password']
+    
+    for key, value in update_data.items():
+        setattr(db_user, key, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """Deleta um usuário."""
+    db_user = db.query(models.User).filter(
+        models.User.id == user_id,
+        models.User.tenant_id == current_user.tenant_id
+    ).first()
+    
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Não pode deletar a si mesmo
+    if db_user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Não é possível deletar seu próprio usuário")
+    
+    db.delete(db_user)
+    db.commit()
+    return None

@@ -191,9 +191,9 @@ export const BoatsView: React.FC = () => {
         return client ? client.name : 'Desconhecido';
     };
 
-    const getMarinaName = (id?: string) => {
+    const getMarinaName = (id?: string | number) => {
         if (!id) return 'Oficina / Pátio Próprio';
-        const marina = marinas.find(m => m.id === id);
+        const marina = marinas.find(m => m.id.toString() === id.toString());
         return marina ? marina.name : 'Marina Desconhecida';
     };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, Client } from '../types';
-import { StorageService } from '../services/storage';
+import { ApiService } from '../services/api';
 import { Plus, Search, Trash, Edit2, Shield, UserCircle, Briefcase } from 'lucide-react';
 
 export const UsersView: React.FC = () => {
@@ -9,66 +9,91 @@ export const UsersView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Partial<User>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setUsers(StorageService.getUsers());
-    setClients(StorageService.getClients());
+    loadData();
   }, []);
 
-  const handleSave = () => {
-    if (!editingUser.name || !editingUser.email || !editingUser.password || !editingUser.role) return;
-    
-    let updatedUsers = [...users];
-    
-    if (editingUser.id) {
-      updatedUsers = updatedUsers.map(u => 
-        u.id === editingUser.id ? { ...u, ...editingUser } as User : u
-      );
-    } else {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: editingUser.name,
-        email: editingUser.email,
-        password: editingUser.password,
-        role: editingUser.role,
-        clientId: editingUser.clientId
-      };
-      updatedUsers.push(newUser);
+  const loadData = async () => {
+    try {
+      const [usersData, clientsData] = await Promise.all([
+        ApiService.getUsers(),
+        ApiService.getClients()
+      ]);
+      setUsers(usersData);
+      setClients(clientsData);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      alert('Erro ao carregar dados');
     }
-
-    setUsers(updatedUsers);
-    StorageService.saveUsers(updatedUsers);
-    setIsModalOpen(false);
-    setEditingUser({});
   };
 
-  const handleDelete = (id: string) => {
-      if(!window.confirm("Tem certeza que deseja excluir este usuário?")) return;
-      const updated = users.filter(u => u.id !== id);
-      setUsers(updated);
-      StorageService.saveUsers(updated);
+  const handleSave = async () => {
+    if (!editingUser.name || !editingUser.email || !editingUser.password || !editingUser.role) {
+      alert('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (editingUser.id) {
+        // Atualizar
+        await ApiService.updateUser(Number(editingUser.id), editingUser);
+      } else {
+        // Criar novo
+        await ApiService.createUser({
+          name: editingUser.name,
+          email: editingUser.email,
+          password: editingUser.password,
+          role: editingUser.role,
+          clientId: editingUser.clientId
+        });
+      }
+
+      await loadData();
+      setIsModalOpen(false);
+      setEditingUser({});
+    } catch (error) {
+      console.error('Erro ao salvar usuário:', error);
+      alert('Erro ao salvar usuário');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir este usuário?")) return;
+
+    try {
+      await ApiService.deleteUser(Number(id));
+      await loadData();
+    } catch (error) {
+      console.error('Erro ao deletar usuário:', error);
+      alert('Erro ao deletar usuário');
+    }
   };
 
   const openNew = () => {
-      setEditingUser({ role: UserRole.TECHNICIAN });
-      setIsModalOpen(true);
+    setEditingUser({ role: UserRole.TECHNICIAN });
+    setIsModalOpen(true);
   };
 
   const openEdit = (user: User) => {
-      setEditingUser(user);
-      setIsModalOpen(true);
+    setEditingUser(user);
+    setIsModalOpen(true);
   };
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredUsers = users.filter(u =>
+    u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getRoleBadge = (role: UserRole) => {
-    switch(role) {
-        case UserRole.ADMIN: return <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><Shield className="w-3 h-3"/> Admin</span>;
-        case UserRole.TECHNICIAN: return <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><Briefcase className="w-3 h-3"/> Técnico</span>;
-        default: return <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><UserCircle className="w-3 h-3"/> Cliente</span>;
+    switch (role) {
+      case UserRole.ADMIN: return <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><Shield className="w-3 h-3" /> Admin</span>;
+      case UserRole.TECHNICIAN: return <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><Briefcase className="w-3 h-3" /> Técnico</span>;
+      default: return <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><UserCircle className="w-3 h-3" /> Cliente</span>;
     }
   };
 
@@ -76,10 +101,10 @@ export const UsersView: React.FC = () => {
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-            <h2 className="text-2xl font-bold text-slate-800">Usuários do Sistema</h2>
-            <p className="text-slate-500 text-sm">Gerencie o acesso de administradores, técnicos e clientes.</p>
+          <h2 className="text-2xl font-bold text-slate-800">Usuários do Sistema</h2>
+          <p className="text-slate-500 text-sm">Gerencie o acesso de administradores, técnicos e clientes.</p>
         </div>
-        <button 
+        <button
           onClick={openNew}
           className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm"
         >
@@ -91,9 +116,9 @@ export const UsersView: React.FC = () => {
         <div className="p-4 border-b border-slate-100 flex gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Buscar por nome ou email..." 
+            <input
+              type="text"
+              placeholder="Buscar por nome ou email..."
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-slate-900"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -118,22 +143,28 @@ export const UsersView: React.FC = () => {
                 <td className="px-6 py-4 text-slate-500 font-mono">{user.email}</td>
                 <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
                 <td className="px-6 py-4 text-slate-500 text-xs">
-                    {user.role === UserRole.CLIENT && user.clientId ? (
-                        clients.find(c => c.id === user.clientId)?.name || 'Cliente Removido'
-                    ) : '-'}
+                  {user.role === UserRole.CLIENT && user.clientId ? (
+                    clients.find(c => c.id.toString() === user.clientId?.toString())?.name || 'Cliente Removido'
+                  ) : '-'}
                 </td>
                 <td className="px-6 py-4 text-right flex justify-end gap-2">
-                   <button onClick={() => openEdit(user)} className="text-slate-400 hover:text-cyan-600 transition-colors">
-                       <Edit2 className="w-4 h-4" />
-                   </button>
-                   <button onClick={() => handleDelete(user.id)} className="text-slate-400 hover:text-red-600 transition-colors">
-                       <Trash className="w-4 h-4" />
-                   </button>
+                  <button onClick={() => openEdit(user)} className="text-slate-400 hover:text-cyan-600 transition-colors">
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(user.id)} className="text-slate-400 hover:text-red-600 transition-colors">
+                    <Trash className="w-4 h-4" />
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-8 text-slate-400">
+            Nenhum usuário encontrado
+          </div>
+        )}
       </div>
 
       {isModalOpen && (
@@ -142,73 +173,79 @@ export const UsersView: React.FC = () => {
             <h3 className="text-lg font-bold mb-4">{editingUser.id ? 'Editar Usuário' : 'Novo Usuário'}</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Nome Completo</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs font-medium text-slate-700 mb-1">Nome Completo *</label>
+                <input
+                  type="text"
+                  required
                   className="w-full p-2 border rounded bg-white text-slate-900"
                   value={editingUser.name || ''}
-                  onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+                  onChange={e => setEditingUser({ ...editingUser, name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Email (Login)</label>
-                <input 
-                  type="email" 
+                <label className="block text-xs font-medium text-slate-700 mb-1">Email (Login) *</label>
+                <input
+                  type="email"
+                  required
                   className="w-full p-2 border rounded bg-white text-slate-900"
                   value={editingUser.email || ''}
-                  onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                  onChange={e => setEditingUser({ ...editingUser, email: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Senha</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs font-medium text-slate-700 mb-1">Senha *</label>
+                <input
+                  type="text"
+                  required
                   className="w-full p-2 border rounded font-mono bg-white text-slate-900"
                   value={editingUser.password || ''}
-                  onChange={e => setEditingUser({...editingUser, password: e.target.value})}
+                  onChange={e => setEditingUser({ ...editingUser, password: e.target.value })}
+                  placeholder={editingUser.id ? "Deixe em branco para manter atual" : ""}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Tipo de Acesso</label>
-                <select 
+                <label className="block text-xs font-medium text-slate-700 mb-1">Tipo de Acesso *</label>
+                <select
                   className="w-full p-2 border rounded bg-white text-slate-900"
                   value={editingUser.role}
-                  onChange={e => setEditingUser({...editingUser, role: e.target.value as UserRole})}
+                  onChange={e => setEditingUser({ ...editingUser, role: e.target.value as UserRole })}
                 >
-                    <option value={UserRole.ADMIN}>Administrador (Acesso Total)</option>
-                    <option value={UserRole.TECHNICIAN}>Técnico (Acesso Operacional)</option>
-                    <option value={UserRole.CLIENT}>Cliente (Portal Externo)</option>
+                  <option value={UserRole.ADMIN}>Administrador (Acesso Total)</option>
+                  <option value={UserRole.TECHNICIAN}>Técnico (Acesso Operacional)</option>
+                  <option value={UserRole.CLIENT}>Cliente (Portal Externo)</option>
                 </select>
               </div>
-              
+
               {editingUser.role === UserRole.CLIENT && (
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Vincular ao Cadastro de Cliente</label>
-                    <select 
-                      className="w-full p-2 border rounded bg-white text-slate-900"
-                      value={editingUser.clientId || ''}
-                      onChange={e => setEditingUser({...editingUser, clientId: e.target.value})}
-                    >
-                        <option value="">Selecione...</option>
-                        {clients.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Vincular ao Cadastro de Cliente</label>
+                  <select
+                    className="w-full p-2 border rounded bg-white text-slate-900"
+                    value={editingUser.clientId || ''}
+                    onChange={e => setEditingUser({ ...editingUser, clientId: e.target.value })}
+                  >
+                    <option value="">Selecione...</option>
+                    {clients.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
               )}
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded"
+                disabled={loading}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded disabled:opacity-50"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
+                disabled={loading}
+                className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 disabled:opacity-50"
               >
-                Salvar
+                {loading ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
           </div>
