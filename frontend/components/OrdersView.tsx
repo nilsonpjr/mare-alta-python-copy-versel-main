@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ServiceOrder, OSStatus, Boat, Part, ServiceItem, UserRole, Client, Marina, ChecklistItem, AttachmentType, ServiceDefinition, ItemType } from '../types';
+import { ServiceOrder, OSStatus, Boat, Part, ServiceItem, UserRole, Client, Marina, ChecklistItem, AttachmentType, ServiceDefinition, ItemType, User as UserType } from '../types';
 import { ApiService } from '../services/api';
 import { GeminiService } from '../services/geminiService';
 import {
@@ -55,6 +55,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
     const [parts, setParts] = useState<Part[]>([]);
     const [servicesCatalog, setServicesCatalog] = useState<ServiceDefinition[]>([]);
     const [marinas, setMarinas] = useState<Marina[]>([]);
+    const [users, setUsers] = useState<UserType[]>([]);  // ← Usuários técnicos
     const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [isItemSearchOpen, setIsItemSearchOpen] = useState(false); // New State for Modal
@@ -95,11 +96,12 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
 
     const refreshData = async () => {
         try {
-            const [ordersData, boatsData, partsData, clientsData] = await Promise.all([
+            const [ordersData, boatsData, partsData, clientsData, usersData] = await Promise.all([
                 ApiService.getOrders(),
                 ApiService.getBoats(),
                 ApiService.getParts(),
-                ApiService.getClients()
+                ApiService.getClients(),
+                ApiService.getUsers()
             ]);
 
             // Normalizar checklist - garantir array vazio se undefined
@@ -112,6 +114,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
             setBoats(boatsData);
             setParts(partsData);
             setClients(clientsData);
+            setUsers(usersData);
 
             // Mock Services Catalog (Backend integration pending)
             setServicesCatalog([
@@ -909,12 +912,30 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
                                                 <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1 mb-2">
                                                     <User className="w-4 h-4" /> Técnico Responsável
                                                 </label>
-                                                <input
+                                                <select
                                                     className="w-full p-2 border rounded bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-500"
-                                                    placeholder="Nome do Técnico"
                                                     value={selectedOrder.technicianName || ''}
                                                     onChange={e => saveOrderUpdate({ ...selectedOrder, technicianName: e.target.value })}
                                                     disabled={isTechnician || isReadOnly}
+                                                >
+                                                    <option value="">Selecione um técnico...</option>
+                                                    {users.filter(u => u.role === UserRole.TECHNICIAN).map(tech => (
+                                                        <option key={tech.id} value={tech.name}>
+                                                            {tech.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="bg-slate-50 p-4 rounded border">
+                                                <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1 mb-2">
+                                                    <Clock className="w-4 h-4" /> Data Agendamento
+                                                </label>
+                                                <input
+                                                    type="datetime-local"
+                                                    className="w-full p-2 border rounded bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-500"
+                                                    value={selectedOrder.scheduledAt ? new Date(selectedOrder.scheduledAt).toISOString().slice(0, 16) : ''}
+                                                    onChange={e => saveOrderUpdate({ ...selectedOrder, scheduledAt: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                                                    disabled={isReadOnly}
                                                 />
                                             </div>
                                             <div className="bg-slate-50 p-4 rounded border">
