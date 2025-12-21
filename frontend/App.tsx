@@ -147,7 +147,7 @@ function App() {
           />
         )}
 
-        <main className="flex-1 h-screen overflow-y-auto pt-16 md:pt-0 md:ml-64 transition-all duration-300">
+        <main className="flex-1 h-screen overflow-y-auto pt-16 md:pt-0 transition-all duration-300">
           {renderContent()}
         </main>
       </div>
