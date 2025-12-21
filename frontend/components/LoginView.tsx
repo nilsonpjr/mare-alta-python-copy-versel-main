@@ -129,6 +129,52 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
             )}
           </form>
 
+          {/* Quick Login - Test Users */}
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider text-center mb-3">
+              🧪 Login Rápido - Testes
+            </p>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('admin.teste@marealta.com');
+                  setPassword('admin123');
+                }}
+                className="w-full px-3 py-2 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-medium text-red-700 flex items-center justify-between transition-colors"
+              >
+                <span>👑 Admin</span>
+                <span className="text-xs opacity-70">admin.teste@marealta.com</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('tecnico1.teste@marealta.com');
+                  setPassword('tecnico123');
+                }}
+                className="w-full px-3 py-2 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg text-xs font-medium text-green-700 flex items-center justify-between transition-colors"
+              >
+                <span>🔧 Técnico</span>
+                <span className="text-xs opacity-70">tecnico1.teste@marealta.com</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('cliente1.teste@marealta.com');
+                  setPassword('cliente123');
+                }}
+                className="w-full px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-medium text-blue-700 flex items-center justify-between transition-colors"
+              >
+                <span>👤 Cliente</span>
+                <span className="text-xs opacity-70">cliente1.teste@marealta.com</span>
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 text-center mt-3">
+              Click para preencher • Depois click em "Acessar Sistema"
+            </p>
+          </div>
 
         </div>
       </div>
