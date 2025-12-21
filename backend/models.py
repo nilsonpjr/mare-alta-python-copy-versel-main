@@ -431,6 +431,7 @@ class CompanyInfo(Base):
     environment = Column(String(20)) # Ambiente de operação (production ou homologation)
 
     # Integrações
+    mercury_username = Column(String(100))
     mercury_password = Column(String(100))
 
 
