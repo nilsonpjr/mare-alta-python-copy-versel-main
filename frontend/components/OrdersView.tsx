@@ -101,7 +101,14 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
                 ApiService.getParts(),
                 ApiService.getClients()
             ]);
-            setOrders(ordersData);
+
+            // Normalizar checklist - garantir array vazio se undefined
+            const normalizedOrders = ordersData.map(order => ({
+                ...order,
+                checklist: order.checklist || []
+            }));
+
+            setOrders(normalizedOrders);
             setBoats(boatsData);
             setParts(partsData);
             setClients(clientsData);

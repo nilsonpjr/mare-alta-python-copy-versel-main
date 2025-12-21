@@ -140,6 +140,8 @@ export const MarinasView: React.FC = () => {
                   </div>
                 </div>
 
+                <h3 className="text-lg font-bold text-slate-800 mb-3">{marina.name}</h3>
+
                 <div className="space-y-3 text-sm text-slate-600 mt-4">
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
