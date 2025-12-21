@@ -410,16 +410,29 @@ export const ApiService = {
 
     /**
      * Cria um novo modelo.
-     * @param model Os dados do modelo a ser criado.
+     * @param manufacturerId O ID do fabricante.
+     * @param name O nome do modelo.
      * @returns O modelo criado.
      */
-    createModel: async (model: Omit<Model, 'id'>) => {
-        // A rota correta para criar modelos é /manufacturers/{id}/models no backend.
-        // É necessário adaptar esta chamada para passar o manufacturerId corretamente.
-        // Por agora, assumindo que `model` já contém `manufacturerId` ou que a API irá inferir.
-        // A chamada ideal seria: api.post(`/config/manufacturers/${model.manufacturerId}/models`, model);
-        const response = await api.post<Model>('/config/models', model);
+    createModel: async (manufacturerId: number, name: string) => {
+        const response = await api.post<Model>(`/config/manufacturers/${manufacturerId}/models`, { name });
         return response.data;
+    },
+
+    /**
+     * Deleta um fabricante.
+     * @param id O ID do fabricante.
+     */
+    deleteManufacturer: async (id: number) => {
+        await api.delete(`/config/manufacturers/${id}`);
+    },
+
+    /**
+     * Deleta um modelo.
+     * @param id O ID do modelo.
+     */
+    deleteModel: async (id: number) => {
+        await api.delete(`/config/models/${id}`);
     },
 
     /**
