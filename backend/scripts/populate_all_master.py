@@ -154,10 +154,10 @@ def populate_all():
             part = models.Part(
                 name=f"{part_data[0]} #{i+1}",
                 sku=f"{part_data[1]}-{i+1}",
-                description=f"Peça original compatível",
-                stock_quantity=part_data[3] + random.randint(-10, 10),
+                # description removido pois não existe no modelo
+                quantity=part_data[3] + random.randint(-10, 10),
                 min_stock=5,
-                unit_price=part_data[2],
+                price=part_data[2],
                 tenant_id=tenant_id
             )
             db.add(part)
@@ -216,7 +216,7 @@ def populate_all():
         # 9. TRANSAÇÕES FINANCEIRAS (40)
         print("💰 Criando Transações...")
         for i in range(40):
-            transaction = models.FinancialTransaction(
+            transaction = models.Transaction(
                 type="INCOME" if i % 2 == 0 else "EXPENSE",
                 category="Serviços" if i % 2 == 0 else "Peças",
                 amount=random.uniform(100, 5000),

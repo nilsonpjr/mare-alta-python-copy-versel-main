@@ -15,6 +15,7 @@ import os
 # Embora funcione, é uma abordagem que pode ser frágil em projetos maiores.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from services.fiscal_service import fiscal_service # Importa o serviço que lida com a lógica fiscal.
+from auth import get_current_active_user
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(
@@ -74,34 +75,57 @@ class InvoiceRequest(BaseModel):
     naturezaOperacao: Optional[str] = None # Natureza da Operação (ex: "Venda de Mercadoria").
     issRetido: Optional[bool] = False # Indica se o ISS foi retido (para NFS-e).
 
+# Nova importação
+from services.fiscal_provider import FiscalProvider
+from database import get_db
+from sqlalchemy.orm import Session
+from models import CompanyInfo
+import models
+
+# ... (código existente mantido até InvoiceRequest)
+
 @router.post("/emit")
-async def emit_invoice(invoice: InvoiceRequest):
+async def emit_invoice(
+    invoice: InvoiceRequest,
+    current_user: models.User = Depends(get_current_active_user), # Autenticação
+    db: Session = Depends(get_db)
+):
     """
-    Endpoint para emitir uma nota fiscal (NF-e ou NFS-e).
-    Recebe os dados da nota em formato JSON e processa a emissão.
+    Endpoint para emitir nota fiscal usando Emissor Próprio (Custo Zero).
+    Seleciona automaticamente o driver (SEFAZ, Curitiba ou Paranaguá).
     """
     try:
-        # Converte o modelo Pydantic para um dicionário Python.
+        # 1. Obter configurações da empresa (Tenant)
+        company = db.query(CompanyInfo).filter(CompanyInfo.tenant_id == current_user.tenant_id).first()
+        if not company:
+            raise HTTPException(status_code=400, detail="Configure os dados da empresa (CNPJ, Endereço, Certificado) antes de emitir.")
+
+        # 2. Inicializar Provider
+        provider = FiscalProvider(company)
+        
+        # 3. Preparar dados
         invoice_data = invoice.model_dump()
         
-        # Gera um número de nota fiscal (em uma aplicação real, viria de uma sequência no DB).
-        import random
-        invoice_data['number'] = str(random.randint(1000, 9999)) # Número aleatório para demonstração.
-        invoice_data['series'] = "1" # Série da nota.
+        # Sequencial (Simples incremento para MVP)
+        # Em produção, isso deve ser transacional e atômico
+        next_seq = (company.sequence_nfe or 0) + 1
         
-        # 1. Gera o XML da nota fiscal usando o serviço fiscal.
-        # O serviço `fiscal_service` abstrai a complexidade da geração do XML conforme a legislação.
-        xml = fiscal_service.generate_nfe_xml(invoice_data)
+        # 4. Emitir (Geração XML -> Assinatura -> Envio)
+        result = provider.emit(invoice_data['type'], invoice_data, next_seq)
         
-        # 2. Assina o XML gerado digitalmente.
-        # A assinatura garante a autenticidade e integridade do documento.
-        signed_xml = fiscal_service.sign_xml(xml)
+        # 5. Atualizar sequencial no banco se sucesso
+        if result['status'] == 'AUTHORIZED':
+            company.sequence_nfe = next_seq
+            db.commit()
+            
+        return result
         
-        # 3. Transmite o XML assinado para a SEFAZ (Secretaria da Fazenda) ou provedor de NFS-e.
-        # Este passo simula o envio do documento fiscal para as autoridades competentes.
-        result = fiscal_service.transmit_to_sefaz(signed_xml)
-        
-        return result # Retorna o resultado da transmissão.
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro na emissão fiscal: {str(e)}")
         
     except Exception as e:
         # Em caso de erro, levanta um HTTPException 500 com a mensagem de erro.

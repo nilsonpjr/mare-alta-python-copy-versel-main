@@ -494,6 +494,13 @@ class CompanyInfoBase(CamelModel):
     environment: Optional[str] = None # Ambiente (production ou homologation)
     mercury_username: Optional[str] = None
     mercury_password: Optional[str] = None
+    
+    # Fiscal Proprio
+    cert_password: Optional[str] = None
+    fiscal_environment: Optional[str] = "homologation"
+    sequence_nfe: Optional[int] = 1
+    series_nfe: Optional[int] = 1
+    city_code: Optional[str] = "4118204"
 
 class CompanyInfoCreate(CompanyInfoBase):
     """

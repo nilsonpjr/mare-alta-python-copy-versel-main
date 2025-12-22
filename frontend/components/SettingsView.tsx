@@ -244,6 +244,106 @@ export const SettingsView: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* --- NOVA SEÇÃO: EMISSÃO FISCAL PRÓPRIA --- */}
+                        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden mt-8">
+                            <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 p-8 text-white">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="bg-white p-2 rounded-lg">
+                                        <div className="w-8 h-8 flex items-center justify-center text-emerald-800 font-bold bg-emerald-100 rounded">
+                                            NF
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold">Emissor Fiscal Próprio</h3>
+                                        <p className="text-emerald-200 text-sm">Emissão direta SEFAZ/Prefeituras (Sem custo por nota)</p>
+                                    </div>
+                                </div>
+                                <p className="text-emerald-100 text-sm leading-relaxed max-w-xl">
+                                    Configure seu Certificado Digital A1 para emitir NFe (Peças) e NFSe (Serviços)
+                                    diretamente pelos webservices governamentais. Suporte nativo para Paranaguá e Curitiba.
+                                </p>
+                            </div>
+
+                            <div className="p-8 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Cidade / Driver */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Município de Emissão</label>
+                                        <div className="relative group">
+                                            <select
+                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white appearance-none"
+                                                value={companyInfo.cityCode || '4118204'}
+                                                onChange={e => setCompanyInfo({ ...companyInfo, cityCode: e.target.value })}
+                                            >
+                                                <option value="4118204">Paranaguá - PR (Fly e-Nota)</option>
+                                                <option value="4106902">Curitiba - PR (ISS Curitiba)</option>
+                                            </select>
+                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🏢</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Ambiente */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ambiente</label>
+                                        <div className="relative group">
+                                            <select
+                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white appearance-none"
+                                                value={companyInfo.fiscalEnvironment || 'homologation'}
+                                                onChange={e => setCompanyInfo({ ...companyInfo, fiscalEnvironment: e.target.value })}
+                                            >
+                                                <option value="homologation">Homologação (Testes)</option>
+                                                <option value="production">Produção (Validade Jurídica)</option>
+                                            </select>
+                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🧪</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Certificado (Simulado Upload) */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Certificado Digital (A1 .pfx)</label>
+                                        <div className="relative group">
+                                            <input
+                                                type="file"
+                                                accept=".pfx,.p12"
+                                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                                            />
+                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🔐</div>
+                                        </div>
+                                        <p className="text-xs text-slate-400">O arquivo será enviado para processamento local seguro.</p>
+                                    </div>
+
+                                    {/* Senha Certificado */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Senha do Certificado</label>
+                                        <div className="relative group">
+                                            <input
+                                                type="password"
+                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white"
+                                                placeholder="••••••"
+                                                value={companyInfo.certPassword || ''}
+                                                onChange={e => setCompanyInfo({ ...companyInfo, certPassword: e.target.value })}
+                                            />
+                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🔑</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 flex justify-end">
+                                    <button
+                                        onClick={handleSaveCompanyInfo}
+                                        disabled={loading}
+                                        className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2 font-medium transition-all transform active:scale-95"
+                                    >
+                                        {loading ? (
+                                            <><Loader2 className="w-5 h-5 animate-spin" /> Salvando...</>
+                                        ) : (
+                                            <><Save className="w-5 h-5" /> Salvar Configuração Fiscal</>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 ) : (
                     <>

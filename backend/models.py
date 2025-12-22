@@ -431,8 +431,17 @@ class CompanyInfo(Base):
     environment = Column(String(20)) # Ambiente de operação (production ou homologation)
 
     # Integrações
+    # Integrações
     mercury_username = Column(String(100))
     mercury_password = Column(String(100))
+    
+    # Emissão Fiscal Própria (Custo Zero)
+    cert_file_path = Column(String(200)) # Caminho do arquivo .pfx no servidor
+    cert_password = Column(String(100))  # Senha do certificado
+    fiscal_environment = Column(String(20), default="homologation") # homologation/production
+    sequence_nfe = Column(Integer, default=1) # Sequencial de NFe
+    series_nfe = Column(Integer, default=1)   # Série da NFe
+    city_code = Column(String(7), default="4118204") # Código IBGE
 
 
 class MaintenanceKit(Base):
