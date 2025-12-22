@@ -74,7 +74,10 @@
 - [x] Dashboard financeiro com KPIs
 - [x] Gráfico de fluxo de caixa
 - [x] Categorização de transações
-- [ ] **PENDENTE:** Emissão fiscal real (NFe/NFSe)
+- [x] **EMISSÃO FISCAL:** NFe/NFSe Implementada (Integração direta sem API paga).
+  - Backend: Assinatura Digital, SOAP c/ TLS Mútuo.
+  - Frontend: Tela de configuração de certificado A1 e emissão.
+  - *Status:* Aguardando teste com certificado real em produção.
 - [ ] **PENDENTE:** Integração bancária (Boleto/Pix)
 
 #### 8. **AGENDA E CRM** ✅ 60%
@@ -128,10 +131,11 @@
   - `/clients/{id}` - Delete de clientes
 - [ ] **PENDENTE:** Internacionalização (i18n)
 
-### ⏳ FASE 3: REDE DE PARCEIROS - 0%
-- [ ] Cadastro de parceiros
-- [ ] Checklist de inspeção mobile
-- [ ] Gerador de pré-ordem multi-parceiros
+### ⏳ FASE 3: REDE DE PARCEIROS - 50%
+- [x] Cadastro de parceiros (Backend & Frontend CRUD)
+- [x] Checklist de inspeção mobile (Frontend implementado)
+- [ ] Gerador de pré-ordem multi-parceiros (Falta integração de orçamentos)
+- [ ] Fluxo de solicitação de orçamento via WhatsApp
 
 ### ⏳ FASE 4: PORTAL DO CLIENTE - 0%
 - [ ] CRM ativo com WhatsApp
@@ -219,10 +223,7 @@
    - Necessita otimização do Playwright script
    - Workaround: Retry automático implementado
 
-2. **Erro de Lint: mercury.ts not found**
-   - Arquivo referenciado no tsconfig.json mas não existe
-   - Não impacta funcionalidade
-   - Sugestão: Limpar referência do tsconfig
+
 
 ---
 

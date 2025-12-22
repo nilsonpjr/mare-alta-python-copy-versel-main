@@ -616,12 +616,5 @@ export const ApiService = {
         return response.data;
     },
 
-    /**
-     * Emite uma NFe ou NFSe (Emissor Próprio / Custo Zero)
-     */
-    emitFiscalInvoice: async (invoiceData: any) => {
-        // Envia para o backend Python (/api/fiscal/emit)
-        const response = await api.post('/fiscal/emit', invoiceData);
-        return response.data;
-    }
+
 };
