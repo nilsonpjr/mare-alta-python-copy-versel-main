@@ -463,9 +463,90 @@ export interface ApiMaintenanceKitCreate {
   description?: string;
   items: {
     type: ItemType;
-    partId?: number; // Para itens linkados ao estoque (se houver)
+    partId?: number;
     itemDescription: string;
     quantity: number;
     unitPrice: number;
   }[];
+}
+
+// --- PARTNER NETWORK (FASE 3) ---
+
+export interface Partner {
+  id: number;
+  name: string;
+  companyName?: string;
+  document?: string;
+  partnerType: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  rating: number;
+  totalJobs: number;
+  active: boolean;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface InspectionChecklistItemCreate {
+  category: string;
+  itemDescription: string;
+  severity: 'OK' | 'Atenção' | 'Urgente' | 'Crítico';
+  notes?: string;
+  photoUrl?: string;
+  estimatedCost?: number;
+  recommendedPartnerType?: string;
+}
+
+export interface InspectionChecklistItem extends InspectionChecklistItemCreate {
+  id: number;
+  inspectionId: number;
+  createdAt: string;
+}
+
+export interface TechnicalInspectionCreate {
+  boatId: number;
+  inspectorUserId: number;
+  scheduledDate?: string;
+  generalNotes?: string;
+}
+
+export interface TechnicalInspection {
+  id: number;
+  boatId: number;
+  inspectorUserId: number;
+  status: string;
+  scheduledDate?: string;
+  completedDate?: string;
+  generalNotes?: string;
+  checklistItems: InspectionChecklistItem[];
+  createdAt: string;
+  partnerQuotes?: PartnerQuote[]; // Importante para o frontend
+}
+
+export interface PartnerQuoteCreate {
+  inspectionId: number;
+  partnerId: number;
+  serviceDescription: string;
+}
+
+export interface PartnerQuoteUpdate {
+  quotedValue?: number;
+  estimatedDays?: number;
+  status?: string;
+  partnerNotes?: string;
+  internalNotes?: string;
+}
+
+export interface PartnerQuote {
+  id: number;
+  inspectionId: number;
+  partnerId: number;
+  serviceDescription: string;
+  quotedValue?: number;
+  estimatedDays?: number;
+  status: 'Solicitado' | 'Recebido' | 'Aprovado' | 'Rejeitado' | 'Concluído';
+  requestedDate: string;
+  responseDate?: string;
+  partner: Partner;
 }

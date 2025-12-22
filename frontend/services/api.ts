@@ -617,4 +617,23 @@ export const ApiService = {
     },
 
 
+    // === Partner Quotes (Orçamentos de Parceiros) ===
+
+    getPartnerQuotes: async (inspectionId?: number, partnerId?: number) => {
+        const params: any = {};
+        if (inspectionId) params.inspection_id = inspectionId;
+        if (partnerId) params.partner_id = partnerId;
+        const response = await api.get('/partners/quotes', { params });
+        return response.data;
+    },
+
+    createPartnerQuote: async (quote: any) => {
+        const response = await api.post('/partners/quotes', quote);
+        return response.data;
+    },
+
+    updatePartnerQuote: async (id: number, quote: any) => {
+        const response = await api.put(`/partners/quotes/${id}`, quote);
+        return response.data;
+    }
 };

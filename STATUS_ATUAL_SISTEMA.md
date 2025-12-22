@@ -131,11 +131,12 @@
   - `/clients/{id}` - Delete de clientes
 - [ ] **PENDENTE:** Internacionalização (i18n)
 
-### ⏳ FASE 3: REDE DE PARCEIROS - 50%
+### ✅ FASE 3: REDE DE PARCEIROS - 90%
 - [x] Cadastro de parceiros (Backend & Frontend CRUD)
 - [x] Checklist de inspeção mobile (Frontend implementado)
-- [ ] Gerador de pré-ordem multi-parceiros (Falta integração de orçamentos)
-- [ ] Fluxo de solicitação de orçamento via WhatsApp
+- [x] Histórico de Inspeções Técnicas
+- [x] Gerador de pré-ordem multi-parceiros (Quote Manager & PDF Proposta)
+- [ ] Fluxo de solicitação via WhatsApp (Link direto)
 
 ### ⏳ FASE 4: PORTAL DO CLIENTE - 0%
 - [ ] CRM ativo com WhatsApp
