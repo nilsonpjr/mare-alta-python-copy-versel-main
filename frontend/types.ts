@@ -261,6 +261,8 @@ export interface CompanyInfo {
   environment?: string;
   mercuryUsername?: string;
   mercuryPassword?: string;
+  certFilePath?: string;
+  certPassword?: string;
 }
 
 export interface ServiceOrder {

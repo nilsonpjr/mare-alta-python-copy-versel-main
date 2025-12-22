@@ -496,6 +496,7 @@ class CompanyInfoBase(CamelModel):
     mercury_password: Optional[str] = None
     
     # Fiscal Proprio
+    cert_file_path: Optional[str] = None
     cert_password: Optional[str] = None
     fiscal_environment: Optional[str] = "homologation"
     sequence_nfe: Optional[int] = 1

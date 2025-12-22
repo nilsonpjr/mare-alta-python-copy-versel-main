@@ -301,16 +301,18 @@ export const SettingsView: React.FC = () => {
 
                                     {/* Certificado (Simulado Upload) */}
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Certificado Digital (A1 .pfx)</label>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome do Arquivo do Certificado (.pfx)</label>
                                         <div className="relative group">
                                             <input
-                                                type="file"
-                                                accept=".pfx,.p12"
-                                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                                                type="text"
+                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white"
+                                                placeholder="ex: certs/certificado.pfx (Caminho relativo)"
+                                                value={companyInfo.certFilePath || ''}
+                                                onChange={e => setCompanyInfo({ ...companyInfo, certFilePath: e.target.value })}
                                             />
                                             <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🔐</div>
                                         </div>
-                                        <p className="text-xs text-slate-400">O arquivo será enviado para processamento local seguro.</p>
+                                        <p className="text-xs text-slate-400">O arquivo deve estar na pasta <code>backend/certs</code> do servidor.</p>
                                     </div>
 
                                     {/* Senha Certificado */}

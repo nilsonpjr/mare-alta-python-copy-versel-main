@@ -31,6 +31,7 @@ python-jose==3.3.0
 python-multipart==0.0.6
 PyYAML==6.0.3
 requests==2.31.0
+requests-pkcs12==1.25
 rsa==4.9.1
 signxml
 six==1.17.0
@@ -41,6 +42,7 @@ starlette==0.35.1
 typing_extensions==4.15.0
 urllib3==2.5.0
 uvicorn==0.27.0
+zeep==4.2.1
 
 watchfiles==1.1.1
 websockets==15.0.1
@@ -50,4 +52,3 @@ pytest==7.4.3
 pytest-cov==4.1.0
 pytest-asyncio==0.23.2
 httpx==0.25.2
-

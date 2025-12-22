@@ -25,6 +25,8 @@ Se você possui um Certificado Digital A1 (.pfx) para emissão fiscal, coloque-o
 
 Exemplo: `backend/certs/meu_certificado.pfx`
 
+**Importante:** Após iniciar o sistema, vá em **Configurações -> Empresa** e no campo "Nome do Arquivo do Certificado", informe o caminho relativo: `certs/meu_certificado.pfx`.
+
 ### 2. Iniciando os Serviços
 
 Execute o seguinte comando para construir e iniciar os containers:
