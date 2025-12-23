@@ -497,6 +497,7 @@ class CompanyInfoBase(CamelModel):
     
     # Fiscal Proprio
     cert_file_path: Optional[str] = None
+    cert_base64: Optional[str] = None # Campo transitorio para upload via base64
     cert_password: Optional[str] = None
     fiscal_environment: Optional[str] = "homologation"
     sequence_nfe: Optional[int] = 1

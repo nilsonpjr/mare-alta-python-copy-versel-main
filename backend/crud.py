@@ -764,8 +764,20 @@ def update_company_info(db: Session, info: schemas.CompanyInfoCreate, tenant_id:
 
     # Atualiza os atributos do objeto do banco de dados com os dados do schema.
     update_data = info.model_dump(exclude_unset=True)
+    
+    # Se cert_base64 for fornecido, salvamos ele no campo cert_file_path
+    # OBS: Requer que o campo cert_file_path no banco seja TEXT ou grande o suficiente
+    if 'cert_base64' in update_data:
+        cert_content = update_data.pop('cert_base64')
+        if cert_content:
+             # Em ambiente serverless/container efêmero, salvamos o conteúdo base64 no banco
+             # em vez de salvar em arquivo físico. O Service Provider deverá saber ler isso.
+             # Reutilizamos o campo 'cert_file_path' para guardar o conteúdo (prefixo b64:)
+             setattr(db_info, 'cert_file_path', f"base64:{cert_content}")
+    
     for key, value in update_data.items():
-        setattr(db_info, key, value)
+        if key != 'cert_base64': # Ja tratado acima
+            setattr(db_info, key, value)
             
     db.commit()
     db.refresh(db_info)

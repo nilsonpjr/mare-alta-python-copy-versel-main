@@ -256,7 +256,7 @@ export interface CompanyInfo {
   neighborhood?: string;
   city?: string;
   state?: string;
-  zip?: string;
+  zipCode?: string;
   crt?: string;
   environment?: string;
   mercuryUsername?: string;

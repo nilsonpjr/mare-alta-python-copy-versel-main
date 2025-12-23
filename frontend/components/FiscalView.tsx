@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     FileText, Settings, History, Send, Printer, AlertTriangle,
-    CheckCircle, XCircle, Building, FileDigit, Save, Share2, Mail
+    CheckCircle, XCircle, Building, FileDigit, Save, Share2, Mail, Upload
 } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { FiscalDocType, FiscalStatus, FiscalInvoice, FiscalIssuer, FiscalDataPayload } from '../types';
@@ -14,6 +14,10 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
     const [activeTab, setActiveTab] = useState<'nfe' | 'nfse' | 'history' | 'config'>('nfe');
     const [isLoading, setIsLoading] = useState(false);
     const [history, setHistory] = useState<FiscalInvoice[]>([]);
+
+    // Upload de Certificado
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
 
     // Configuração do Emissor
     const [issuer, setIssuer] = useState<FiscalIssuer>({
@@ -44,6 +48,13 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                 // 2. Carregar Configuração da Empresa
                 const info = await ApiService.getCompanyInfo();
                 if (info) {
+                    // Check if certificate exists (crud stores it as "base64:...")
+                    let hasCert = false;
+                    if (info.certFilePath && info.certFilePath.startsWith('base64:')) {
+                        hasCert = true;
+                        setFileName("Certificado Instalado");
+                    }
+
                     setIssuer({
                         cnpj: info.cnpj || '',
                         ie: info.ie || '',
@@ -55,10 +66,11 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                             neighborhood: info.neighborhood || '',
                             city: info.city || '',
                             state: info.state || '',
-                            zip: info.zip || ''
+                            zip: info.zipCode || ''
                         },
                         crt: (info.crt as any) || '1',
-                        environment: (info.environment as any) === 'production' ? 'production' : 'homologation'
+                        environment: (info.environment as any) === 'production' ? 'production' : 'homologation',
+                        certificate: hasCert ? 'INSTALLED' : undefined
                     });
                 }
             } catch (error) {
@@ -69,7 +81,7 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
         loadBackendData();
     }, []);
 
-    // Handle initialData from Navigation (e.g. from Order)
+    // Handle initialData from Navigation
     useEffect(() => {
         if (initialData) {
             if (initialData.type === 'nfe') {
@@ -92,9 +104,26 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
         }
     }, [initialData]);
 
+    // Handle File Selection
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            // Read as Base64
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64String = reader.result?.toString().split(',')[1]; // Remove prefix data:application/x-pkcs12;base64,
+                if (base64String) {
+                    setIssuer(prev => ({ ...prev, certificate: base64String }));
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSaveConfig = async () => {
         try {
-            await ApiService.updateCompanyInfo({
+            const payload: any = {
                 cnpj: issuer.cnpj,
                 ie: issuer.ie,
                 company_name: issuer.companyName,
@@ -107,8 +136,19 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                 zip: issuer.address.zip,
                 crt: issuer.crt,
                 environment: issuer.environment
-            });
+            };
+
+            // Include certificate only if selected (it will be base64 string)
+            if (issuer.certificate && issuer.certificate !== 'INSTALLED') {
+                payload.cert_base64 = issuer.certificate;
+            }
+
+            await ApiService.updateCompanyInfo(payload);
             alert('Configurações fiscais salvas no servidor!');
+            if (issuer.certificate && issuer.certificate !== 'INSTALLED') {
+                setFileName("Certificado Instalado");
+                setIssuer(prev => ({ ...prev, certificate: 'INSTALLED' }));
+            }
         } catch (error) {
             console.error(error);
             alert('Erro ao salvar configurações.');
@@ -150,7 +190,7 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
 
             const result = await ApiService.emitFiscalInvoice(invoiceData);
 
-            if (result.status === 'AUTHORIZED') { // Checked against backend return
+            if (result.status === 'AUTHORIZED') {
                 alert(`${type} transmitida com sucesso!\nProtocolo: ${result.protocol}\nMensagem: ${result.message}`);
 
                 // Reload history
@@ -170,6 +210,7 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
     };
 
     const handlePrint = (invoice: FiscalInvoice) => {
+        // Logic for printing (same as previous)
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
@@ -592,10 +633,24 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Certificado Digital (A1)</label>
-                                <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 cursor-pointer transition-colors">
-                                    <FileDigit className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                                    <p className="text-sm text-slate-600 font-medium">Clique para selecionar o arquivo .PFX</p>
-                                    <p className="text-xs text-slate-400 mt-1">Válido até: 31/12/2025</p>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    style={{ display: 'none' }}
+                                    accept=".pfx"
+                                    onChange={handleFileSelect}
+                                />
+                                <div
+                                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${fileName ? 'border-green-400 bg-green-50' : 'border-slate-300 hover:bg-slate-50'}`}
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <FileDigit className={`w-8 h-8 mx-auto mb-2 ${fileName ? 'text-green-500' : 'text-slate-400'}`} />
+                                    <p className={`text-sm font-medium ${fileName ? 'text-green-700' : 'text-slate-600'}`}>
+                                        {fileName || 'Clique para selecionar o arquivo .PFX'}
+                                    </p>
+                                    <p className="text-xs text-slate-400 mt-1">
+                                        {fileName ? 'Arquivo pronto para upload' : 'Suporta apenas arquivos PKCS#12 (.pfx)'}
+                                    </p>
                                 </div>
                             </div>
                             <div>
