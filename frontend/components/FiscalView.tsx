@@ -149,9 +149,10 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                 setFileName("Certificado Instalado");
                 setIssuer(prev => ({ ...prev, certificate: 'INSTALLED' }));
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('Erro ao salvar configurações.');
+            const msg = error.response?.data?.detail || error.message || 'Erro desconhecido';
+            alert(`Erro ao salvar configurações: ${msg}`);
         }
     };
 

@@ -436,7 +436,7 @@ class CompanyInfo(Base):
     mercury_password = Column(String(100))
     
     # Emissão Fiscal Própria (Custo Zero)
-    cert_file_path = Column(String(200)) # Caminho do arquivo .pfx no servidor
+    cert_file_path = Column(Text) # Caminho do arquivo .pfx (ou conteúdo Base64)
     cert_password = Column(String(100))  # Senha do certificado
     fiscal_environment = Column(String(20), default="homologation") # homologation/production
     sequence_nfe = Column(Integer, default=1) # Sequencial de NFe

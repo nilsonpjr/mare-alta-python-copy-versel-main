@@ -92,6 +92,28 @@ def debug_db_info(db: Session = Depends(get_db)):
     except Exception as e:
         return {"error": str(e)}
 
+# Endpoint temporário para correção de banco de dados (render free tier não tem shell)
+@app.get("/api/config/patch-db-cert")
+def patch_db_cert():
+    from sqlalchemy import text
+    try:
+        with engine.connect() as conn:
+            with conn.begin():
+                # Postgres
+                try:
+                    conn.execute(text("ALTER TABLE company_info ALTER COLUMN cert_file_path TYPE TEXT;"))
+                    return {"status": "success", "message": "Coluna alterada para TEXT (Postgres)"}
+                except Exception as e:
+                    # SQLite não precisa, MySQL sintaxe diferente
+                     try:
+                        conn.execute(text("ALTER TABLE company_info MODIFY COLUMN cert_file_path TEXT;"))
+                        return {"status": "success", "message": "Coluna alterada para TEXT (MySQL)"}
+                     except:
+                        pass
+                    return {"status": "warning", "message": f"Erro ou já aplicado: {str(e)}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 # Inclui todos os roteadores na aplicação principal.
 # Cada roteador adiciona suas próprias rotas baseadas nos prefixos definidos neles.
 app.include_router(auth_router) # Roteador para autenticação de usuários (login, registro).
