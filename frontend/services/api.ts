@@ -6,7 +6,7 @@ import {
     TransactionCreate, Transaction,
     Manufacturer, Model, CompanyInfo,
     BoatCreate, BoatUpdate, TenantSignup, ClientCreate, ClientUpdate,
-    ApiMaintenanceKit, ApiMaintenanceKitCreate, MarinaCreate
+    ApiMaintenanceKit, ApiMaintenanceKitCreate, MarinaCreate, FiscalInvoice
 } from '../types';
 
 /**
@@ -323,6 +323,14 @@ export const ApiService = {
     },
 
     // --- FISCAL ---
+    /**
+     * Obtém o histórico de notas fiscais.
+     */
+    getFiscalInvoices: async () => {
+        const response = await api.get<FiscalInvoice[]>('/fiscal');
+        return response.data;
+    },
+
     /**
      * Emite uma nota fiscal.
      * @param invoiceData Os dados da nota fiscal.

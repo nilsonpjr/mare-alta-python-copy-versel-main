@@ -6,16 +6,22 @@ os documentos fiscais.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 import sys
 import os
+from datetime import datetime
 
 # Adiciona o diretório pai (backend) ao sys.path para permitir importações relativas.
-# Embora funcione, é uma abordagem que pode ser frágil em projetos maiores.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from services.fiscal_service import fiscal_service # Importa o serviço que lida com a lógica fiscal.
 from auth import get_current_active_user
+import models
+from models import CompanyInfo, FiscalInvoice, Client, InvoiceType, InvoiceStatus
+from database import get_db
+from sqlalchemy.orm import Session
+from sqlalchemy import desc
+from services.fiscal_provider import FiscalProvider
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(
@@ -25,77 +31,110 @@ router = APIRouter(
 )
 
 # --- Modelos Pydantic para dados fiscais ---
-# Estes modelos definem a estrutura dos dados esperados para as operações fiscais.
 
 class FiscalItem(BaseModel):
-    """
-    Representa um item de serviço ou produto em uma nota fiscal.
-    """
-    code: str # Código do item.
-    desc: str # Descrição do item.
-    qty: float # Quantidade.
-    price: float # Preço unitário.
-    total: float # Valor total do item (qty * price).
+    code: str 
+    desc: str 
+    qty: float 
+    price: float 
+    total: float 
 
 class FiscalAddress(BaseModel):
-    """
-    Representa um endereço para entidades fiscais.
-    """
-    street: str # Rua.
-    number: str # Número.
-    neighborhood: str # Bairro.
-    city: str # Cidade.
-    state: str # Estado (sigla).
-    zip: str # CEP.
+    street: str 
+    number: str 
+    neighborhood: str 
+    city: str 
+    state: str 
+    zip: str 
 
 class FiscalEntity(BaseModel):
-    """
-    Representa uma entidade fiscal, como emissor ou recebedor da nota.
-    Pode ser pessoa física ou jurídica.
-    """
-    name: Optional[str] = None # Nome da pessoa física.
-    companyName: Optional[str] = None # Razão social da empresa.
-    tradeName: Optional[str] = None # Nome fantasia.
-    doc: Optional[str] = None # Documento (CPF ou CNPJ), formato genérico.
-    cnpj: Optional[str] = None # CNPJ específico (para uso na geração da NF-e).
-    ie: Optional[str] = None # Inscrição Estadual.
-    address: Optional[FiscalAddress] = None # Endereço da entidade.
-    crt: Optional[str] = None # Código de Regime Tributário.
+    name: Optional[str] = None 
+    companyName: Optional[str] = None 
+    tradeName: Optional[str] = None 
+    doc: Optional[str] = None 
+    cnpj: Optional[str] = None 
+    ie: Optional[str] = None 
+    address: Optional[FiscalAddress] = None
+    crt: Optional[str] = None 
 
 class InvoiceRequest(BaseModel):
-    """
-    Define a estrutura completa de uma requisição para emissão de nota fiscal.
-    """
-    type: str # Tipo da nota: "NFE" (Nota Fiscal Eletrônica de Produto) ou "NFSE" (Nota Fiscal de Serviço Eletrônica).
-    issuer: FiscalEntity # Dados da entidade emissora da nota.
-    recipient: FiscalEntity # Dados da entidade recebedora da nota.
-    items: Optional[List[FiscalItem]] = [] # Lista de itens (produtos/serviços) da nota.
-    serviceValue: Optional[float] = 0 # Valor total dos serviços (para NFS-e).
-    totalValue: float # Valor total geral da nota.
-    naturezaOperacao: Optional[str] = None # Natureza da Operação (ex: "Venda de Mercadoria").
-    issRetido: Optional[bool] = False # Indica se o ISS foi retido (para NFS-e).
+    type: str 
+    issuer: FiscalEntity 
+    recipient: FiscalEntity 
+    items: Optional[List[FiscalItem]] = []
+    serviceValue: Optional[float] = 0
+    totalValue: float 
+    naturezaOperacao: Optional[str] = None
+    issRetido: Optional[bool] = False
+    serviceOrderId: Optional[int] = None
 
-# Nova importação
-from services.fiscal_provider import FiscalProvider
-from database import get_db
-from sqlalchemy.orm import Session
-from models import CompanyInfo
-import models
+class FiscalInvoiceResponse(BaseModel):
+    id: str # Frontend expects string ID usually
+    type: str 
+    number: Optional[str] = None
+    series: Optional[str] = None
+    status: str
+    issuedAt: datetime
+    recipientName: str
+    recipientDoc: str
+    totalValue: float
+    authorizationProtocol: Optional[str] = None
+    rejectionReason: Optional[str] = None
+    xml: Optional[str] = None
 
-# ... (código existente mantido até InvoiceRequest)
+@router.get("/", response_model=List[FiscalInvoiceResponse])
+async def list_fiscal_invoices(
+    current_user: models.User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0
+):
+    """
+    Lista as notas fiscais emitidas pelo tenant atual.
+    """
+    invoices = db.query(FiscalInvoice)\
+        .filter(FiscalInvoice.tenant_id == current_user.tenant_id)\
+        .order_by(desc(FiscalInvoice.created_at))\
+        .limit(limit)\
+        .offset(offset)\
+        .all()
+        
+    response = []
+    for inv in invoices:
+        # Resolve Client Info
+        client_name = inv.client.name if inv.client else "Desconhecido"
+        client_doc = inv.client.document if inv.client else ""
+        
+        # Map fields
+        resp_item = FiscalInvoiceResponse(
+            id=str(inv.id),
+            type=inv.invoice_type.value if hasattr(inv.invoice_type, 'value') else str(inv.invoice_type),
+            number=inv.invoice_number,
+            series=inv.serie,
+            status=inv.status.value if hasattr(inv.status, 'value') else str(inv.status),
+            issuedAt=inv.issue_date,
+            recipientName=client_name,
+            recipientDoc=client_doc,
+            totalValue=inv.total_value,
+            authorizationProtocol=inv.authorization_protocol,
+            rejectionReason=inv.rejection_reason,
+            xml=inv.xml_content
+        )
+        response.append(resp_item)
+        
+    return response
 
 @router.post("/emit")
 async def emit_invoice(
     invoice: InvoiceRequest,
-    current_user: models.User = Depends(get_current_active_user), # Autenticação
+    current_user: models.User = Depends(get_current_active_user), 
     db: Session = Depends(get_db)
 ):
     """
-    Endpoint para emitir nota fiscal usando Emissor Próprio (Custo Zero).
-    Seleciona automaticamente o driver (SEFAZ, Curitiba ou Paranaguá).
+    Endpoint para emitir nota fiscal.
     """
     try:
-        # 1. Obter configurações da empresa (Tenant)
+        # 1. Obter configurações
         company = db.query(CompanyInfo).filter(CompanyInfo.tenant_id == current_user.tenant_id).first()
         if not company:
             raise HTTPException(status_code=400, detail="Configure os dados da empresa (CNPJ, Endereço, Certificado) antes de emitir.")
@@ -103,30 +142,83 @@ async def emit_invoice(
         # 2. Inicializar Provider
         provider = FiscalProvider(company)
         
-        # 3. Preparar dados
-        invoice_data = invoice.model_dump()
+        # 3. Identificar ou Criar Cliente
+        client_doc = invoice.recipient.doc
+        client_name = invoice.recipient.name or invoice.recipient.companyName
         
-        # Sequencial (Simples incremento para MVP)
-        # Em produção, isso deve ser transacional e atômico
+        if not client_doc:
+            raise HTTPException(status_code=400, detail="Documento do destinatário (CPF/CNPJ) é obrigatório.")
+            
+        client = db.query(Client).filter(
+            Client.tenant_id == current_user.tenant_id,
+            Client.document == client_doc
+        ).first()
+        
+        if not client:
+            client = Client(
+                tenant_id=current_user.tenant_id,
+                name=client_name or "Cliente Desconhecido",
+                document=client_doc,
+                type="EMPRESA" if len(client_doc) > 11 else "PARTICULAR"
+            )
+            db.add(client)
+            db.commit()
+            db.refresh(client)
+            
+        # 4. Sequencial
         next_seq = (company.sequence_nfe or 0) + 1
         
-        # 4. Emitir (Geração XML -> Assinatura -> Envio)
+        # 5. Criar Registro FiscalInvoice
+        invoice_type_enum = InvoiceType.NFE if invoice.type.upper() == "NFE" else InvoiceType.NFSE
+        
+        fiscal_invoice = FiscalInvoice(
+            tenant_id=current_user.tenant_id,
+            invoice_type=invoice_type_enum,
+            invoice_number=str(next_seq),
+            serie=str(company.series_nfe or "1"),
+            service_order_id=invoice.serviceOrderId,
+            client_id=client.id,
+            total_value=invoice.totalValue,
+            net_value=invoice.totalValue, 
+            status=InvoiceStatus.PROCESSING,
+            issue_date=datetime.utcnow()
+        )
+        db.add(fiscal_invoice)
+        db.commit()
+        db.refresh(fiscal_invoice)
+        
+        # 6. Emitir
+        invoice_data = invoice.model_dump()
         result = provider.emit(invoice_data['type'], invoice_data, next_seq)
         
-        # 5. Atualizar sequencial no banco se sucesso
+        # 7. Atualizar Registro
         if result['status'] == 'AUTHORIZED':
+            fiscal_invoice.status = InvoiceStatus.AUTHORIZED
+            fiscal_invoice.authorization_protocol = result.get('protocol')
+            fiscal_invoice.xml_content = result.get('xml')
+            fiscal_invoice.authorization_date = datetime.utcnow()
+            
             company.sequence_nfe = next_seq
-            db.commit()
+            
+        elif result['status'] == 'REJECTED':
+            fiscal_invoice.status = InvoiceStatus.REJECTED
+            fiscal_invoice.rejection_reason = result.get('message')
+        else:
+            fiscal_invoice.status = InvoiceStatus.ERROR
+            fiscal_invoice.rejection_reason = result.get('message')
+            
+        db.commit()
+        
+        result['db_id'] = fiscal_invoice.id
+        result['number'] = str(next_seq)
             
         return result
         
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
+    except HTTPException as he:
+        raise he
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro na emissão fiscal: {str(e)}")
-        
-    except Exception as e:
-        # Em caso de erro, levanta um HTTPException 500 com a mensagem de erro.
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro ao emitir nota fiscal: {str(e)}")

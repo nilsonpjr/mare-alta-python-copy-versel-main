@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     FileText, Settings, History, Send, Printer, AlertTriangle,
     CheckCircle, XCircle, Building, FileDigit, Save, Share2, Mail
 } from 'lucide-react';
-import { StorageService } from '../services/storage';
+import { ApiService } from '../services/api';
 import { FiscalDocType, FiscalStatus, FiscalInvoice, FiscalIssuer, FiscalDataPayload } from '../types';
 
 interface FiscalViewProps {
@@ -13,9 +13,64 @@ interface FiscalViewProps {
 export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
     const [activeTab, setActiveTab] = useState<'nfe' | 'nfse' | 'history' | 'config'>('nfe');
     const [isLoading, setIsLoading] = useState(false);
+    const [history, setHistory] = useState<FiscalInvoice[]>([]);
 
-    // [NEW] Populate from initialData
-    React.useEffect(() => {
+    // Configuração do Emissor
+    const [issuer, setIssuer] = useState<FiscalIssuer>({
+        cnpj: '',
+        ie: '',
+        companyName: '',
+        tradeName: '',
+        address: {
+            street: '',
+            number: '',
+            neighborhood: '',
+            city: '',
+            state: '',
+            zip: ''
+        },
+        crt: '1',
+        environment: 'homologation'
+    });
+
+    // Load initial data and backend configuration
+    useEffect(() => {
+        const loadBackendData = async () => {
+            try {
+                // 1. Carregar Histórico
+                const invoices = await ApiService.getFiscalInvoices();
+                setHistory(invoices);
+
+                // 2. Carregar Configuração da Empresa
+                const info = await ApiService.getCompanyInfo();
+                if (info) {
+                    setIssuer({
+                        cnpj: info.cnpj || '',
+                        ie: info.ie || '',
+                        companyName: info.company_name || '',
+                        tradeName: info.trade_name || '',
+                        address: {
+                            street: info.street || '',
+                            number: info.number || '',
+                            neighborhood: info.neighborhood || '',
+                            city: info.city || '',
+                            state: info.state || '',
+                            zip: info.zip || ''
+                        },
+                        crt: (info.crt as any) || '1',
+                        environment: (info.environment as any) === 'production' ? 'production' : 'homologation'
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados fiscais:", error);
+            }
+        };
+
+        loadBackendData();
+    }, []);
+
+    // Handle initialData from Navigation (e.g. from Order)
+    useEffect(() => {
         if (initialData) {
             if (initialData.type === 'nfe') {
                 setActiveTab('nfe');
@@ -37,65 +92,28 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
         }
     }, [initialData]);
 
-    // Mock Data
-    // Load config on mount
-    React.useEffect(() => {
-        const config = StorageService.getConfig();
-        if (config.company) {
-            setIssuer(config.company);
+    const handleSaveConfig = async () => {
+        try {
+            await ApiService.updateCompanyInfo({
+                cnpj: issuer.cnpj,
+                ie: issuer.ie,
+                company_name: issuer.companyName,
+                trade_name: issuer.tradeName,
+                street: issuer.address.street,
+                number: issuer.address.number,
+                neighborhood: issuer.address.neighborhood,
+                city: issuer.address.city,
+                state: issuer.address.state,
+                zip: issuer.address.zip,
+                crt: issuer.crt,
+                environment: issuer.environment
+            });
+            alert('Configurações fiscais salvas no servidor!');
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao salvar configurações.');
         }
-    }, []);
-
-    const [issuer, setIssuer] = useState<FiscalIssuer>({
-        cnpj: '',
-        ie: '',
-        companyName: '',
-        tradeName: '',
-        address: {
-            street: '',
-            number: '',
-            neighborhood: '',
-            city: '',
-            state: '',
-            zip: ''
-        },
-        crt: '1',
-        environment: 'homologation'
-    });
-
-    const handleSaveConfig = () => {
-        const config = StorageService.getConfig();
-        const updatedConfig = { ...config, company: issuer };
-        StorageService.saveConfig(updatedConfig);
-        alert('Configurações fiscais atualizadas com sucesso!');
     };
-
-    const [history, setHistory] = useState<FiscalInvoice[]>([
-        {
-            id: '1',
-            type: FiscalDocType.NFE,
-            number: '1001',
-            series: '1',
-            status: FiscalStatus.AUTHORIZED,
-            issuedAt: new Date().toISOString(),
-            recipientName: 'João da Silva',
-            recipientDoc: '123.456.789-00',
-            totalValue: 1500.00,
-            authorizationProtocol: '141200000001234' // [NEW]
-        },
-        {
-            id: '2',
-            type: FiscalDocType.NFSE,
-            number: '205',
-            series: '1',
-            status: FiscalStatus.REJECTED,
-            issuedAt: new Date(Date.now() - 86400000).toISOString(),
-            recipientName: 'Marina Porto',
-            recipientDoc: '99.999.999/0001-99',
-            totalValue: 450.00,
-            rejectionReason: 'Alíquota de ISS incorreta para o município.'
-        }
-    ]);
 
     // Form States
     const [nfeData, setNfeData] = useState({
@@ -130,30 +148,22 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                 issRetido: type === FiscalDocType.NFSE ? nfseData.issRetido : false
             };
 
-            const ApiService = (await import('../services/api')).ApiService;
             const result = await ApiService.emitFiscalInvoice(invoiceData);
 
-            if (result.status === 'success') {
-                const newInvoice: FiscalInvoice = {
-                    id: Math.random().toString(),
-                    type,
-                    number: result.number || Math.floor(Math.random() * 1000).toString(),
-                    series: '1',
-                    status: FiscalStatus.AUTHORIZED,
-                    issuedAt: new Date().toISOString(),
-                    recipientName: type === FiscalDocType.NFE ? nfeData.destinatario : nfseData.tomador,
-                    recipientDoc: type === FiscalDocType.NFE ? nfeData.docDestinatario : nfseData.docTomador,
-                    totalValue: type === FiscalDocType.NFE ? nfeData.items.reduce((acc, i) => acc + i.total, 0) : nfseData.valorServico,
-                    authorizationProtocol: result.protocol
-                };
-                setHistory([newInvoice, ...history]);
+            if (result.status === 'AUTHORIZED') { // Checked against backend return
                 alert(`${type} transmitida com sucesso!\nProtocolo: ${result.protocol}\nMensagem: ${result.message}`);
+
+                // Reload history
+                const invoices = await ApiService.getFiscalInvoices();
+                setHistory(invoices);
+
                 setActiveTab('history');
             } else {
-                alert(`Erro ao transmitir ${type}: ${result.message}`);
+                alert(`Erro ao transmitir ${type}: ${result.message || 'Erro desconhecido'}\nStatus: ${result.status}`);
             }
         } catch (error: any) {
-            alert(`Erro ao transmitir nota fiscal: ${error.message}`);
+            console.error(error);
+            alert(`Erro na comunicação com o servidor: ${error.message || error}`);
         } finally {
             setIsLoading(false);
         }
@@ -228,9 +238,9 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Mock items for history view as we don't store items in history state for this demo -->
+                                <!-- Items details are not fully persisted in history summary yet, logic can be added -->
                                 <tr>
-                                    <td>001</td>
+                                    <td>-</td>
                                     <td>Produto / Serviço Referente à Nota ${invoice.number}</td>
                                     <td>1</td>
                                     <td>R$ ${invoice.totalValue.toFixed(2)}</td>
@@ -400,7 +410,7 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                         <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-6 flex gap-3 items-start">
                             <Building className="w-5 h-5 text-blue-600 mt-0.5" />
                             <div>
-                                <p className="text-sm text-blue-800 font-bold">Configuração Local: Paranaguá - PR</p>
+                                <p className="text-sm text-blue-800 font-bold">Configuração Local: {issuer.address.city || 'Cidade'} - {issuer.address.state || 'UF'}</p>
                                 <p className="text-xs text-blue-600">As regras de ISS e retenções seguem a legislação municipal vigente.</p>
                             </div>
                         </div>
@@ -463,53 +473,60 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {history.map(inv => (
-                                    <tr key={inv.id} className="hover:bg-slate-50">
-                                        <td className="p-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit ${inv.status === FiscalStatus.AUTHORIZED ? 'bg-emerald-100 text-emerald-700' :
-                                                inv.status === FiscalStatus.REJECTED ? 'bg-red-100 text-red-700' :
-                                                    'bg-slate-100 text-slate-700'
-                                                }`}>
-                                                {inv.status === FiscalStatus.AUTHORIZED && <CheckCircle className="w-3 h-3" />}
-                                                {inv.status === FiscalStatus.REJECTED && <XCircle className="w-3 h-3" />}
-                                                {inv.status}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 font-bold text-slate-600">{inv.type}</td>
-                                        <td className="p-4 font-mono">{inv.number}</td>
-                                        <td className="p-4 font-mono text-xs text-slate-500">
-                                            {inv.authorizationProtocol || '-'}
-                                        </td>
-                                        <td className="p-4 text-slate-500">{new Date(inv.issuedAt).toLocaleDateString()}</td>
-                                        <td className="p-4 font-medium">{inv.recipientName}</td>
-                                        <td className="p-4 text-right font-bold">R$ {inv.totalValue.toFixed(2)}</td>
-                                        <td className="p-4 text-center">
-                                            <div className="flex justify-center gap-2">
-                                                <button
-                                                    className="p-2 text-slate-400 hover:text-cyan-600 transition-colors"
-                                                    title="Imprimir / PDF"
-                                                    onClick={() => handlePrint(inv)}
-                                                >
-                                                    <Printer className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    className="p-2 text-slate-400 hover:text-green-600 transition-colors"
-                                                    title="Enviar por WhatsApp"
-                                                    onClick={() => handleWhatsApp(inv)}
-                                                >
-                                                    <Share2 className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
-                                                    title="Enviar por Email"
-                                                    onClick={() => handleEmail(inv)}
-                                                >
-                                                    <Mail className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </td>
+                                {history.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} className="p-4 text-center text-slate-400">Nenhuma nota fiscal encontrada.</td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    history.map(inv => (
+                                        <tr key={inv.id} className="hover:bg-slate-50">
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit ${inv.status === FiscalStatus.AUTHORIZED ? 'bg-emerald-100 text-emerald-700' :
+                                                    inv.status === FiscalStatus.REJECTED ? 'bg-red-100 text-red-700' :
+                                                        'bg-slate-100 text-slate-700'
+                                                    }`}>
+                                                    {inv.status === FiscalStatus.AUTHORIZED && <CheckCircle className="w-3 h-3" />}
+                                                    {inv.status === FiscalStatus.REJECTED && <XCircle className="w-3 h-3" />}
+                                                    {inv.status}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 font-bold text-slate-600">{inv.type}</td>
+                                            <td className="p-4 font-mono">{inv.number}</td>
+                                            <td className="p-4 font-mono text-xs text-slate-500">
+                                                {inv.authorizationProtocol || '-'}
+                                                {inv.rejectionReason && <span className="block text-red-500 text-[10px] mt-1 truncate max-w-[150px]" title={inv.rejectionReason}>{inv.rejectionReason}</span>}
+                                            </td>
+                                            <td className="p-4 text-slate-500">{new Date(inv.issuedAt).toLocaleDateString()}</td>
+                                            <td className="p-4 font-medium">{inv.recipientName}</td>
+                                            <td className="p-4 text-right font-bold">R$ {inv.totalValue.toFixed(2)}</td>
+                                            <td className="p-4 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    <button
+                                                        className="p-2 text-slate-400 hover:text-cyan-600 transition-colors"
+                                                        title="Imprimir / PDF"
+                                                        onClick={() => handlePrint(inv)}
+                                                    >
+                                                        <Printer className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        className="p-2 text-slate-400 hover:text-green-600 transition-colors"
+                                                        title="Enviar por WhatsApp"
+                                                        onClick={() => handleWhatsApp(inv)}
+                                                    >
+                                                        <Share2 className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+                                                        title="Enviar por Email"
+                                                        onClick={() => handleEmail(inv)}
+                                                    >
+                                                        <Mail className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -522,13 +539,48 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Razão Social</label>
-                                <input type="text" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50" value={issuer.companyName} readOnly />
+                                <input type="text" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50" value={issuer.companyName} onChange={e => setIssuer({ ...issuer, companyName: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Nome Fantasia</label>
+                                <input type="text" className="w-full p-3 border border-slate-200 rounded-lg" value={issuer.tradeName} onChange={e => setIssuer({ ...issuer, tradeName: e.target.value })} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">CNPJ</label>
-                                    <input type="text" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50" value={issuer.cnpj} readOnly />
+                                    <input type="text" className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50" value={issuer.cnpj} onChange={e => setIssuer({ ...issuer, cnpj: e.target.value })} />
                                 </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Inscrição Estadual</label>
+                                    <input type="text" className="w-full p-3 border border-slate-200 rounded-lg" value={issuer.ie} onChange={e => setIssuer({ ...issuer, ie: e.target.value })} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 mt-2 border-t pt-4">
+                                <p className="font-bold text-sm text-slate-700">Endereço</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="col-span-2">
+                                        <input type="text" className="w-full p-2 border rounded text-sm" placeholder="Rua" value={issuer.address.street} onChange={e => setIssuer({ ...issuer, address: { ...issuer.address, street: e.target.value } })} />
+                                    </div>
+                                    <div>
+                                        <input type="text" className="w-full p-2 border rounded text-sm" placeholder="Número" value={issuer.address.number} onChange={e => setIssuer({ ...issuer, address: { ...issuer.address, number: e.target.value } })} />
+                                    </div>
+                                    <div>
+                                        <input type="text" className="w-full p-2 border rounded text-sm" placeholder="Bairro" value={issuer.address.neighborhood} onChange={e => setIssuer({ ...issuer, address: { ...issuer.address, neighborhood: e.target.value } })} />
+                                    </div>
+                                    <div>
+                                        <input type="text" className="w-full p-2 border rounded text-sm" placeholder="Cidade" value={issuer.address.city} onChange={e => setIssuer({ ...issuer, address: { ...issuer.address, city: e.target.value } })} />
+                                    </div>
+                                    <div>
+                                        <input type="text" className="w-full p-2 border rounded text-sm" placeholder="UF" value={issuer.address.state} onChange={e => setIssuer({ ...issuer, address: { ...issuer.address, state: e.target.value } })} />
+                                    </div>
+                                    <div>
+                                        <input type="text" className="w-full p-2 border rounded text-sm" placeholder="CEP" value={issuer.address.zip} onChange={e => setIssuer({ ...issuer, address: { ...issuer.address, zip: e.target.value } })} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mt-2">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Regime Tributário</label>
                                     <select className="w-full p-3 border border-slate-200 rounded-lg" value={issuer.crt} onChange={e => setIssuer({ ...issuer, crt: e.target.value as any })}>
