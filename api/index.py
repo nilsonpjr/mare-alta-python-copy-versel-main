@@ -12,6 +12,7 @@ try:
     from backend.main import app
 except Exception as e:
     # Se falhar o import (banco, dependencias, etc), cria um app de fallback que mostra o erro
+    print("Tentando iniciar a aplicacao... (Versao com Try-Import SignXML)")
     error_msg = f"Startup Error: {str(e)}\n\nTraceback:\n{traceback.format_exc()}"
     print(error_msg) # Log no console do Vercel
     
