@@ -43,7 +43,7 @@ requests==2.31.0
 rsa==4.9
 
 # SignXML: Upgrade to 4.x to DROP OpenSSL.crypto.verify dependency
-# signxml>=4.0.0
+signxml>=4.0.0
 
 six==1.16.0
 sniffio==1.3.1
