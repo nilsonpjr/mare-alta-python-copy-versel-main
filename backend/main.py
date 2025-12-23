@@ -105,10 +105,10 @@ def patch_db_cert():
                     return {"status": "success", "message": "Coluna alterada para TEXT (Postgres)"}
                 except Exception as e:
                     # SQLite não precisa, MySQL sintaxe diferente
-                     try:
+                    try:
                         conn.execute(text("ALTER TABLE company_info MODIFY COLUMN cert_file_path TEXT;"))
                         return {"status": "success", "message": "Coluna alterada para TEXT (MySQL)"}
-                     except:
+                    except:
                         pass
                     return {"status": "warning", "message": f"Erro ou já aplicado: {str(e)}"}
     except Exception as e:
