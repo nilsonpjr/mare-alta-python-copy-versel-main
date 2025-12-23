@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck, FileText } from 'lucide-react';
 import { UserRole, User } from '../types';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
@@ -30,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'marinas', label: 'Marinas & Locais', icon: MapPin },
       { id: 'sep2', type: 'separator', label: 'Administrativo' },
       { id: 'inventory', label: 'Estoque', icon: Package },
+      { id: 'fiscal', label: 'Notas Fiscais', icon: FileText },
       { id: 'finance', label: 'Financeiro', icon: DollarSign },
       { id: 'users', label: 'Usuários', icon: Users },
       { id: 'partners', label: 'Parceiros', icon: Users },

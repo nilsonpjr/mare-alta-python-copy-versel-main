@@ -18,6 +18,7 @@ import { MaintenanceBudgetView } from './components/MaintenanceBudgetView';
 import { WarrantyLookupView } from './components/WarrantyLookupView';
 import { PartnersView } from './components/PartnersView';
 import { InspectionView } from './components/InspectionView';
+import { FiscalView } from './components/FiscalView';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { UserRole, User } from './types';
 import { Menu, Anchor } from 'lucide-react';
@@ -96,6 +97,8 @@ function App() {
 
       case 'finance':
         return <FinanceView />;
+      case 'fiscal':
+        return <FiscalView />;
       case 'settings':
         return <SettingsView />;
       case 'warranty-lookup':
