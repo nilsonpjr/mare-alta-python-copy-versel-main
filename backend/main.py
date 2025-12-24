@@ -7,7 +7,9 @@ e serve os arquivos estáticos do frontend, se disponíveis.
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import text # Import para usar SQL cru
 import os
+import traceback
 
 # Importa os modelos de banco de dados para garantir que as tabelas sejam criadas.
 import models
@@ -27,6 +29,9 @@ from routers.transactions_router import router as transactions_router
 from routers.config_router import router as config_router
 from routers.partners_router import router as partners_router
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse # Importa JSONResponse para o erro 404
+
 # Cria todas as tabelas definidas nos modelos (models.py) no banco de dados.
 # Isso é feito apenas uma vez na inicialização da aplicação.
 models.Base.metadata.create_all(bind=engine)
@@ -34,9 +39,6 @@ models.Base.metadata.create_all(bind=engine)
 # Inicializa a aplicação FastAPI com um título.
 app = FastAPI(title="Mare Alta API")
 
-# Configura o Middleware CORS (Cross-Origin Resource Sharing).
-# Isso permite que o frontend (executando em um domínio/porta diferente)
-# faça requisições para esta API.
 # Configura o Middleware CORS (Cross-Origin Resource Sharing).
 # Isso permite que o frontend (executando em um domínio/porta diferente)
 # faça requisições para esta API.
@@ -51,7 +53,6 @@ app.add_middleware(
 # Exception Handler Global para Debug em Produção
 @app.exception_handler(Exception)
 async def debug_exception_handler(request, exc):
-    import traceback
     error_msg = f"UNHANDLED EXCEPTION: {str(exc)}\n\nTraceback:\n{traceback.format_exc()}"
     print(error_msg) # Log no server logs (Vercel)
     return JSONResponse(
@@ -69,33 +70,9 @@ async def log_requests(request, call_next):
     if request.url.path.startswith("/assets"):
         print(f"ASSET RESPONSE: {request.url.path} -> {response.status_code}")
     return response
-# Endpoint para forçar criação de tabelas (Útil para Vercel Cold Start issues)
-@app.get("/api/config/init-db")
-def init_db():
-    try:
-        models.Base.metadata.create_all(bind=engine)
-        return {"message": "Tabelas criadas com sucesso!"}
-    except Exception as e:
-        return {"error": str(e)}
 
-@app.get("/api/debug/db-info")
-def debug_db_info(db: Session = Depends(get_db)):
-    try:
-        from sqlalchemy import text
-        # Consulta o nome do banco e o host conectado
-        result = db.execute(text("SELECT current_database(), inet_server_addr();")).fetchone()
-        return {
-            "connected_database": result[0],
-            "server_ip": str(result[1]),
-            "env_database_url_prefix": os.getenv("DATABASE_URL", "")[:15] + "..." # Mostra só o começo para não vazar senha
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-# Endpoint temporário para correção de banco de dados (render free tier não tem shell)
-@app.get("/api/config/patch-db-cert")
-def patch_db_cert():
-    from sqlalchemy import text
+# Lógica para correcao de DB (Certificado Base64)
+def run_patch_db_logic():
     try:
         with engine.connect() as conn:
             with conn.begin():
@@ -114,25 +91,65 @@ def patch_db_cert():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-# Inclui todos os roteadores na aplicação principal.
-# Cada roteador adiciona suas próprias rotas baseadas nos prefixos definidos neles.
-app.include_router(auth_router) # Roteador para autenticação de usuários (login, registro).
-app.include_router(orders_router) # Roteador para gerenciamento de pedidos.
-app.include_router(inventory_router) # Roteador para gerenciamento de estoque/inventário.
-app.include_router(clients_router) # Roteador para gerenciamento de clientes.
-app.include_router(boats_router) # Roteador para gerenciamento de embarcações.
-app.include_router(fiscal_router) # Roteador para operações fiscais.
-app.include_router(mercury_router) # Roteador para funcionalidades relacionadas ao Mercury.
-app.include_router(transactions_router) # Roteador para gerenciamento de transações financeiras.
-app.include_router(config_router) # Roteador para configurações gerais da aplicação (ex: fabricantes, modelos).
-app.include_router(partners_router) # Roteador para rede de parceiros (Fase 3).
+# Registra endpoint de patch em ambos os caminhos (com e sem /api)
+app.add_api_route("/api/config/patch-db-cert", run_patch_db_logic, methods=["GET"])
+app.add_api_route("/config/patch-db-cert", run_patch_db_logic, methods=["GET"])
+
+# Lógica para inicializacao de DB
+def run_init_db():
+    try:
+        models.Base.metadata.create_all(bind=engine)
+        return {"message": "Tabelas criadas com sucesso!"}
+    except Exception as e:
+        return {"error": str(e)}
+
+app.add_api_route("/api/config/init-db", run_init_db, methods=["GET"])
+app.add_api_route("/config/init-db", run_init_db, methods=["GET"])
+
+# Lógica para Debug DB
+def run_debug_db(db: Session = Depends(get_db)):
+    try:
+        # Consulta o nome do banco e o host conectado
+        result = db.execute(text("SELECT current_database(), inet_server_addr();")).fetchone()
+        return {
+            "connected_database": result[0],
+            "server_ip": str(result[1]),
+            "env_database_url_prefix": os.getenv("DATABASE_URL", "")[:15] + "..." # Mostra só o começo para não vazar senha
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+app.add_api_route("/api/debug/db-info", run_debug_db, methods=["GET"])
+app.add_api_route("/debug/db-info", run_debug_db, methods=["GET"])
+
+# --- ROUTERS CONFIGURATION ---
+# Configuração robusta para suportar Vercel (que pode remover prefixo) e Render/Local (que mantêm)
+all_routers = [
+    auth_router, orders_router, inventory_router, clients_router, 
+    boats_router, fiscal_router, mercury_router, transactions_router, 
+    config_router, partners_router
+]
+
+for router in all_routers:
+    # Normaliza: Remove /api do prefixo original se existir
+    # Isso permite que o router seja base-agnostic (ex: /config em vez de /api/config)
+    if router.prefix.startswith("/api"):
+        router.prefix = router.prefix.replace("/api", "", 1)
+    
+    # 1. Inclui COM prefixo /api (Para Render e desenvolvimento local)
+    # Resultado exec: /api/config
+    app.include_router(router, prefix="/api")
+
+    # 2. Inclui SEM prefixo extra (Fallback para Vercel se ele fizer strip do /api)
+    # Resultado exec: /config
+    # Se Vercel receber /api/config e fizer rewrite para index.py passando PATH /config,
+    # esta rota irá capturar.
+    app.include_router(router)
 
 
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse # Importa JSONResponse para o erro 404
+# --- ARQUIVOS ESTÁTICOS E SPA ---
 
 # Define o caminho para a pasta 'dist' do frontend.
-# Ele sobe dois níveis do diretório atual (backend), entra em 'frontend' e depois em 'dist'.
 frontend_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
 
 # Debug Paths (Logs aparecerão no Render)
@@ -181,10 +198,11 @@ if os.path.exists(frontend_dist):
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Permite que as chamadas de API do backend (e docs) passem sem serem interceptadas pelo SPA.
-        # Se a rota começar com "api", "docs" ou for "openapi.json", retorna 404 (já que não é um arquivo estático).
+        # Se a rota começar com "api", "docs" ou for "openapi.json", retorna 404 json (já que não é um arquivo estático).
         # Assets já são tratados pela rota acima, mas mantemos a verificação por segurança
         if full_path.startswith("api") or full_path.startswith("docs") or full_path == "openapi.json" or full_path.startswith("assets"):
-            return JSONResponse(status_code=404, content={"message": "Não Encontrado"})
+             # Se chegou aqui e não bateu em nenhum router acima, é 404 de API real
+            return JSONResponse(status_code=404, content={"message": "Endpoint API não encontrado"})
             
         # Para qualquer outra rota, tenta servir o 'index.html' do frontend.
         index_path = os.path.join(frontend_dist, "index.html")
