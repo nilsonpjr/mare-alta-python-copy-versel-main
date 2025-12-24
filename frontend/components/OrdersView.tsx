@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ServiceOrder, OSStatus, Boat, Part, ServiceItem, UserRole, Client, Marina, ChecklistItem, AttachmentType, ServiceDefinition, ItemType, User as UserType } from '../types';
 import { ApiService } from '../services/api';
+import { uploadImage } from '../services/supabase';
 import { GeminiService } from '../services/geminiService';
 import {
     Plus, FileText, CheckCircle, Clock,
@@ -260,13 +261,39 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
         }
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file || !selectedOrder || !pendingAttachmentType) return;
 
         if (file.size > 5 * 1024 * 1024) {
             alert("A imagem é muito grande. Por favor, use uma imagem menor que 5MB.");
             return;
+        }
+
+        try {
+            // Try uploading to Supabase
+            const publicUrl = await uploadImage(file, `orders/${selectedOrder.id}`);
+
+            if (publicUrl) {
+                const newAttachment = {
+                    type: pendingAttachmentType,
+                    url: publicUrl,
+                    description: `Foto adicionada em ${new Date().toLocaleTimeString()}`,
+                    createdAt: new Date().toISOString()
+                };
+
+                saveOrderUpdate({
+                    ...selectedOrder,
+                    attachments: [...(selectedOrder.attachments || []), newAttachment]
+                });
+
+                setPendingAttachmentType(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                return;
+            }
+        } catch (err) {
+            console.error("Supabase upload failed, falling back to Base64", err);
+            // Fallback to Base64 logic if Supabase fails (e.g. no connection or no config)
         }
 
         const reader = new FileReader();
@@ -276,7 +303,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
             const newAttachment = {
                 type: pendingAttachmentType,
                 url: base64String,
-                description: `Foto adicionada em ${new Date().toLocaleTimeString()}`,
+                description: `Foto (Local) adicionada em ${new Date().toLocaleTimeString()}`,
                 createdAt: new Date().toISOString()
             };
 

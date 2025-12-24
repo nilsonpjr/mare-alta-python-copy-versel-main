@@ -127,7 +127,7 @@ def complete_service_order(
     Levanta um HTTPException 400 se a ordem não puder ser completada (ex: já completada ou não encontrada).
     """
     # Chama a função CRUD para completar a ordem de serviço.
-    order = crud.complete_order(db, order_id=order_id)
+    order = crud.complete_order(db, order_id=order_id, tenant_id=current_user.tenant_id)
     if not order:
         # Se a função CRUD retornar None, a ordem não pode ser completada.
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível completar a Ordem de Serviço (verifique se já está completa ou se existe).")

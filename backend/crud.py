@@ -524,7 +524,7 @@ def add_order_note(db: Session, order_id: int, note: schemas.OrderNoteCreate):
     db.refresh(db_note)
     return db_note
 
-def complete_order(db: Session, order_id: int):
+def complete_order(db: Session, order_id: int, tenant_id: int):
     """
     Completa uma ordem de serviço:
     - Muda o status da OS para "Concluído".
@@ -534,10 +534,12 @@ def complete_order(db: Session, order_id: int):
     Args:
         db (Session): Sessão do banco de dados.
         order_id (int): ID da ordem de serviço a ser completada.
+        tenant_id (int): ID do tenant (empresa) para registrar movimentos e transações.
     Returns:
         models.ServiceOrder: A ordem de serviço completada, ou None se não encontrada ou já completada.
     """
     db_order = get_order(db, order_id)
+    # Ensure correct tenant check if necessary, or rely on caller
     if not db_order or db_order.status == models.OSStatus.COMPLETED:
         return None
     
@@ -553,6 +555,7 @@ def complete_order(db: Session, order_id: int):
                 
                 # Registra o movimento de saída no estoque.
                 movement = models.StockMovement(
+                    tenant_id=tenant_id,
                     part_id=part.id,
                     type=models.MovementType.OUT_OS,
                     quantity=item.quantity,
@@ -564,6 +567,7 @@ def complete_order(db: Session, order_id: int):
     
     # Gera uma transação financeira de receita para a ordem de serviço.
     transaction = models.Transaction(
+        tenant_id=tenant_id,
         type="INCOME",
         category="Serviços", # Categoria padrão, pode ser mais granular.
         description=f"Recebimento OS #{order_id}",
