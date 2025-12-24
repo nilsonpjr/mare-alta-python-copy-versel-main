@@ -28,6 +28,7 @@ from routers.mercury_router import router as mercury_router
 from routers.transactions_router import router as transactions_router
 from routers.config_router import router as config_router
 from routers.partners_router import router as partners_router
+from routers.upload_router import router as upload_router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse # Importa JSONResponse para o erro 404
@@ -127,7 +128,7 @@ app.add_api_route("/debug/db-info", run_debug_db, methods=["GET"])
 all_routers = [
     auth_router, orders_router, inventory_router, clients_router, 
     boats_router, fiscal_router, mercury_router, transactions_router, 
-    config_router, partners_router
+    config_router, partners_router, upload_router
 ]
 
 for router in all_routers:

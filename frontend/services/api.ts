@@ -22,7 +22,7 @@ const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
 
 // Cria uma instância do Axios com a URL base e cabeçalhos padrão.
 console.log('API_URL:', API_URL); // Debug: Check which API URL is being used
-const api = axios.create({
+export const api = axios.create({
     baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json', // Define o tipo de conteúdo padrão para JSON.

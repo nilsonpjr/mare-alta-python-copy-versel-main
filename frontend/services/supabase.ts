@@ -1,35 +1,27 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { api } from './api';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-    console.warn('Supabase URL or Key not found in environment variables. Image uploads will fail.');
-}
-
-export const supabase = createClient(supabaseUrl || '', supabaseKey || '');
+// This service now uploads to the Python Backend, which then proxies to Supabase S3
+// This avoids exposing S3 credentials in the frontend.
 
 export const uploadImage = async (file: File, path: string) => {
-    if (!supabaseUrl) return null;
+    const formData = new FormData();
+    formData.append('file', file);
 
-    // Convert filename to safe string
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${path}/${fileName}`;
+    // We ignore 'path' here because the backend generates a safe UUID filename
+    // If you want to support folders, you'd need to send 'path' as a query param or form field to the backend.
 
-    const { data, error } = await supabase.storage
-        .from('images')
-        .upload(filePath, file);
-
-    if (error) {
-        console.error('Supabase Upload Error:', error);
+    try {
+        const response = await api.post('/upload/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data.url;
+    } catch (error) {
+        console.error('Upload failed:', error);
         throw error;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(filePath);
-
-    return publicUrl;
 };
+
+export const supabase = null; // Deprecated client access
