@@ -12,6 +12,7 @@ import {
     Unlock,
     DollarSign,
     MessageCircle,
+    FileDigit, // Import new icon
     User,
     CheckSquare,
     Clipboard,
@@ -23,6 +24,7 @@ import {
 
 interface OrdersViewProps {
     role: UserRole;
+    onNavigate?: (view: string, data?: any) => void;
 }
 
 const CHECKLIST_TEMPLATES = {
@@ -48,7 +50,7 @@ const CHECKLIST_TEMPLATES = {
     ]
 };
 
-export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
+export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
     const [orders, setOrders] = useState<ServiceOrder[]>([]);
     const [boats, setBoats] = useState<Boat[]>([]);
     const [clients, setClients] = useState<Client[]>([]);
@@ -309,6 +311,19 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
         const msg = `Olá ${client.name}, aqui é da Mare Alta Náutica.\n\nAtualização sobre a OS #${selectedOrder.id} (${boat?.name}):\nStatus: ${selectedOrder.status}\n\nQualquer dúvida, estamos à disposição.`;
         const url = `https://wa.me/55${client.phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
         window.open(url, '_blank');
+    };
+
+    const handleEmitFiscal = () => {
+        if (!selectedOrder || !onNavigate) return;
+        const boat = boats.find(b => b.id === selectedOrder.boatId);
+        const client = clients.find(c => c.id === boat?.clientId);
+
+        onNavigate('fiscal', {
+            type: 'from_order',
+            order: selectedOrder,
+            client: client,
+            items: selectedOrder.items
+        });
     };
 
     const runAiDiagnosis = async () => {
@@ -836,7 +851,15 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role }) => {
                                         </button>
                                     )}
 
-                                    {/* Actions Logic */}
+                                    <button
+                                        onClick={handleEmitFiscal}
+                                        disabled={!onNavigate}
+                                        className="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 ml-2"
+                                        title="Emitir Nota Fiscal"
+                                    >
+                                        <FileDigit className="w-4 h-4" />
+                                        <span className="hidden md:inline">Emitir Nota</span>
+                                    </button>
                                     {role === UserRole.ADMIN && !isReadOnly && (
                                         <button
                                             onClick={() => handleStatusChange(selectedOrder.id, OSStatus.COMPLETED)}

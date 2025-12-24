@@ -28,6 +28,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState('dashboard');
+  const [viewData, setViewData] = useState<any>(null); // State to hold data passed between views
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
 
@@ -53,8 +54,9 @@ function App() {
     setShowSignup(false);
   };
 
-  const handleSetView = (view: string) => {
+  const handleSetView = (view: string, data?: any) => {
     setCurrentView(view);
+    setViewData(data || null); // Set or clear data
     setIsMobileMenuOpen(false); // Close mobile menu on navigation
   };
 
@@ -98,7 +100,7 @@ function App() {
       case 'finance':
         return <FinanceView />;
       case 'fiscal':
-        return <FiscalView />;
+        return <FiscalView initialData={viewData} />; // Pass viewData as initialData
       case 'settings':
         return <SettingsView />;
       case 'warranty-lookup':

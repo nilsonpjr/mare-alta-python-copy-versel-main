@@ -89,7 +89,51 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
     // Handle initialData from Navigation
     useEffect(() => {
         if (initialData) {
-            if (initialData.type === 'nfe') {
+            console.log("FiscalView received initialData:", initialData);
+
+            if (initialData.type === 'from_order') {
+                const { order, client, items } = initialData;
+
+                // 1. Process Parts for NFe
+                const parts = items.filter((i: any) => i.type === 'PART');
+                const labor = items.filter((i: any) => i.type === 'LABOR');
+
+                if (parts.length > 0) {
+                    setActiveTab('nfe');
+                    setNfeData(prev => ({
+                        ...prev,
+                        destinatario: client?.name || '',
+                        docDestinatario: client?.cpf || client?.cnpj || '',
+                        items: parts.map((p: any) => ({
+                            id: p.id,
+                            description: p.description,
+                            quantity: p.quantity,
+                            unitPrice: p.unitPrice,
+                            total: p.total,
+                            ncm: '00000000', // Default placeholder
+                            cfop: '5102'     // Default placeholder
+                        }))
+                    }));
+                }
+
+                // 2. Process Labor for NFSe
+                if (labor.length > 0) {
+                    const totalLabor = labor.reduce((acc: number, item: any) => acc + item.total, 0);
+                    setNfseData(prev => ({
+                        ...prev,
+                        tomador: client?.name || '',
+                        docTomador: client?.cpf || client?.cnpj || '',
+                        valorServico: totalLabor,
+                        discriminacao: `Serviços ref. OS #${order.id} - ${order.description}`
+                    }));
+
+                    // If no parts, default to NFSe tab
+                    if (parts.length === 0) {
+                        setActiveTab('nfse');
+                    }
+                }
+
+            } else if (initialData.type === 'nfe') {
                 setActiveTab('nfe');
                 setNfeData(prev => ({
                     ...prev,
