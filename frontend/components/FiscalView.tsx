@@ -135,7 +135,8 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                 state: issuer.address.state,
                 zip: issuer.address.zip,
                 crt: issuer.crt,
-                environment: issuer.environment
+                environment: issuer.environment,
+                fiscal_environment: issuer.environment // Garante que ambos os campos sejam atualizados no backend
             };
 
             // Include certificate only if selected (it will be base64 string)
