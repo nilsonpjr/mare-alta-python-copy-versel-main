@@ -58,18 +58,18 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                     setIssuer({
                         cnpj: info.cnpj || '',
                         ie: info.ie || '',
-                        companyName: info.company_name || '',
-                        tradeName: info.trade_name || '',
+                        companyName: info.company_name || (info as any).companyName || '',
+                        tradeName: info.trade_name || (info as any).tradeName || '',
                         address: {
                             street: info.street || '',
                             number: info.number || '',
                             neighborhood: info.neighborhood || '',
                             city: info.city || '',
                             state: info.state || '',
-                            zip: info.zipCode || ''
+                            zip: info.zipCode || (info as any).zip_code || (info as any).zip || ''
                         },
                         crt: (info.crt as any) || '1',
-                        environment: (info.environment as any) === 'production' ? 'production' : 'homologation',
+                        environment: (info as any).fiscal_environment === 'production' ? 'production' : 'homologation',
                         certificate: hasCert ? 'INSTALLED' : undefined
                     });
                 }
