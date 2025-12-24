@@ -40,12 +40,16 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
     // Load initial data and backend configuration
     useEffect(() => {
         const loadBackendData = async () => {
+            // 1. Carregar Histórico
             try {
-                // 1. Carregar Histórico
                 const invoices = await ApiService.getFiscalInvoices();
                 setHistory(invoices);
+            } catch (error) {
+                console.error("Erro ao carregar histórico:", error);
+            }
 
-                // 2. Carregar Configuração da Empresa
+            // 2. Carregar Configuração da Empresa
+            try {
                 const info = await ApiService.getCompanyInfo();
                 if (info) {
                     // Check if certificate exists (crud stores it as "base64:...")
@@ -74,7 +78,8 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                     });
                 }
             } catch (error) {
-                console.error("Erro ao carregar dados fiscais:", error);
+                console.error("Erro ao carregar configuração:", error);
+                // Opcional: alertar usuário se a configuração crítica falhar
             }
         };
 
@@ -133,7 +138,7 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                 neighborhood: issuer.address.neighborhood,
                 city: issuer.address.city,
                 state: issuer.address.state,
-                zip: issuer.address.zip,
+                zipCode: issuer.address.zip,
                 crt: issuer.crt,
                 environment: issuer.environment,
                 fiscal_environment: issuer.environment // Garante que ambos os campos sejam atualizados no backend
