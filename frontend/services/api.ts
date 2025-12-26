@@ -67,8 +67,12 @@ export const ApiService = {
     /**
      * Registra uma nova empresa (Tenant).
      */
+    /**
+     * Registra uma nova empresa (Tenant).
+     */
     signup: async (data: TenantSignup) => {
-        const response = await api.post<User>('/auth/signup', data);
+        // Atualizado para receber resposta com Token (não mais User)
+        const response = await api.post<any>('/auth/signup', data);
         return response.data;
     },
 

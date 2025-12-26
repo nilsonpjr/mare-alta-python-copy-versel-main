@@ -137,9 +137,9 @@ export const SignupView: React.FC<SignupViewProps> = ({ onSignupSuccess, onGoToL
                                     onChange={handleChange}
                                     className="block w-full px-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all shadow-sm"
                                 >
-                                    <option value="START">Start (R$ 149)</option>
-                                    <option value="PRO">Pro (R$ 399)</option>
-                                    <option value="MARINA">Marina (R$ 890)</option>
+                                    <option value="START">Mecânico PRO - R$ 197 (Start)</option>
+                                    <option value="PRO">Oficina Team - R$ 497 (Ideal)</option>
+                                    <option value="MARINA">Marina Full - R$ 997 (Completo)</option>
                                 </select>
                             </div>
                         </div>
