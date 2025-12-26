@@ -179,7 +179,7 @@ export const SettingsView: React.FC = () => {
 
             <div className="flex-1 flex gap-8 overflow-hidden">
                 {activeTab === 'integration' ? (
-                    <div className="w-full max-w-3xl mx-auto anime-fade-in">
+                    <div className="w-full max-w-4xl mx-auto anime-fade-in h-full overflow-y-auto custom-scrollbar pr-2 pb-10">
                         <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
                             <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-white">
                                 <div className="flex items-center gap-4 mb-4">
