@@ -647,5 +647,21 @@ export const ApiService = {
     updatePartnerQuote: async (id: number, quote: any) => {
         const response = await api.put(`/partners/quotes/${id}`, quote);
         return response.data;
+    },
+    // --- SUBSCRIPTION ---
+    getSubscription: async () => {
+        const response = await api.get<any>('/config/subscription');
+        return response.data;
+    },
+
+    // === SUPER ADMIN ===
+    getTenants: async () => {
+        const response = await api.get('/admin/tenants');
+        return response.data;
+    },
+
+    updateTenant: async (id: number, data: any) => {
+        const response = await api.put(`/admin/tenants/${id}`, data);
+        return response.data;
     }
 };

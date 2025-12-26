@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { CompanyInfo, Manufacturer } from '../types';
-import { Plus, Trash, Settings as SettingsIcon, Save, ChevronRight, Globe, Lock, Loader2, Factory, Layers, Anchor, Ship } from 'lucide-react';
+import { Plus, Trash, Settings as SettingsIcon, Save, ChevronRight, Globe, Lock, Loader2, Factory, Layers, Anchor, Ship, CreditCard, CheckCircle } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'boat' | 'engine' | 'integration'>('boat');
+    const [activeTab, setActiveTab] = useState<'boat' | 'engine' | 'integration' | 'subscription'>('boat');
+    const [subscription, setSubscription] = useState<any>(null); // State for subscription data
 
     // Data State
     const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
@@ -22,7 +23,17 @@ export const SettingsView: React.FC = () => {
     useEffect(() => {
         loadManufacturers();
         loadCompanyInfo();
+        loadSubscription(); // Carrega assinatura
     }, []);
+
+    const loadSubscription = async () => {
+        try {
+            const data = await ApiService.getSubscription();
+            setSubscription(data);
+        } catch (error) {
+            console.error("Erro ao carregar assinatura:", error);
+        }
+    };
 
     const loadManufacturers = async () => {
         setLoadingData(true);
@@ -146,7 +157,7 @@ export const SettingsView: React.FC = () => {
         <button
             onClick={() => { setActiveTab(id); setSelectedManufacturer(null); }}
             className={`
-                flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200
+                flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 shrink-0
                 ${activeTab === id
                     ? 'bg-slate-800 text-white shadow-lg shadow-slate-900/10 translate-y-[-1px]'
                     : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-slate-200'}
@@ -175,10 +186,59 @@ export const SettingsView: React.FC = () => {
                 <TabButton id="boat" label="Embarcações (Cascos)" icon={Anchor} />
                 <TabButton id="engine" label="Motorização" icon={Ship} />
                 <TabButton id="integration" label="Integrações" icon={Globe} />
+                <TabButton id="subscription" label="Minha Assinatura" icon={CreditCard} />
             </div>
 
             <div className="flex-1 flex gap-8 overflow-hidden">
-                {activeTab === 'integration' ? (
+                {activeTab === 'subscription' && subscription ? (
+                    <div className="w-full max-w-3xl mx-auto anime-fade-in h-full overflow-y-auto custom-scrollbar">
+                        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                            <div className="bg-gradient-to-r from-violet-600 to-purple-600 p-8 text-white relative overflow-hidden">
+                                <div className="absolute right-0 top-0 opacity-10 transform translate-x-10 -translate-y-10">
+                                    <CreditCard className="w-64 h-64" />
+                                </div>
+                                <h3 className="text-sm font-bold uppercase tracking-widest opacity-80 mb-2">Plano Atual</h3>
+                                <h1 className="text-4xl font-bold mb-4">{subscription.plan_name}</h1>
+                                <div className="flex items-center gap-2 bg-white/20 w-fit px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+                                    <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                                    {subscription.status}
+                                </div>
+                            </div>
+
+                            <div className="p-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                    <div>
+                                        <p className="text-slate-500 text-sm font-medium uppercase tracking-wide mb-1">Valor Mensal</p>
+                                        <p className="text-3xl font-bold text-slate-800">
+                                            {subscription.price === 0 ? "Personalizado" : `R$ ${subscription.price.toFixed(2)}`}
+                                            <span className="text-sm font-normal text-slate-400 ml-1">/mês</span>
+                                        </p>
+                                        <p className="text-xs text-slate-400 mt-1">Próxima fatura: {subscription.next_billing_date}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-slate-500 text-sm font-medium uppercase tracking-wide mb-3">Recursos Incluídos</p>
+                                        <ul className="space-y-2">
+                                            {subscription.features.map((feature: string, idx: number) => (
+                                                <li key={idx} className="flex items-start gap-2 text-slate-600 text-sm">
+                                                    <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                                                    {feature}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 text-center">
+                                    <h4 className="font-bold text-slate-800 mb-2">Precisa de mais recursos?</h4>
+                                    <p className="text-slate-500 text-sm mb-4">Faça um upgrade para ter acesso a funcionalidades exclusivas.</p>
+                                    <button className="bg-slate-900 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10">
+                                        Falar com Consultor
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : activeTab === 'integration' ? (
                     <div className="w-full max-w-4xl mx-auto anime-fade-in h-full overflow-y-auto custom-scrollbar pr-2 pb-10">
                         <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
                             <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-white">

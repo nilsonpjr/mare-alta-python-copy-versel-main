@@ -221,3 +221,14 @@ def delete_existing_marina(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Marina não encontrada")
     return {"status": "success", "message": "Marina deletada com sucesso"}
 
+# --- SUBSCRIPTION ---
+
+@router.get("/subscription", response_model=schemas.ApiSubscription)
+def get_subscription_details(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Retorna os detalhes do plano atual do tenant.
+    """
+    return crud.get_tenant_subscription(db, tenant_id=current_user.tenant_id)

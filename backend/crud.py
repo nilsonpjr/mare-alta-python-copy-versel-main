@@ -797,7 +797,44 @@ def get_maintenance_kits(db: Session, tenant_id: int):
         joinedload(models.MaintenanceKit.items)
     ).all()
 
-def create_maintenance_kit(db: Session, kit: schemas.MaintenanceKitCreate, tenant_id: int):
+# --- SUBSCRIPTION CRUD ---
+
+def get_tenant_subscription(db: Session, tenant_id: int):
+    tenant = db.query(models.Tenant).filter(models.Tenant.id == tenant_id).first()
+    if not tenant:
+        return None
+    
+    # Mock data based on plan
+    price_map = {
+        "START": 197.00,
+        "PRO": 497.00,
+        "MARINA": 997.00,
+        "ENTERPRISE": 0.0
+    }
+    
+    plan_display_map = {
+        "START": "Mecânico PRO",
+        "PRO": "Oficina Team",
+        "MARINA": "Marina Full",
+        "ENTERPRISE": "Enterprise"
+    }
+    
+    features_map = {
+        "START": ["Agenda Básica", "Ordens de Serviço", "Cadastro de Clientes", "App do Mecânico"],
+        "PRO": ["Inclui plano Start +", "Gestão de Estoque", "Finanças", "Múltiplos Usuários", "Relatórios"],
+        "MARINA": ["Inclui plano Pro +", "Mapa da Marina", "CRM Avançado", "Gestão de Pátio", "Emissor Fiscal"],
+        "ENTERPRISE": ["Tudo incluído", "Suporte Dedicado", "Customizações"]
+    }
+
+    current_plan_key = tenant.plan if tenant.plan in price_map else "START"
+    
+    return {
+        "plan_name": plan_display_map.get(tenant.plan, tenant.plan),
+        "price": price_map.get(tenant.plan, 0.0),
+        "features": features_map.get(tenant.plan, []),
+        "status": "Ativo" if tenant.is_active else "Inativo",
+        "next_billing_date": (datetime.now() + timedelta(days=30)).strftime("%d/%m/%Y")
+    }
     """
     Cria um novo kit de manutenção e seus itens.
     """

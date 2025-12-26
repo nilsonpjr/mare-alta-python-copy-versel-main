@@ -687,3 +687,11 @@ class PartnerQuote(PartnerQuoteBase):
     rating_comment: Optional[str]
     created_at: datetime
     updated_at: datetime
+# --- SUBSCRIPTION SCHEMAS ---
+
+class ApiSubscription(CamelModel):
+    plan_name: str
+    price: float
+    features: List[str]
+    status: str
+    next_billing_date: str
