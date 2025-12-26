@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'sep_erp', type: 'separator', label: 'Módulos ERP' },
       { id: 'workshop', label: 'Oficina (Workshop)', icon: Wrench },
       { id: 'estimator', label: 'Smart Orçador', icon: Calculator },
-      { id: 'ai-diagnostics', label: 'Mare Alta AI', icon: Bot },
+      { id: 'ai-diagnostics', label: 'Viverdi AI', icon: Bot },
       { id: 'marina-map', label: 'Mapa Marina', icon: Map },
       { id: 'mechanic-app', label: 'App Mecânico', icon: Wrench },
       { id: 'analyst-checklist', label: 'Checklist Analista', icon: ClipboardCheck },
@@ -81,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
               <Anchor className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-wide">MARE ALTA</h1>
+              <h1 className="font-bold text-lg tracking-wide">VIVERDI NAUTICA</h1>
               <p className="text-[10px] text-cyan-400 font-medium tracking-wider uppercase">Manager System</p>
             </div>
           </div>

@@ -1,4 +1,4 @@
-# Manual do Usuário - Mare Alta Náutica Manager
+# Manual do Usuário - Viverdi Nautica Manager
 
 ## 📚 Índice
 

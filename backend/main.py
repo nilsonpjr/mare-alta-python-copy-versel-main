@@ -38,7 +38,7 @@ from fastapi.responses import FileResponse, JSONResponse # Importa JSONResponse 
 models.Base.metadata.create_all(bind=engine)
 
 # Inicializa a aplicação FastAPI com um título.
-app = FastAPI(title="Mare Alta API")
+app = FastAPI(title="Viverdi Nautica API")
 
 # Configura o Middleware CORS (Cross-Origin Resource Sharing).
 # Isso permite que o frontend (executando em um domínio/porta diferente)

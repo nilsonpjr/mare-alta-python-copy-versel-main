@@ -256,7 +256,7 @@ const pt = {
             }
         },
         ai: {
-            title: 'Mare Alta AI',
+            title: 'Viverdi AI',
             subtitle: 'Assistente de diagnóstico treinado em manuais Mercury & Yamaha.',
             labels: {
                 model: 'Modelo do Motor',
@@ -591,7 +591,7 @@ const en = {
             }
         },
         ai: {
-            title: 'Mare Alta AI',
+            title: 'Viverdi AI',
             subtitle: 'Diagnostic assistant trained on Mercury & Yamaha service manuals.',
             labels: {
                 model: 'Engine Model',

@@ -58,7 +58,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
           <div className="w-20 h-20 bg-gradient-to-tr from-cyan-600 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-900/50 rotate-3 transform hover:rotate-6 transition-transform">
             <Anchor className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-wide">MARE ALTA</h1>
+          <h1 className="text-3xl font-bold text-white tracking-wide">VIVERDI NAUTICA</h1>
           <p className="text-cyan-200 text-sm font-medium mt-1">Gestão Náutica Especializada</p>
         </div>
 
@@ -74,7 +74,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
                 <input
                   type="email"
                   className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all shadow-sm"
-                  placeholder="seu.nome@marealta.com"
+                  placeholder="seu.nome@viverdinautica.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -138,37 +138,37 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('admin.teste@marealta.com');
+                  setEmail('admin.teste@viverdinautica.com');
                   setPassword('admin123');
                 }}
                 className="w-full px-3 py-2 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-medium text-red-700 flex items-center justify-between transition-colors"
               >
                 <span>👑 Admin</span>
-                <span className="text-xs opacity-70">admin.teste@marealta.com</span>
+                <span className="text-xs opacity-70">admin.teste@viverdinautica.com</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('tecnico1.teste@marealta.com');
+                  setEmail('tecnico1.teste@viverdinautica.com');
                   setPassword('tecnico123');
                 }}
                 className="w-full px-3 py-2 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg text-xs font-medium text-green-700 flex items-center justify-between transition-colors"
               >
                 <span>🔧 Técnico</span>
-                <span className="text-xs opacity-70">tecnico1.teste@marealta.com</span>
+                <span className="text-xs opacity-70">tecnico1.teste@viverdinautica.com</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('cliente1.teste@marealta.com');
+                  setEmail('cliente1.teste@viverdinautica.com');
                   setPassword('cliente123');
                 }}
                 className="w-full px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-medium text-blue-700 flex items-center justify-between transition-colors"
               >
                 <span>👤 Cliente</span>
-                <span className="text-xs opacity-70">cliente1.teste@marealta.com</span>
+                <span className="text-xs opacity-70">cliente1.teste@viverdinautica.com</span>
               </button>
             </div>
             <p className="text-xs text-slate-400 text-center mt-3">
@@ -180,7 +180,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
       </div>
 
       <div className="absolute bottom-4 text-slate-500 text-xs opacity-60">
-        © {new Date().getFullYear()} Mare Alta Náutica - v2.5.0
+        © {new Date().getFullYear()} Viverdi Nautica - v2.5.0
       </div>
     </div>
   );
