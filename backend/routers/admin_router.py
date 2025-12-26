@@ -39,9 +39,13 @@ class TenantResponse(BaseModel):
 # Simplificação: Apenas um email específico pode acessar.
 def get_current_superuser(current_user: models.User = Depends(auth.get_current_active_user)):
     # Lista de emails de superadmins
-    SUPER_ADMIN_EMAILS = ["nilsonpjr@gmail.com", "admin@viverdinautica.com"] 
+    SUPER_ADMIN_EMAILS = ["nilsonpjr@gmail.com", "admin@viverdinautica.com"]
+    
+    print(f"DEBUG: Checking SuperUser access for: {current_user.email}")
+    
     if current_user.email not in SUPER_ADMIN_EMAILS:
-         raise HTTPException(
+        print(f"DEBUG: Access DENIED for {current_user.email}")
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acesso restrito a Super Administradores"
         )

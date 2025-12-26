@@ -24,7 +24,8 @@ export const SuperAdminView: React.FC = () => {
     const loadTenants = async () => {
         try {
             const data = await ApiService.getTenants();
-            setTenants(data);
+            console.log("Tenants carregados:", data);
+            setTenants(data || []);
         } catch (error) {
             console.error("Erro ao carregar tenants", error);
         } finally {
@@ -49,10 +50,11 @@ export const SuperAdminView: React.FC = () => {
         }
     };
 
-    const filteredTenants = tenants.filter(t =>
-        t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.plan.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredTenants = (tenants || []).filter(t => {
+        const nameMatch = t.name && t.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const planMatch = t.plan && t.plan.toLowerCase().includes(searchTerm.toLowerCase());
+        return nameMatch || planMatch;
+    });
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -113,9 +115,9 @@ export const SuperAdminView: React.FC = () => {
                                         </select>
                                     ) : (
                                         <span className={`px-3 py-1 text-xs font-bold rounded-full ${tenant.plan === 'ENTERPRISE' ? 'bg-purple-100 text-purple-700' :
-                                                tenant.plan === 'MARINA' ? 'bg-blue-100 text-blue-700' :
-                                                    tenant.plan === 'PRO' ? 'bg-green-100 text-green-700' :
-                                                        'bg-slate-100 text-slate-700'
+                                            tenant.plan === 'MARINA' ? 'bg-blue-100 text-blue-700' :
+                                                tenant.plan === 'PRO' ? 'bg-green-100 text-green-700' :
+                                                    'bg-slate-100 text-slate-700'
                                             }`}>
                                             {tenant.plan === 'MARINA' ? 'Marina Full' :
                                                 tenant.plan === 'PRO' ? 'Oficina Team' :
