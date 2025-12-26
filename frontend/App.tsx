@@ -24,6 +24,13 @@ import { UserRole, User } from './types';
 import { Menu, Anchor } from 'lucide-react';
 import { StorageService } from './services/storage';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { WorkshopView } from './components/WorkshopView';
+import { EstimatorView } from './components/EstimatorView';
+import { AIDiagnosticsView } from './components/AIDiagnosticsView';
+import { MarinaMapView } from './components/MarinaMapView';
+import { MechanicAppView } from './components/MechanicAppView';
+import { AnalystChecklistView } from './components/AnalystChecklistView';
+import { ArchitectureView } from './components/ArchitectureView';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -86,6 +93,15 @@ function App() {
         return <FleetView />;
       case 'users':
         return <UsersView />;
+
+      // ERP Modules
+      case 'workshop': return <WorkshopView />;
+      case 'estimator': return <EstimatorView />;
+      case 'ai-diagnostics': return <AIDiagnosticsView />;
+      case 'marina-map': return <MarinaMapView />;
+      case 'mechanic-app': return <MechanicAppView />;
+      case 'analyst-checklist': return <AnalystChecklistView />;
+      case 'architecture': return <ArchitectureView />;
 
       // Technician Views
       case 'tech-orders':

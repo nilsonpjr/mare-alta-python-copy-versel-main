@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck, FileText } from 'lucide-react';
+import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck, FileText, Bot, Map, Calculator, Network, ClipboardCheck } from 'lucide-react';
 import { UserRole, User } from '../types';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
@@ -34,6 +34,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'finance', label: 'Financeiro', icon: DollarSign },
       { id: 'users', label: 'Usuários', icon: Users },
       { id: 'partners', label: 'Parceiros', icon: Users },
+      { id: 'sep_erp', type: 'separator', label: 'Módulos ERP' },
+      { id: 'workshop', label: 'Oficina (Workshop)', icon: Wrench },
+      { id: 'estimator', label: 'Smart Orçador', icon: Calculator },
+      { id: 'ai-diagnostics', label: 'Mare Alta AI', icon: Bot },
+      { id: 'marina-map', label: 'Mapa Marina', icon: Map },
+      { id: 'mechanic-app', label: 'App Mecânico', icon: Wrench },
+      { id: 'analyst-checklist', label: 'Checklist Analista', icon: ClipboardCheck },
+      { id: 'architecture', label: 'Arquitetura', icon: Network },
       { id: 'settings', label: 'Configurações', icon: Settings },
     ];
   } else if (role === UserRole.TECHNICIAN) {

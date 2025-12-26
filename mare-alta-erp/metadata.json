@@ -1,0 +1,8 @@
+{
+  "name": "Mare Alta ERP",
+  "description": "Premium Nautical ERP for Marinas and Shipyards. Focus on Workshop management, Smart Estimating, and AI Diagnostics.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

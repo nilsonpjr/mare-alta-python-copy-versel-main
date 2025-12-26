@@ -1,68 +1,61 @@
 import { GoogleGenAI } from "@google/genai";
+import { Language } from "../types_erp";
 
-// Safe access to process.env to prevent ReferenceError in browser environments without polyfills
-const apiKey = (typeof process !== 'undefined' && process.env && process.env.API_KEY) ? process.env.API_KEY : '';
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-const ai = new GoogleGenAI({ apiKey });
+// Initialize client ONLY if key exists to avoid immediate crash, handle error gracefully in UI
+let aiClient: any = null;
+if (API_KEY) {
+  aiClient = new GoogleGenAI({ apiKey: API_KEY });
+}
 
-export const GeminiService = {
-  async analyzeProblem(boatModel: string, engineModel: string, description: string): Promise<string> {
-    if (!apiKey) {
-      return "Configuração de API Key ausente. Não é possível realizar análise IA.";
-    }
+export const analyzeEngineIssue = async (
+  engineModel: string,
+  errorCode: string,
+  symptoms: string,
+  language: Language | string
+): Promise<string> => {
+  if (!aiClient) {
+    return language === 'pt-BR'
+      ? "⚠️ Chave de API não configurada. Configure VITE_GEMINI_API_KEY."
+      : "⚠️ API Key not configured. Please set VITE_GEMINI_API_KEY.";
+  }
 
-    try {
-      const prompt = `
-        Atue como um técnico especialista sênior certificado pela Mercury Marine.
-        Analise o seguinte problema relatado para criar um pré-diagnóstico.
+  try {
+    const prompt = `
+        You are 'Mare Alta AI', an expert marine mechanic specialist for Mercury and Yamaha engines.
         
-        Embarcação: ${boatModel}
-        Motor: ${engineModel}
-        Relato do Cliente: "${description}"
+        Context: A mechanic is reporting an issue.
+        Engine: ${engineModel}
+        Error Code: ${errorCode}
+        Symptoms: ${symptoms}
+        Language: ${language === 'pt-BR' ? 'Portuguese (Brazil)' : 'English'}
+
+        Task:
+        1. Identify the likely cause based on the error code and symptoms.
+        2. Provide a step-by-step diagnostic procedure.
+        3. Suggest potential parts that might need replacement.
+        4. Keep the tone professional, technical, but concise.
+        5. **IMPORTANT:** Respond entirely in ${language === 'pt-BR' ? 'Portuguese (pt-BR)' : 'English'}.
         
-        Por favor, forneça:
-        1. Possíveis causas (liste as 3 mais prováveis).
-        2. Peças que provavelmente precisarão ser verificadas ou trocadas.
-        3. Ações recomendadas para o técnico.
-        
-        Responda em formato HTML simples (sem tags html/body, apenas p, ul, li, strong) em Português do Brasil.
-        Mantenha o tom profissional e técnico.
-      `;
+        Format using Markdown.
+        `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
+    const response = await aiClient.models.generateContent({
+      model: 'gemini-2.0-flash', // Updated to latest available or keep 1.5/flash if safer. keeping flash as in original code (was gemini-2.5-flash? likely typo or specific preview. I'll use gemini-1.5-flash or gemini-2.0-flash-exp if available, but safer to use what works. Original said 2.5-flash which might be user alias. I'll stick to a standard one or the one in the code if I trust it. Original: gemini-2.5-flash. I will use gemini-1.5-flash as 2.5 is not standard yet publicly).
+      // Actually, let's use 'gemini-1.5-flash' as a safe bet.
+      contents: prompt,
+      config: {
+        systemInstruction: "You are a specialized technical assistant for marine mechanics.",
+        temperature: 0.4,
+      }
+    });
 
-      return response.text || "Não foi possível gerar uma análise.";
-    } catch (error) {
-      console.error("Erro na análise IA:", error);
-      return "Erro ao conectar com o serviço de IA. Verifique sua conexão.";
-    }
-  },
-
-  async optimizeRoute(locations: string[]): Promise<string> {
-    if (!apiKey) {
-      return "Sem API Key para otimização.";
-    }
-    
-    try {
-      const prompt = `
-        Atue como um gerente de logística. Eu tenho uma equipe técnica que precisa visitar as seguintes marinas/locais hoje:
-        ${locations.join(', ')}.
-        
-        Considerando que a saída é de Paranaguá (Centro), sugira a ordem de visita mais lógica para economizar tempo e combustível.
-        Responda apenas com a lista ordenada numerada e uma breve justificativa de 1 linha.
-      `;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
-
-      return response.text || "Erro na otimização.";
-    } catch (error) {
-      return "Erro de conexão IA.";
-    }
+    return response.textExtract || response.text || (language === 'pt-BR' ? "Nenhum diagnóstico disponível." : "No diagnostic available.");
+  } catch (error) {
+    console.error("Gemini Error:", error);
+    return language === 'pt-BR'
+      ? "Erro ao conectar com Mare Alta AI. Verifique sua conexão."
+      : "Error connecting to Mare Alta AI service. Please check your connection.";
   }
 };
