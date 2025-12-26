@@ -30,7 +30,7 @@ def get_or_create_part(db, item_data):
             cost=item_data['cost'],
             quantity=0, 
             manufacturer=manufacturer,
-            tenant_id=2 # Assuming 'Mare Alta Admin' tenant for now
+            tenant_id=1 # Assuming 'Mare Alta Admin' tenant is 1
         )
         db.add(part)
         db.commit()
@@ -39,7 +39,7 @@ def get_or_create_part(db, item_data):
     else:
         # Update price/name if needed
         part.price = item_data['price']
-        part.name = item_data['name']
+        part.name = item_data['name'][:200]
         part.manufacturer = manufacturer
         db.commit()
         # print(f"Updated Part: {part.sku}")
@@ -96,7 +96,7 @@ def seed_data():
                     brand=brand,
                     engine_model=model,
                     interval_hours=hours,
-                    tenant_id=2
+                    tenant_id=1
                 )
                 db.add(m_kit)
                 db.commit()

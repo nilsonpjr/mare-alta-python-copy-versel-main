@@ -1,29 +1,154 @@
-
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { TechnicalDelivery } from '../types';
-import { Save, CheckSquare, Ship, Anchor } from 'lucide-react';
+import { Save, CheckSquare, Ship, Anchor, Gauge, Battery, Wrench, AlertTriangle, UserCheck, Droplet, Thermometer, Wind } from 'lucide-react';
 
 interface Props {
     orderId: string;
     onClose?: () => void;
 }
 
-const OUTBOARD_CHECKLIST = [
-    "Nível de Óleo da Rabeta", "Fixação do motor", "Linha de combustível", "Instalação elétrica",
-    "Funcionamento do botão de partida", "Corta-Circuito", "Marcação instrumentos",
-    "RPM Neutro", "RPM Máxima (WOT)", "Verificar vazamentos", "Teste de Mar"
+type DeliverySection = {
+    title: string;
+    icon: React.ElementType;
+    fields?: { key: string; label: string; type: string; options?: string[] }[];
+    checklist?: string[];
+    table?: { headers: string[]; rows: string[] };
+    custom?: string;
+};
+
+// --- CHECKLIST DATA ---
+
+const STERNDRIVE_SECTIONS: DeliverySection[] = [
+    {
+        title: "Dados da Embarcação",
+        icon: Ship,
+        fields: [
+            { key: "hull_type", label: "Tipo do Casco", type: "select", options: ["Catamarã", "Monocasco"] },
+            { key: "nav_type", label: "Navegação", type: "select", options: ["Deslocamento", "Semi-Planeio", "Planeio"] },
+            { key: "length_total", label: "Comprimento Total (m)", type: "text" },
+            { key: "length_water", label: "Comprimento Linha Dágua (m)", type: "text" },
+            { key: "beam_total", label: "Boca Total (m)", type: "text" },
+            { key: "beam_water", label: "Boca Linha Dágua (m)", type: "text" },
+            { key: "fuel_tank", label: "Tanque Combustível (Material/Cap)", type: "text" },
+            { key: "water_tank", label: "Tanque Água (Tipo/Cap)", type: "text" },
+            { key: "max_people", label: "Capacidade Pessoas", type: "text" },
+            { key: "racor_filter", label: "Filtro Racor?", type: "select", options: ["Sim", "Não"] },
+            { key: "application", label: "Aplicação", type: "select", options: ["Lazer", "Serviço", "Pesca", "Cruiser", "Carga"] }
+        ]
+    },
+    {
+        title: "Motorização",
+        icon: Gauge,
+        fields: [
+            { key: "engine_model", label: "Modelo Motor", type: "text" },
+            { key: "engine_qty", label: "Qtd Motores", type: "number" },
+            { key: "drive_model", label: "Modelo Rabeta", type: "text" },
+            { key: "prop_model", label: "Modelo Hélice", type: "text" },
+            { key: "prop_pitch", label: "Passo Hélice", type: "text" },
+            { key: "prop_blades", label: "Nº Pás", type: "text" }
+        ],
+        table: {
+            headers: ["Posição", "Serial Motor", "Serial Transom", "Serial Rabeta", "Horas"],
+            rows: ["Bombordo", "Boreste"]
+        }
+    },
+    {
+        title: "Sistema Elétrico",
+        icon: Battery,
+        checklist: [
+            "Divisor de carga instalado?",
+            "Cabo negativo conectado ao bloco?",
+            "Acessórios ligados à bateria?",
+            "Conectores protegidos?",
+            "Chave Geral instalada?"
+        ],
+        fields: [
+            { key: "battery_cap", label: "Capacidade Baterias", type: "text" },
+            { key: "cable_len_bb", label: "Comp. Cabo Positivo BB", type: "text" },
+            { key: "cable_len_be", label: "Comp. Cabo Positivo BE", type: "text" },
+            { key: "main_switch_type", label: "Tipo Chave Geral", type: "select", options: ["2 pos", "4 pos", "Magnética", "Outros"] }
+        ]
+    },
+    {
+        title: "Instalação e Comandos",
+        icon: Wrench,
+        checklist: [
+            "Engraxar eixo hélice", "Verificar aperto porca hélice", "Lubrificação graxeiras espelho",
+            "Aperto porcas espelho de popa (34 N.m)", "Travas parafusos motor", "Fixação coifa cardan",
+            "Aperto parafusos rabeta", "Fixação anodos", "Altura motor vs linha d'água", "Placa cavitação vs V casco",
+            "Plugues dreno fechados", "Alinhamento motor/rabeta", "Mangueiras combustível", "Chicotes elétricos fixados",
+            "Nível óleo motor/rabeta", "Nível óleo bomba trim/direção", "Sistema refrigeração abastecido",
+            "Tensão correias", "Torneiras combustivel / sangria", "Sensor detonação", "Abraçadeiras motor",
+            "Curso direção", "Curso TPS", "Calibrar SmartCraft", "Alarme sonoro", "Limitador Trim", "Calibrar DTS",
+            "Corta-circuito neutro", "E-Stop"
+        ]
+    },
+    {
+        title: "Teste de Funcionamento (Start)",
+        icon: AlertTriangle,
+        checklist: [
+            "Pressão Óleo normal", "Sem vazamentos (óleo, comb, água, gases)", "Cmd Aceleração/Marcha operam bem",
+            "Instrumentos funcionam", "Marcha-lenta correta", "Funcionamento Trim correto"
+        ]
+    },
+    {
+        title: "Prova de Mar (Performance)",
+        icon: Wind,
+        custom: "sea_trial_table" // Helper to render the complex table
+    }
 ];
 
-const STERNDRIVE_CHECKLIST = [
-    "Nível de óleo (motor/rabeta/trim)", "Tensão correias", "Alinhamento motor/rabeta", "Filtro separador",
-    "Aperto abraçadeiras", "Instrumentos SmartCraft", "Alarmes", "Teste de Mar (Tabela Completa)"
+const OUTBOARD_SECTIONS: DeliverySection[] = [
+    {
+        title: "Dados Gerais",
+        icon: Ship,
+        fields: [
+            { key: "boat_model", label: "Modelo Embarcação", type: "text" },
+            { key: "builder", label: "Estaleiro", type: "text" },
+            { key: "boat_length", label: "Comprimento", type: "text" },
+            { key: "prop_info", label: "Hélice (Modelo/Passo)", type: "text" }
+        ]
+    },
+    {
+        title: "Antes de Ligar",
+        icon: CheckSquare,
+        checklist: [
+            "Nível de Óleo Rabeta", "Fixação motor (aperto/altura)", "Linha combustível/tanque",
+            "Mistura Óleo (Reset Break-in)", "Entradas água rabeta", "Giro completo direção",
+            "Instalação/Fixação tanque", "Instalação elétrica", "Carga/Fixação Bateria",
+            "Aperto/Capa cabos bateria", "Conexões elétricas", "Filtro separador",
+            "Válvula alívio Trim", "Nível óleo Power Trim", "Funcionamento Trim/Tilt",
+            "Sangria Direção", "Reservatório óleo motor chieo", "Retirar ar linha óleo (Pump Prime)",
+            "Alarmes baixo óleo/temp", "Ajuste cabo engate/aceleração", "Modelo hélice/Torque (75Nm)",
+            "Nível óleo cárter", "Calibração DTS", "Calibração SC-1000", "Leitura relógios vs CDS"
+        ]
+    },
+    {
+        title: "Motor Funcionando",
+        icon: Gauge,
+        checklist: [
+            "Botão partida", "Corta-circuito", "Ponto ignição/mistura", "Marcação instrumentos",
+            "Leitura CDS", "RPM Neutro", "Carga comando", "Giro direção (carga)", "Ventilação hélice curvas",
+            "Bomba d'água (monitorar)", "Ajuste Power Trim", "Anodo leme", "Angulo Tilt", "Máxima RPM (WOT)",
+            "Códigos falha CDS"
+        ]
+    },
+    {
+        title: "Pós Funcionamento",
+        icon: Droplet,
+        checklist: [
+            "Vazamentos (óleo/comb/água)", "Passagem água capô", "Torque Porca Hélice",
+            "Nível óleo trim", "Nível óleo cárter", "Nível óleo rabeta", "Manual entregue"
+        ]
+    }
 ];
 
 export const TechnicalDeliveryForm: React.FC<Props> = ({ orderId, onClose }) => {
     const [delivery, setDelivery] = useState<TechnicalDelivery | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedType, setSelectedType] = useState<'OUTBOARD' | 'STERNDRIVE' | null>(null);
+    const [activeSection, setActiveSection] = useState(0);
 
     // Data Dump
     const [formData, setFormData] = useState<any>({});
@@ -75,146 +200,224 @@ export const TechnicalDeliveryForm: React.FC<Props> = ({ orderId, onClose }) => 
         setFormData((prev: any) => ({ ...prev, [key]: value }));
     };
 
-    if (loading) return <div className="p-8 text-center">Carregando...</div>;
+    const currentSections = selectedType === 'OUTBOARD' ? OUTBOARD_SECTIONS : STERNDRIVE_SECTIONS;
+
+    if (loading) return <div className="p-8 text-center animate-pulse">Carregando formulário...</div>;
 
     if (!delivery && !selectedType) {
         return (
-            <div className="p-8 text-center space-y-6">
-                <h2 className="text-xl font-bold">Iniciar Entrega Técnica</h2>
-                <p className="text-slate-500">Selecione o tipo de motorização para gerar o formulário adequado.</p>
+            <div className="p-12 text-center space-y-8 bg-white rounded-xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800">Iniciar Entrega Técnica</h2>
+                    <p className="text-slate-500 mt-2">Selecione o tipo de embarcação para gerar o checklist oficial Mercury.</p>
+                </div>
 
-                <div className="flex gap-4 justify-center">
+                <div className="flex gap-6 justify-center">
                     <button
                         onClick={() => handleCreate('OUTBOARD')}
-                        className="flex flex-col items-center p-6 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all w-48"
+                        className="group flex flex-col items-center p-8 border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all w-64"
                     >
-                        <Anchor className="w-12 h-12 mb-4 text-blue-600" />
-                        <span className="font-bold">Motor de Popa</span>
-                        <span className="text-xs text-slate-500 mt-2">Outboard</span>
+                        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <Anchor className="w-8 h-8" />
+                        </div>
+                        <span className="font-bold text-lg text-slate-800">Motor de Popa</span>
+                        <span className="text-sm text-slate-500 mt-1">Outboard</span>
                     </button>
 
                     <button
                         onClick={() => handleCreate('STERNDRIVE')}
-                        className="flex flex-col items-center p-6 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all w-48"
+                        className="group flex flex-col items-center p-8 border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all w-64"
                     >
-                        <Ship className="w-12 h-12 mb-4 text-blue-600" />
-                        <span className="font-bold">Centro-Rabeta</span>
-                        <span className="text-xs text-slate-500 mt-2">Sterndrive / Inboard</span>
+                        <div className="w-16 h-16 bg-cyan-100 text-cyan-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <Ship className="w-8 h-8" />
+                        </div>
+                        <span className="font-bold text-lg text-slate-800">Centro-Rabeta</span>
+                        <span className="text-sm text-slate-500 mt-1">Sterndrive / Inboard</span>
                     </button>
                 </div>
             </div>
         );
     }
 
-    const checklist = selectedType === 'OUTBOARD' ? OUTBOARD_CHECKLIST : STERNDRIVE_CHECKLIST;
-
     return (
-        <div className="p-6 max-w-4xl mx-auto bg-white min-h-screen">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
+        <div className="bg-white min-h-[600px] flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b bg-slate-50">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800">Entrega Técnica: {selectedType === 'OUTBOARD' ? 'Motor de Popa' : 'Centro-Rabeta'}</h2>
-                    <p className="text-sm text-slate-500">Ordem #{orderId}</p>
+                    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        {selectedType === 'OUTBOARD' ? <Anchor className="w-5 h-5" /> : <Ship className="w-5 h-5" />}
+                        Entrega Técnica Mercury {selectedType === 'OUTBOARD' ? '(Popa)' : '(Centro-Rabeta)'}
+                    </h2>
+                    <p className="text-xs text-slate-500 font-mono mt-1">OS #{orderId} • {new Date().toLocaleDateString()}</p>
                 </div>
                 <button
                     onClick={handleSave}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-sm font-medium transition-colors"
                 >
-                    <Save className="w-4 h-4" /> Salvar
+                    <Save className="w-4 h-4" /> Salvar Progresso
                 </button>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
-                <div className='space-y-4'>
-                    <h3 className="font-bold border-b pb-2">Informações Gerais</h3>
-                    <div>
-                        <label className="block text-sm text-slate-600">Local da Entrega</label>
-                        <input
-                            className="w-full border p-2 rounded"
-                            value={formData.location || ''}
-                            onChange={e => updateField('location', e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-slate-600">Responsável (Cliente)</label>
-                        <input
-                            className="w-full border p-2 rounded"
-                            value={formData.customerName || ''}
-                            onChange={e => updateField('customerName', e.target.value)}
-                        />
-                    </div>
-                </div>
+            <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar Navigation */}
+                <div className="w-64 bg-slate-50 border-r flex flex-col overflow-y-auto">
+                    {currentSections.map((section, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => setActiveSection(idx)}
+                            className={`p-4 text-left text-sm font-medium flex items-center gap-3 border-l-4 transition-all ${activeSection === idx
+                                ? 'bg-white border-blue-600 text-blue-700 shadow-sm'
+                                : 'border-transparent text-slate-600 hover:bg-slate-100'
+                                }`}
+                        >
+                            <section.icon className={`w-4 h-4 ${activeSection === idx ? 'text-blue-600' : 'text-slate-400'}`} />
+                            {section.title}
+                        </button>
+                    ))}
 
-                {/* Specific Fields based on Type */}
-                {selectedType === 'STERNDRIVE' && (
-                    <div className='space-y-4'>
-                        <h3 className="font-bold border-b pb-2">Dados da Embarcação</h3>
-                        <div className='grid grid-cols-2 gap-2'>
-                            <input placeholder="Comp. Total" className="border p-2 rounded" onChange={e => updateField('hull_length', e.target.value)} value={formData.hull_length || ''} />
-                            <input placeholder="Boca" className="border p-2 rounded" onChange={e => updateField('hull_beam', e.target.value)} value={formData.hull_beam || ''} />
-                            <input placeholder="Hélice" className="border p-2 rounded" onChange={e => updateField('propeller', e.target.value)} value={formData.propeller || ''} />
-                            <input placeholder="Passo" className="border p-2 rounded" onChange={e => updateField('pitch', e.target.value)} value={formData.pitch || ''} />
+                    <div className="mt-auto p-4 border-t">
+                        <div className="text-xs font-bold text-slate-400 uppercase mb-2">Assinaturas</div>
+                        <div className="space-y-2">
+                            <div className="h-20 border-2 border-dashed border-slate-300 rounded bg-white flex items-center justify-center text-xs text-slate-400 cursor-pointer hover:border-blue-400">
+                                Assinar (Técnico)
+                            </div>
+                            <div className="h-20 border-2 border-dashed border-slate-300 rounded bg-white flex items-center justify-center text-xs text-slate-400 cursor-pointer hover:border-blue-400">
+                                Assinar (Cliente)
+                            </div>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
 
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><CheckSquare className="w-5 h-5" /> Checklist de Verificação</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8 bg-slate-50 p-6 rounded-xl">
-                {checklist.map((item, idx) => (
-                    <label key={idx} className="flex items-center gap-3 p-2 bg-white rounded border hover:bg-blue-50 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            className="w-5 h-5 text-blue-600 rounded"
-                            checked={formData[`check_${idx}`] || false}
-                            onChange={e => updateField(`check_${idx}`, e.target.checked)}
-                        />
-                        <span>{item}</span>
-                    </label>
-                ))}
-            </div>
+                {/* Content Area */}
+                <div className="flex-1 overflow-y-auto p-6 bg-white">
+                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        {React.createElement(currentSections[activeSection].icon, { className: "w-6 h-6 text-slate-400" })}
+                        {currentSections[activeSection].title}
+                    </h3>
 
-            {selectedType === 'STERNDRIVE' && (
-                <div className="mb-8">
-                    <h3 className="font-bold text-lg mb-4">Teste de Mar (Performance)</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-center border">
-                            <thead className="bg-slate-100 font-bold">
-                                <tr>
-                                    <th className="p-2 border">RPM</th>
-                                    <th className="p-2 border">Velocidade (Knots)</th>
-                                    <th className="p-2 border">Consumo (L/h)</th>
-                                    <th className="p-2 border">Pressão Óleo</th>
-                                    <th className="p-2 border">Temp. Motor</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[600, 1000, 2000, 3000, 4000, 5000].map(rpm => (
-                                    <tr key={rpm}>
-                                        <td className="border p-2 font-bold">{rpm}</td>
-                                        <td className="border p-0"><input className="w-full h-full p-2 text-center outline-none" placeholder="-"
-                                            value={formData[`perf_${rpm}_speed`] || ''} onChange={e => updateField(`perf_${rpm}_speed`, e.target.value)} /></td>
-                                        <td className="border p-0"><input className="w-full h-full p-2 text-center outline-none" placeholder="-"
-                                            value={formData[`perf_${rpm}_fuel`] || ''} onChange={e => updateField(`perf_${rpm}_fuel`, e.target.value)} /></td>
-                                        <td className="border p-0"><input className="w-full h-full p-2 text-center outline-none" placeholder="-"
-                                            value={formData[`perf_${rpm}_oil`] || ''} onChange={e => updateField(`perf_${rpm}_oil`, e.target.value)} /></td>
-                                        <td className="border p-0"><input className="w-full h-full p-2 text-center outline-none" placeholder="-"
-                                            value={formData[`perf_${rpm}_temp`] || ''} onChange={e => updateField(`perf_${rpm}_temp`, e.target.value)} /></td>
-                                    </tr>
+                    <div className="space-y-6 max-w-4xl">
+                        {/* Render Fields */}
+                        {currentSections[activeSection].fields && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {currentSections[activeSection].fields?.map((field: any) => (
+                                    <div key={field.key}>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{field.label}</label>
+                                        {field.type === 'select' ? (
+                                            <select
+                                                className="w-full p-2 border rounded bg-slate-50 focus:ring-2 focus:ring-blue-100 outline-none"
+                                                value={formData[field.key] || ''}
+                                                onChange={e => updateField(field.key, e.target.value)}
+                                            >
+                                                <option value="">Selecione...</option>
+                                                {field.options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        ) : (
+                                            <input
+                                                type={field.type}
+                                                className="w-full p-2 border rounded bg-slate-50 focus:ring-2 focus:ring-blue-100 outline-none"
+                                                value={formData[field.key] || ''}
+                                                onChange={e => updateField(field.key, e.target.value)}
+                                            />
+                                        )}
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                            </div>
+                        )}
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <div className='border p-4 rounded-xl min-h-[150px] flex flex-col justify-end'>
-                    <div className='border-b border-slate-400 mb-2'></div>
-                    <p className="text-center text-sm font-bold">Assinatura do Técnico Responsável</p>
-                </div>
-                <div className='border p-4 rounded-xl min-h-[150px] flex flex-col justify-end'>
-                    <div className='border-b border-slate-400 mb-2'></div>
-                    <p className="text-center text-sm font-bold">Assinatura do Cliente / Responsável</p>
+                        {/* Render Main Table (Serials) */}
+                        {currentSections[activeSection].table && (
+                            <div className="border rounded-lg overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-100 text-slate-600 font-bold">
+                                        <tr>
+                                            {currentSections[activeSection].table?.headers.map((h: string) => <th key={h} className="p-3 text-left">{h}</th>)}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {currentSections[activeSection].table?.rows.map((row: string, rIdx: number) => (
+                                            <tr key={row}>
+                                                <td className="p-3 font-bold bg-slate-50 text-slate-700">{row}</td>
+                                                {[1, 2, 3, 4].map((c) => (
+                                                    <td key={c} className="p-0 border-l">
+                                                        <input
+                                                            className="w-full h-full p-3 outline-none focus:bg-blue-50"
+                                                            value={formData[`table_${activeSection}_${rIdx}_${c}`] || ''}
+                                                            onChange={e => updateField(`table_${activeSection}_${rIdx}_${c}`, e.target.value)}
+                                                        />
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {/* Render Checklists */}
+                        {currentSections[activeSection].checklist && (
+                            <div className="grid grid-cols-1 gap-3">
+                                {currentSections[activeSection].checklist?.map((item: string, idx: number) => (
+                                    <label key={idx} className="flex items-center gap-3 p-3 rounded border hover:bg-slate-50 cursor-pointer transition-colors group">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                                            checked={formData[`chk_${activeSection}_${idx}`] || false}
+                                            onChange={e => updateField(`chk_${activeSection}_${idx}`, e.target.checked)}
+                                        />
+                                        <span className="text-slate-700 group-hover:text-slate-900">{item}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Render Sea Trial Table */}
+                        {currentSections[activeSection].custom === 'sea_trial_table' && (
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded border">
+                                    <div><label className="text-xs font-bold uppercase text-slate-500">Combustível no Tanque</label><input className="w-full border p-1 rounded" value={formData.sea_fuel || ''} onChange={e => updateField('sea_fuel', e.target.value)} /></div>
+                                    <div><label className="text-xs font-bold uppercase text-slate-500">Água no Tanque</label><input className="w-full border p-1 rounded" value={formData.sea_water || ''} onChange={e => updateField('sea_water', e.target.value)} /></div>
+                                </div>
+
+                                <div className="overflow-x-auto border rounded-lg shadow-sm">
+                                    <table className="w-full text-xs text-center">
+                                        <thead className="bg-slate-800 text-white font-bold uppercase">
+                                            <tr>
+                                                <th className="p-2 w-16 sticky left-0 bg-slate-800">RPM</th>
+                                                <th className="p-2 border-l border-slate-600">Velocidade</th>
+                                                <th className="p-2 border-l border-slate-600" colSpan={2}>Consumo (L/h)</th>
+                                                <th className="p-2 border-l border-slate-600" colSpan={2}>Temp (ºC)</th>
+                                                <th className="p-2 border-l border-slate-600" colSpan={2}>Pressão Óleo</th>
+                                            </tr>
+                                            <tr className="bg-slate-700 text-slate-300 text-[10px]">
+                                                <th className="p-1 sticky left-0 bg-slate-700"></th>
+                                                <th className="p-1 border-l border-slate-600">Knots / MPH</th>
+                                                <th className="p-1 border-l border-slate-600">BB</th>
+                                                <th className="p-1">BE</th>
+                                                <th className="p-1 border-l border-slate-600">BB</th>
+                                                <th className="p-1">BE</th>
+                                                <th className="p-1 border-l border-slate-600">BB</th>
+                                                <th className="p-1">BE</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y">
+                                            {[1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, "MAX"].map((rpm) => (
+                                                <tr key={rpm} className="hover:bg-blue-50">
+                                                    <td className="p-2 font-bold bg-slate-50 text-slate-700 sticky left-0 border-r">{rpm}</td>
+                                                    <td className="p-0 border-r"><input className="w-full text-center p-2 outline-none bg-transparent" placeholder="-" value={formData[`perf_${rpm}_spd`] || ''} onChange={e => updateField(`perf_${rpm}_spd`, e.target.value)} /></td>
+                                                    <td className="p-0 border-r"><input className="w-full text-center p-2 outline-none bg-transparent" placeholder="-" value={formData[`perf_${rpm}_fuel_bb`] || ''} onChange={e => updateField(`perf_${rpm}_fuel_bb`, e.target.value)} /></td>
+                                                    <td className="p-0 border-r"><input className="w-full text-center p-2 outline-none bg-transparent" placeholder="-" value={formData[`perf_${rpm}_fuel_be`] || ''} onChange={e => updateField(`perf_${rpm}_fuel_be`, e.target.value)} /></td>
+                                                    <td className="p-0 border-r"><input className="w-full text-center p-2 outline-none bg-transparent" placeholder="-" value={formData[`perf_${rpm}_tmp_bb`] || ''} onChange={e => updateField(`perf_${rpm}_tmp_bb`, e.target.value)} /></td>
+                                                    <td className="p-0 border-r"><input className="w-full text-center p-2 outline-none bg-transparent" placeholder="-" value={formData[`perf_${rpm}_tmp_be`] || ''} onChange={e => updateField(`perf_${rpm}_tmp_be`, e.target.value)} /></td>
+                                                    <td className="p-0 border-r"><input className="w-full text-center p-2 outline-none bg-transparent" placeholder="-" value={formData[`perf_${rpm}_oil_bb`] || ''} onChange={e => updateField(`perf_${rpm}_oil_bb`, e.target.value)} /></td>
+                                                    <td className="p-0"><input className="w-full text-center p-2 outline-none bg-transparent" placeholder="-" value={formData[`perf_${rpm}_oil_be`] || ''} onChange={e => updateField(`perf_${rpm}_oil_be`, e.target.value)} /></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
