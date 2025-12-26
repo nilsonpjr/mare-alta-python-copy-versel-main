@@ -27,8 +27,8 @@ def create_seed_data():
         print("👥 Criando usuário Admin padrão...")
         
         admin_user = models.User(
-            name="Administrador Mare Alta",
-            email="admin@marealta.com",
+            name="Administrador Viverdi",
+            email="admin@viverdinautica.com",
             hashed_password=get_password_hash("123"),
             role=models.UserRole.ADMIN
         )
@@ -39,7 +39,7 @@ def create_seed_data():
         
         print("✅ Seed básico completo!")
         print("\n🔑 Credenciais de login:")
-        print("   Admin: admin@marealta.com / 123")
+        print("   Admin: admin@viverdinautica.com / 123")
         
         # Commit tudo
         db.commit()
@@ -52,9 +52,9 @@ def create_seed_data():
         print(f"   - {len(parts)} peças")
         print(f"   - {len(orders)} ordens de serviço")
         print("\n🔑 Credenciais de login:")
-        print("   Admin: admin@marealta.com / 123456")
-        print("   Técnico: tecnico@marealta.com / 123456")
-        print("   Cliente: cliente@marealta.com / 123456")
+        print("   Admin: admin@viverdinautica.com / 123456")
+        print("   Técnico: tecnico@viverdinautica.com / 123456")
+        print("   Cliente: cliente@viverdinautica.com / 123456")
         
     except Exception as e:
         print(f"❌ Erro ao criar seed: {e}")

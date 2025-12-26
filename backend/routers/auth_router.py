@@ -178,7 +178,7 @@ def register(
     # Cria o usuário no banco de dados e o retorna.
     return crud.create_user(db=db, user=user)
 
-@router.post("/signup", response_model=schemas.User)
+@router.post("/signup", response_model=schemas.Token)
 def signup(
     signup_data: schemas.TenantSignup,
     db: Session = Depends(get_db)
@@ -186,13 +186,29 @@ def signup(
     """
     Endpoint para registrar UMA NOVA EMPRESA (Tenant) no sistema.
     Cria o Tenant e o Usuário Admin.
+    Retorna o Token de acesso automaticamente para que o usuário não precise fazer login.
     """
     # Verifica se o email já existe (em qualquer tenant, para evitar confusão no login global)
     db_user = crud.get_user_by_email(db, email=signup_data.admin_email)
     if db_user:
         raise HTTPException(status_code=400, detail="Este email já está cadastrado.")
     
-    return crud.register_tenant(db=db, signup_data=signup_data)
+    # 1. Cria o usuário e o tenant
+    new_user = crud.register_tenant(db=db, signup_data=signup_data)
+
+    # 2. Gera o token de acesso automaticamente
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={
+            "sub": new_user.email,
+            "tenant_id": new_user.tenant_id,
+            "role": new_user.role
+        }, 
+        expires_delta=access_token_expires
+    )
+    
+    # 3. Retorna o token para login imediato
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # === USER MANAGEMENT ENDPOINTS ===

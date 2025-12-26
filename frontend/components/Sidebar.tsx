@@ -10,14 +10,35 @@ interface SidebarProps {
   onLogout: () => void;
   isOpen: boolean;
   onClose: () => void;
+  tenantPlan?: string; // Novo: Recebe o plano da empresa para filtrar módulos
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentUser, onLogout, isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentUser, onLogout, isOpen, onClose, tenantPlan = 'ENTERPRISE' }) => {
   const role = currentUser.role;
   let menuItems = [];
 
+  // Lógica de Permissão de Módulos Baseada no Plano
+  const hasModule = (moduleId: string) => {
+    // Se for plano FULL/ENTERPRISE, tem tudo
+    if (tenantPlan === 'ENTERPRISE' || tenantPlan === 'Marina Full') return true;
+
+    // Mecânico PRO (Básico)
+    if (tenantPlan === 'START' || tenantPlan === 'Mecânico PRO') {
+      const allowed = ['dashboard', 'schedule', 'orders', 'clients', 'boats', 'settings', 'mechanic-app'];
+      return allowed.includes(moduleId);
+    }
+
+    // Oficina Team (Intermediário)
+    if (tenantPlan === 'PRO' || tenantPlan === 'Oficina Team') {
+      const blocked = ['marina-map', 'crm', 'fiscal']; // O que NÃO tem
+      return !blocked.includes(moduleId);
+    }
+
+    return true; // Fallback
+  };
+
   if (role === UserRole.ADMIN) {
-    menuItems = [
+    const allItems = [
       { id: 'dashboard', label: 'Visão Geral', icon: LayoutDashboard },
       { id: 'schedule', label: 'Agenda', icon: Calendar },
       { id: 'orders', label: 'Ordens de Serviço', icon: Wrench },
@@ -44,7 +65,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'architecture', label: 'Arquitetura', icon: Network },
       { id: 'settings', label: 'Configurações', icon: Settings },
     ];
-  } else if (role === UserRole.TECHNICIAN) {
+
+    // Filtra itens baseado no plano
+    menuItems = allItems.filter(item => item.type === 'separator' || hasModule(item.id));
     menuItems = [
       { id: 'tech-orders', label: 'Meus Serviços', icon: ClipboardList },
       { id: 'schedule', label: 'Minha Agenda', icon: Calendar },

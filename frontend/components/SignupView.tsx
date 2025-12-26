@@ -32,15 +32,23 @@ export const SignupView: React.FC<SignupViewProps> = ({ onSignupSuccess, onGoToL
         setIsLoading(true);
 
         try {
-            await ApiService.signup({
+            const response = await ApiService.signup({
                 companyName: formData.companyName,
                 plan: formData.plan,
                 adminName: formData.adminName,
                 adminEmail: formData.adminEmail,
                 adminPassword: formData.adminPassword
             });
-            alert("Conta criada com sucesso! Faça login para acessar.");
-            onSignupSuccess();
+
+            // O backend agora retorna o token direto (Login Automático)
+            if (response && response.access_token) {
+                localStorage.setItem('token', response.access_token);
+                // Força reload ou notifica App.tsx para atualizar estado
+                window.location.reload();
+            } else {
+                alert("Conta criada! Faça login.");
+                onSignupSuccess();
+            }
         } catch (err: any) {
             console.error("Signup Error:", err);
             let errorMsg = 'Erro desconhecido.';
