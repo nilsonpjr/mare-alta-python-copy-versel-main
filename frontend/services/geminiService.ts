@@ -59,3 +59,16 @@ export const analyzeEngineIssue = async (
       : "Error connecting to Mare Alta AI service. Please check your connection.";
   }
 };
+
+export const GeminiService = {
+  analyzeProblem: async (boatModel: string, engineModel: string, description: string): Promise<string> => {
+    // Adapt the signature from OrdersView to our new function
+    // OrdersView passes: boatModel, engineModel, description
+    return analyzeEngineIssue(
+      `${boatModel} - ${engineModel}`,
+      '', // No specific error code provided in this context
+      description,
+      'pt-BR' // Default to Portuguese for existing view
+    );
+  }
+};
