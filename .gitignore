@@ -52,3 +52,6 @@ venv/
 .venv/
 *.db
 .vercel
+
+# Legacy and Tests
+_legacy_and_tests/

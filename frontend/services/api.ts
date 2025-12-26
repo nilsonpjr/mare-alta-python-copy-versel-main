@@ -18,7 +18,7 @@ import {
 // Define a URL base da API.
 // Em produção, usa o caminho relativo '/api' (assumindo que o frontend é servido pelo backend).
 // Em desenvolvimento, usa 'http://localhost:8000/api' para se conectar ao backend local.
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://mare-alta-python-copy-versel.onrender.com/api' : 'http://localhost:8000/api');
 
 // Cria uma instância do Axios com a URL base e cabeçalhos padrão.
 console.log('API_URL:', API_URL); // Debug: Check which API URL is being used
