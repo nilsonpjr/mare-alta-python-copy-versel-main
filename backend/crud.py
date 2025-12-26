@@ -794,7 +794,7 @@ def get_maintenance_kits(db: Session, tenant_id: int):
     Retorna a lista de kits de manutenção do tenant.
     """
     return db.query(models.MaintenanceKit).filter(models.MaintenanceKit.tenant_id == tenant_id).options(
-        joinedload(models.MaintenanceKit.items)
+        joinedload(models.MaintenanceKit.items).joinedload(models.MaintenanceKitItem.part)
     ).all()
 
 # --- SUBSCRIPTION CRUD ---

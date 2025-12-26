@@ -45,7 +45,7 @@ export const MaintenanceBudgetView: React.FC = () => {
             intervalHours: apiKit.intervalHours || 0,
             description: apiKit.description || apiKit.name,
             parts: apiKit.items.filter(i => i.type === ItemType.PART).map(i => ({
-                partNumber: 'N/A',
+                partNumber: i.part?.sku || 'N/A',
                 name: i.itemDescription,
                 quantity: i.quantity,
                 unitPrice: i.unitPrice

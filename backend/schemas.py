@@ -532,6 +532,7 @@ class MaintenanceKitItemCreate(MaintenanceKitItemBase):
 class MaintenanceKitItem(MaintenanceKitItemBase):
     id: int
     kit_id: int
+    part: Optional[Part] = None
 
 class MaintenanceKitBase(CamelModel):
     name: str

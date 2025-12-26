@@ -442,6 +442,7 @@ export interface ApiMaintenanceKitItem {
   kitId: number;
   type: ItemType;
   partId?: number;
+  part?: Part;
   itemDescription: string;
   quantity: number;
   unitPrice: number;
