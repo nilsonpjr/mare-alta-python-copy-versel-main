@@ -31,6 +31,7 @@ import { MarinaMapView } from './components/MarinaMapView';
 import { MechanicAppView } from './components/MechanicAppView';
 import { AnalystChecklistView } from './components/AnalystChecklistView';
 import { ArchitectureView } from './components/ArchitectureView';
+import { SuperAdminView } from './components/SuperAdminView';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -102,6 +103,7 @@ function App() {
       case 'mechanic-app': return <MechanicAppView />;
       case 'analyst-checklist': return <AnalystChecklistView />;
       case 'architecture': return <ArchitectureView />;
+      case 'super-admin': return <SuperAdminView />;
 
       // Technician Views
       case 'tech-orders':

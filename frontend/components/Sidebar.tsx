@@ -64,6 +64,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'analyst-checklist', label: 'Checklist Analista', icon: ClipboardCheck },
       { id: 'architecture', label: 'Arquitetura', icon: Network },
       { id: 'settings', label: 'Configurações', icon: Settings },
+      { id: 'sep_admin', type: 'separator', label: 'Super Admin' },
+      { id: 'super-admin', label: 'Gestão SaaS', icon: ShieldCheck },
     ];
 
     // Filtra itens baseado no plano
