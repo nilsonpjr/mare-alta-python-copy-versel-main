@@ -68,6 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
 
     // Filtra itens baseado no plano
     menuItems = allItems.filter(item => item.type === 'separator' || hasModule(item.id));
+  } else if (role === UserRole.TECHNICIAN) {
     menuItems = [
       { id: 'tech-orders', label: 'Meus Serviços', icon: ClipboardList },
       { id: 'schedule', label: 'Minha Agenda', icon: Calendar },
