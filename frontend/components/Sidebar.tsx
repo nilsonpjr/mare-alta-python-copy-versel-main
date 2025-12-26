@@ -55,7 +55,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'finance', label: 'Financeiro', icon: DollarSign },
       { id: 'users', label: 'Usuários', icon: Users },
       { id: 'partners', label: 'Parceiros', icon: Users },
-      { id: 'sep_erp', type: 'separator', label: 'Módulos ERP' },
+      { id: 'sep_config', type: 'separator', label: 'Sistema' },
+      { id: 'settings', label: 'Configurações', icon: Settings },
+      /*
+      { id: 'sep_erp', type: 'separator', label: 'Módulos ERP (Em Breve)' },
       { id: 'workshop', label: 'Oficina (Workshop)', icon: Wrench },
       { id: 'estimator', label: 'Smart Orçador', icon: Calculator },
       { id: 'ai-diagnostics', label: 'Viverdi AI', icon: Bot },
@@ -63,13 +66,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'mechanic-app', label: 'App Mecânico', icon: Wrench },
       { id: 'analyst-checklist', label: 'Checklist Analista', icon: ClipboardCheck },
       { id: 'architecture', label: 'Arquitetura', icon: Network },
-      { id: 'settings', label: 'Configurações', icon: Settings },
+      */
       { id: 'sep_admin', type: 'separator', label: 'Super Admin' },
       { id: 'super-admin', label: 'Gestão SaaS', icon: ShieldCheck },
     ];
 
-    // Filtra itens baseado no plano
-    menuItems = allItems.filter(item => item.type === 'separator' || hasModule(item.id));
+    // Filtra itens baseado no plano e regras especiais
+    menuItems = allItems.filter(item => {
+      // 1. Regra Especial: Super Admin só aparece para emails específicos
+      if (item.id === 'super-admin') {
+        const superAdmins = ['nilsonpjr@gmail.com', 'admin@viverdinautica.com'];
+        return superAdmins.includes(currentUser.email);
+      }
+
+      // 2. Regra Geral: Separadores ou Módulos permitidos pelo plano
+      return item.type === 'separator' || hasModule(item.id);
+    });
   } else if (role === UserRole.TECHNICIAN) {
     menuItems = [
       { id: 'tech-orders', label: 'Meus Serviços', icon: ClipboardList },
