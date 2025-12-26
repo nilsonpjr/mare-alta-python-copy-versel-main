@@ -663,5 +663,26 @@ export const ApiService = {
     updateTenant: async (id: number, data: any) => {
         const response = await api.put(`/admin/tenants/${id}`, data);
         return response.data;
+    },
+
+    // --- TECHNICAL DELIVERY ---
+    getTechnicalDelivery: async (orderId: string | number) => {
+        try {
+            const response = await api.get(`/orders/${orderId}/technical-delivery`);
+            return response.data;
+        } catch (error) {
+            return null;
+        }
+
+    },
+
+    createTechnicalDelivery: async (orderId: string | number, data: any) => {
+        const response = await api.post(`/orders/${orderId}/technical-delivery`, data);
+        return response.data;
+    },
+
+    updateTechnicalDelivery: async (orderId: string | number, data: any) => {
+        const response = await api.put(`/orders/${orderId}/technical-delivery`, data);
+        return response.data;
     }
 };

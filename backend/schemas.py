@@ -7,10 +7,10 @@ os dados enviados e recebidos pela API estejam em um formato consistente e váli
 
 from pydantic import BaseModel, EmailStr, ConfigDict
 from pydantic.alias_generators import to_camel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 # Importa os enums definidos nos modelos para uso nos schemas.
-from models import UserRole, OSStatus, ItemType, MovementType # Adicionado MovementType
+from models import UserRole, OSStatus, ItemType, MovementType, DeliveryType
 
 # Configuração base para converter snake_case (Python) para camelCase (JavaScript/JSON)
 # e permitir a criação de modelos a partir de instâncias ORM (from_attributes).
@@ -695,3 +695,33 @@ class ApiSubscription(CamelModel):
     features: List[str]
     status: str
     next_billing_date: str
+
+# --- TECHNICAL DELIVERY SCHEMAS ---
+
+class TechnicalDeliveryBase(CamelModel):
+    type: str # OUTBOARD or STERNDRIVE
+    status: Optional[str] = "DRAFT"
+    location: Optional[str] = None
+    customer_name: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+    technician_signature_url: Optional[str] = None
+    customer_signature_url: Optional[str] = None
+
+class TechnicalDeliveryCreate(TechnicalDeliveryBase):
+    service_order_id: int
+
+class TechnicalDeliveryUpdate(CamelModel):
+    status: Optional[str] = None
+    location: Optional[str] = None
+    customer_name: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+    technician_signature_url: Optional[str] = None
+    customer_signature_url: Optional[str] = None
+
+class TechnicalDelivery(TechnicalDeliveryBase):
+    id: int
+    service_order_id: int
+    technician_id: Optional[int] = None
+    date: datetime
+    created_at: datetime
+    updated_at: datetime

@@ -1048,3 +1048,32 @@ def update_partner_quote(db: Session, quote_id: int, quote_update: schemas.Partn
     db.commit()
     db.refresh(db_quote)
     return db_quote
+
+# --- TECHNICAL DELIVERY CRUD ---
+
+def get_technical_delivery(db: Session, order_id: int):
+    return db.query(models.TechnicalDelivery).filter(models.TechnicalDelivery.service_order_id == order_id).first()
+
+def create_technical_delivery(db: Session, delivery: schemas.TechnicalDeliveryCreate, technician_id: int, tenant_id: int):
+    db_delivery = models.TechnicalDelivery(
+        **delivery.model_dump(),
+        technician_id=technician_id,
+        tenant_id=tenant_id
+    )
+    db.add(db_delivery)
+    db.commit()
+    db.refresh(db_delivery)
+    return db_delivery
+
+def update_technical_delivery(db: Session, delivery_id: int, delivery_update: schemas.TechnicalDeliveryUpdate):
+    db_delivery = db.query(models.TechnicalDelivery).filter(models.TechnicalDelivery.id == delivery_id).first()
+    if not db_delivery:
+        return None
+    
+    update_data = delivery_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_delivery, key, value)
+    
+    db.commit()
+    db.refresh(db_delivery)
+    return db_delivery

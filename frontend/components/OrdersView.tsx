@@ -22,6 +22,7 @@ import {
     Trash2,
     Pencil
 } from 'lucide-react';
+import { TechnicalDeliveryForm } from './TechnicalDeliveryForm';
 
 interface OrdersViewProps {
     role: UserRole;
@@ -64,7 +65,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
     const [isItemSearchOpen, setIsItemSearchOpen] = useState(false); // New State for Modal
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<'details' | 'checklist' | 'parts' | 'media' | 'report' | 'profit'>('details');
+    const [activeTab, setActiveTab] = useState<'details' | 'checklist' | 'parts' | 'media' | 'report' | 'profit' | 'delivery'>('details');
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -936,6 +937,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
                                 {[
                                     { id: 'details', label: 'Detalhes', icon: FileText },
                                     { id: 'checklist', label: 'Checklist', icon: CheckSquare },
+                                    { id: 'delivery', label: 'Entrega Técnica', icon: CheckCircle },
                                     ...(isTechnician || role === UserRole.ADMIN ? [{ id: 'report', label: 'Relatório', icon: Clipboard }] : []),
                                     { id: 'media', label: 'Fotos', icon: Camera },
                                     ...(!isTechnician ? [
@@ -1038,6 +1040,12 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
                                                 <div className="mt-4 p-4 bg-purple-50 rounded border border-purple-100 text-sm" dangerouslySetInnerHTML={{ __html: aiAnalysis }} />
                                             )}
                                         </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'delivery' && (
+                                    <div className="bg-slate-50 border rounded-lg min-h-[500px]">
+                                        <TechnicalDeliveryForm orderId={selectedOrder.id} />
                                     </div>
                                 )}
 

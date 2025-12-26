@@ -132,3 +132,45 @@ def complete_service_order(
         # Se a função CRUD retornar None, a ordem não pode ser completada.
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível completar a Ordem de Serviço (verifique se já está completa ou se existe).")
     return order
+@router.get("/{order_id}/technical-delivery", response_model=Optional[schemas.TechnicalDelivery])
+def get_technical_delivery(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    delivery = crud.get_technical_delivery(db, order_id=order_id)
+    return delivery
+
+@router.post("/{order_id}/technical-delivery", response_model=schemas.TechnicalDelivery)
+def create_technical_delivery(
+    order_id: int,
+    delivery: schemas.TechnicalDeliveryCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    # Ensure order exists
+    order = crud.get_order(db, order_id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+        
+    # Check if already exists
+    existing = crud.get_technical_delivery(db, order_id=order_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="Technical delivery already exists for this order")
+
+    # Force correct order_id
+    delivery.service_order_id = order_id
+    return crud.create_technical_delivery(db, delivery, technician_id=current_user.id, tenant_id=current_user.tenant_id)
+
+@router.put("/{order_id}/technical-delivery", response_model=schemas.TechnicalDelivery)
+def update_technical_delivery(
+    order_id: int,
+    delivery_update: schemas.TechnicalDeliveryUpdate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    delivery = crud.get_technical_delivery(db, order_id=order_id)
+    if not delivery:
+        raise HTTPException(status_code=404, detail="Technical delivery not found")
+        
+    return crud.update_technical_delivery(db, delivery_id=delivery.id, delivery_update=delivery_update)

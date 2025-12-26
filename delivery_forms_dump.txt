@@ -1,0 +1,347 @@
+
+
+--- FILE: ENTTECMERC.pdf ---
+       ENTREGA TÉCNICA – MOTORES CENTRO-RABETA 
+Proprietário:            Telefone:      
+Embarcação:         Nome da Embarcação:       
+Estaleiro:          Oficina Autorizada:        
+Responsável pela Instalação:      Representante Autorizado:       
+ 
+Dados do Casco: 
+Tipo: 
+    Catamarã                Monocasco  
+ 
+Navegação: 
+    Deslocamento          Semi Planeio                Planeio 
+ 
+Dimensional: 
+Comprimento Total:       Comprimento da Linha D’água:          
+Calado:         Boca Total        Boca na Linha D’água:      
+ 
+Tanque de Combustível: 
+Tipo de tanque (Material):          Capacidade:         
+ 
+Tanque de Água: 
+Tipo de Tanque:           Capacidade:         
+ 
+Capacidade Máxima de Pessoas:       
+ 
+ 
+Há filtro separador de água (Racor) instalado na embarcação:          Não        Sim  (Modelo:      ) 
+ 
+Aplicação: 
+ 
+Lazer:    Serviço:    Pesca: 
+     Pesca Esportiva       Passageiro        Pesqueiro Rápido 
+     Cruiser        Carga         De Rede 
+     Outros        Outros        Outros 
+ 
+Dados de Motorização: 
+Modelo do(s) Motor(es):         Quantidade de Motores:         
+Modelo da(s) Rabeta(s):         Distância Entre as Rabetas:        
+Modelo do(s) Hélice(s):          Passo:       Nº de Pás:     
+ 
+Posição Número de Série do Motor Número de Série do Transon Número de Série da Rabeta Horas do Motor 
+Bombordo     
+Boreste     
+ 
+Sistema Elétrico: 
+Capacidade das Baterias: 
+Comprimento Total do Cabo Positivo: 
+Bombordo:       
+Boreste:        
+ 
+Há divisor de carga instalado? 
+     Não        Sim (Modelo:     ) 
+ 
+Há cabo negativo conectado ao bloco do motor?     Sim         Não 
+ 
+Há algum acessório ligado às baterias do(s) Motor(es)?      Não        Sim Quais?         
+                
+                 
+ 
+Os conectores dos chicotes estão devidamente protegidos contra sujeira/água?      Não         Sim 
+ 
+Há chave Geral Instalada?      Não        Sim (Fabricante:       ) 
+ 
+Modelo de Chave Geral      2 posições 4 Posições 
+   Magnética Rotativa   Outros (     ) 
+ 
+Motor Partida Serviço 
+Bombordo 
+Ah   
+MCA   
+CCA   
+Boreste 
+Ah   
+MCA   
+CCA   
+
+--------------------
+       ENTREGA TÉCNICA – MOTORES CENTRO-RABETA 
+ 
+Sistema de Aceleração e Comando: 
+Tipo de Comando:      Mecânico           Eletrônico 
+Tipo de Direção:         Mecânica    Hidráulica  Eletrônica (Axius/Zeus) 
+ 
+Comprimento de cabos e mangueiras: 
+ Bombordo (m) Boreste (m) 
+Cabo de Comando   
+Cabo de Aceleração   
+Cabo de Direção   
+Chicote de extensão   
+ 
+Sistema de Exaustão: 
+Comprimento total da tubulação de descarga, excluindo as curvas:      metros (Somente para Descarga Direta) 
+ 
+Diâmetro da tubulação de descarga:        Polegadas (Somente para Descarga Direta) 
+ 
+Há necessidade de instalação de riser (prolongador) na descarga?        Não Sim   Altura:      
+ 
+Informações Gerais: 
+Área Total de entrada de ar na casa de máquinas:       cm2   
+ 
+Há exaustor(es) instalado(s) na casa de máquinas?       Não               Sim              Vazão:      (Verificar no Equipamento) 
+ 
+Há facilidade de acesso aos componentes de manutenção periódica do motor?      Não      Sim 
+ 
+Há boiler instalado na embarcação?       Não          Sim   (Em qual motor?      Bombordo           Boreste) 
+ 
+Verificações Gerais: 
+ 
+ 
+ Engraxar eixo do hélice, instalar hélice e verificar o aperto da(s) porca(s) de hélice. 
+ Verificar convergência da rabeta no tirante (Apenas parelha. Não aplicável em embarcações com direção elétrica). 
+Complementar a a lubrificação das graxeiras do espelho da rabeta e da carcaça de acoplamento (se houver). 
+Engraxar os componentes mecânicos da direção. 
+ Verificar aperto das porcas de fixação do espelho de popa (34 N.m) 
+ Verificar as travas dos parafusos de fixação do motor e do espelho de popa 
+ Verificar a fixação da coifa do cardan 
+ Verificar aperto dos parafusos de fixação da rabeta 
+           Verificar fixação dos anodos 
+        Verificar boletins de serviço para o motor utilizado. 
+        Verificar a altura do motor em relação à linha d’água 
+        Verificar se a placa de cavitação acompanha o “V” da lancha 
+        Verificar plugues de dreno estão fechados 
+        Verificar alinhamento motor/espelho da rabeta 
+        Verificar as mangueiras de combustível (alimentação e retorno). 
+        Verificar se os chicotes elétricos estão devidamente conectados e fixados 
+        Verificar o nível de óleo do motor e da rabeta 
+        Verificar o nível de óleo da bomba do trim e da bomba de direção hidráulica 
+        Abastecer o sistema de refrigeração (motores de circuito fechado) 
+        Verificar a tensão das correias 
+        Verificar as torneiras de combustível e faça a sangria 
+        Verificar a fixação do sensor de detonação (motores a gasolina). 
+        Verificar o aperto de todas as abraçadeiras do motor. 
+        Verificar se a bateria está dentro da especificação para o motor instalado 
+        Verificar aperto das porcas e parafusos do sistema de aceleração e direção 
+        Verificar o curso da direção 
+        Verificar curso do TPS e ajustar se necessário. 
+        Verificar instrumentos SmartCraft e calibrar 
+        Verificar se o sistema de alarme está funcionando corretamente (simular alarme e verificar bip sonoro). 
+        Testar limitador do trim e ajustar se necessário. 
+        Calibrar comando DTS (se aplicado) 
+        Verificar localização do motor (engine location) 
+        Verificar o sistema corta-circuito do neutro 
+        Verificar o sistema corta circuito de emergência E-Stop  
+Não  
+Utiliza Bombordo Boreste 
+--------------------
+       ENTREGA TÉCNICA – MOTORES CENTRO-RABETA 
+ 
+Ligue o Motor e Verifique se: 
+ 
+ 
+         A pressão do óleo está normal 
+         Não há vazamentos de combustível, óleo, água ou gases de descarga. 
+         Os comandos de aceleração e a marcha operam satisfatoriamente. 
+         Todos os instrumentos, inclusive conta-giros, funcionam normalmente. 
+         A rotação de marcha-lenta está correta após o motor estar aquecido. 
+         O ajuste e o funcionamento do trim estão corretos. 
+ 
+Prova de Mar: 
+ 
+Número Participantes no teste?       
+ 
+Quantidade de Combustível no Tanque:        Quantidade de água no tanque:        
+ 
+Tipo de Aplicação:       Água Salgada           Água Doce    
+ 
+Rotação em Marcha Lenta: 
+Bombordo:         Boreste:         Especificada:       
+ 
+Pressão de Óleo em Marcha Lenta (colocar unidade de medida): 
+Bombordo:         Boreste:         Especificada:       
+ 
+Rotação Alta Livre: 
+Bombordo:         Boreste:        
+ 
+Rotação do Motor em Marcha Lenta Engrenado: 
+Bombordo:         Boreste:        
+ 
+Teste 1 2 3 4 5 Máxima Aceleração 
+Rotação 1500 2000 2500 3000 3500 ______ 
+ 
+Velocidade (     mph         Knots)       
+Consumo de Combustível 
+(L/h) 
+Bombordo       
+Boreste       
+ 
+ 
+Pressão de Turbo 
+(     Bar        psi) 
+Bombordo       
+Boreste       
+Temperatura do Líquido de 
+Arrefecimento (ºC) 
+Bombordo       
+Boreste       
+ 
+Pressão de Óleo Lubrificante 
+(     Bar        psi) 
+Bombordo       
+Boreste       
+ 
+Contra Pressão da Descarga 
+(      KPa        Bar) 
+Bombordo       
+Boreste       
+Carga Relativa 
+(%) 
+Bombordo       
+Boreste       
+ 
+ 
+ 
+ 
+ 
+Não  
+Utiliza Bombordo Boreste 
+
+--------------------
+       ENTREGA TÉCNICA – MOTORES CENTRO-RABETA 
+ 
+ 
+Temperatura da Casa de Máquinas (em ºC, a ser medida após atingir carga máxima): 
+ Filtro do Motor Parte Superior e Centro da 
+casa de Máquinas 
+Bombordo   
+Boreste   
+ 
+ 
+INFORMAÇÕES PARA O CLIENTE 
+ 
+  Efetuar o registro do motor e no sistema Mercury Marine do Brasil (entregar uma cópia do registro para o cliente) 
+  Revisar o manual do proprietário junto ao cliente, enfatizando as informações referentes a SEGURANÇA. 
+  Como Utilizar o Equipamento: EXPLICAR / DEMONSTRAR: 
+   Funcionamento do Corta-Circuito de emergência 
+Sistema de direção (esforço para girar o volante, utilização correta da direção; segurar o volante de forma firme; o “deslizamento” do 
+barco durante uma curva) 
+Altura máxima do trim para que o hélice não “ventile” nas curvas e informar os riscos de utilizar o motor com trim muito elevado 
+Informar a capacidade de passageiros da embarcação e os riscos se houver utilização acima da capacidade 
+Forma correta de se posicionar enquanto a embarcação estiver em movimento 
+Importância dos coletes salva-vida e a localização dos mesmos 
+Ilustrar os sistemas de alarme dos instrumentos SmartCraft 
+Funcionamento dos instrumentos 
+Recomendações sobre a qualidade do combustível 
+Plano de manutenção: revisões obrigatórias devem ocorrer conforme informação do livreto de garantia, somente efetuadas com 
+oficinas autorizadas Mercury Marine do Brasil 
+Informar que a lista de Oficinas Autorizadas pode ser encontrada no site www.mercurymarine.com.br  
+Procedimentos de armazenamento (caso a embarcação permaneça longos períodos sem utilização) 
+Cuidados com o motor após utilização (adoçamento) 
+Uso do motor 
+Uso da embarcação 
+Uso do reboque (se for utilizado) 
+ Aparência externa do motor está perfeita (Pintura, Capô, Adesivos,...) 
+Garantia: Mostrar a seção “Política de Garantia” manual do proprietário em Português, explicando como funciona a Garantia de Fábrica contra 
+Defeitos de Fabricação, e informando que, o período de Garantia é de 3 anos, para aplicações de lazer, ou, 500 horas ou 1 ano, o que ocorrer 
+primeiro, para aplicações comerciais, conforme descrito no manual do proprietário. 
+ 
+OBS:                
+ 
+ATESTO QUE AS VERIFICAÇÕES ACIMA FORAM REALIZADAS E O MOTOR ENTREGUE EM PERFEITAS CONDIÇÕES. 
+ 
+ 
+CLIENTE SERVIÇO AUTORIZADO 
+LOCAL E DATA 
+REVENDA / ESTALEIRO 
+
+--------------------
+
+
+--- FILE: ENTTECPOPA.pdf ---
+        ENTREGA TÉCNICA – MOTORES DE POPA 
+Proprietário:            Telefone:      
+Modelo do Motor:         Nº de Série:        
+Embarcação:         Estaleiro:         
+Comprimento (pés/m):       Hélice (Modelo e Passo):       
+ 
+  ANTES DE LIGAR O MOTOR       COM O MOTOR EM FUNCIONAMENTO 
+  Nível de Óleo da Rabeta          Funcionamento do botão de partida 
+  Fixação do motor (aperto, altura e centralização)       Funcionamento do Corta-Circuito 
+    Linha de combustível e tanque         Verificar ponto de ignição e regulagem da mistura 
+    Acertar mistura de Óleo (Reset Break-in)        Marcação dos instrumentos  
+    Entradas de água da Rabeta         Conferir leitura dos instrumentos com o CDS 
+    Giro Completo da Direção          RPM do motor em Neutro:     
+    Instalação e fixação do tanque de combustível        Carga do comando (aceleração e engate) 
+    Instalação elétrica           Giro completo e carga da direção 
+    Carga e fixação da bateria          Verificar se o hélice “ventila” nas curvas 
+    Aperto e capa dos cabos de bateria         Operação da bomba d’água 
+    Fixação das conexões elétricas e chicotes        Funcionamento/ajuste do Power Trim 
+    Filtro separador de água          Ajuste do Anôdo Leme 
+    Válvula de alívio do Trim              Angulo de ajuste do Tilt 
+    Nível de óleo do Power Trim          Máxima RPM (WOT):      
+    Funcionamento do Power/Tilt Trim         Verificar códigos de falha com o CDS 
+    Direção (montagem, lubrificação / “sangria”)         
+    Abastecer reservatório de óleo do motor        APÓS O FUNCIONAMENTO 
+    Retirar o ar da linha de óleo do motor (Pump Prime) 
+    Alarmes de baixo nível de óleo e superaquecimento       Verificar vazamentos (óleo, combustível e água) 
+    Ajuste do cabo de engate e aceleração        Verificar se há passagem de água pelo capô 
+    Conferir o modelo do hélice e torque na porca (75 N.m)       Torque da Porca do Hélice 
+  Nível de óleo do cárter              Nível de óleo do trim e do reservatório de óleo 
+  Calibração do comando DTS com o CDS        Nível de óleo do cárter 
+  Calibração do SC-1000          Nível de óleo da rabeta 
+  Verificar se as leituras dos relógios são as mesmas do CDS      Manual do proprietário em Português 
+ 
+INFORMAÇÕES PARA O CLIENTE 
+ 
+  Efetuar o registro do motor e no sistema Mercury Marine do Brasil (entregar uma cópia do registro para o cliente) 
+  Revisar o manual do proprietário junto ao cliente, enfatizando as informações referentes a SEGURANÇA. 
+  Como Utilizar o Equipamento: EXPLICAR / DEMONSTRAR: 
+   Funcionamento do Corta-Circuito de emergência 
+Sistema de direção (esforço para girar o volante, utilização correta da direção; segurar o volante de forma firme; o “deslizamento” do 
+barco durante uma curva) 
+Altura máxima do trim para que o hélice não “ventile” nas curvas e informar os riscos de utilizar o motor com trim muito elevado 
+Informar a capacidade de passageiros da embarcação e os riscos se houver utilização acima da capacidade 
+Forma correta de posicionar enquanto a embarcação estiver em movimento 
+Importância dos coletes salva-vida e a localização dos mesmos 
+Ilustrar os sistemas de alarme do SC-1000 
+Funcionamento dos instrumentos 
+Informar a quantidade de óleo a ser adicionada no combustível. 
+Recomendações sobre a qualidade do combustível 
+Plano de manutenção: revisões obrigatórias devem ocorrer a cada 100 horas ou 12 meses, sempre o que ocorrer primeiro, somente 
+efetuadas com oficinas autorizadas Mercury Marine do Brasil. Recomenda-se que, para uso severo (pouco uso ou aplicação em água 
+salgada) as revisões sejam efetuadas com intervalos de 50 horas ou 6 meses, sempre o que ocorrer primeiro. 
+Informar que a lista de Oficinas Autorizadas pode ser encontrada no site www.mercurymarine.com.br  
+Procedimentos de armazenamento (caso a embarcação permaneça longos períodos sem utilização) 
+Cuidados com o motor após utilização (adoçamento) 
+Uso do motor 
+Uso da embarcação 
+Uso do reboque (se for utilizado) 
+ Aparência externa do motor está perfeita (Pintura, Capô, Adesivos,...) 
+Garantia: Mostrar a seção “Política de Garantia” manual do proprietário em Português que acompanhou o motor, explicando como funciona a 
+Garantia de Fábrica contra Defeitos de Fabricação, e informando que, o período de Garantia é de 3 anos, para aplicações de lazer, ou, 500 horas 
+ou 1 ano, o que ocorrer primeiro, para aplicações comerciais, conforme descrito no manual do proprietário em Português. 
+OBS: Foi entregue o manual do proprietário em português na hora da entrega técnica. 
+ 
+ATESTO QUE AS VERIFICAÇÕES ACIMA FORAM REALIZADAS E O MOTOR ENTREGUE EM PERFEITAS CONDIÇÕES. 
+ 
+Não  
+Utiliza OK 
+Não  
+Utiliza OK 
+CLIENTE 
+ 
+SERVIÇO AUTORIZADO LOCAL E DATA 
+--------------------

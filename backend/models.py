@@ -3,7 +3,7 @@ Este arquivo define os modelos de banco de dados usando SQLAlchemy.
 Cada classe representa uma tabela no banco de dados e seus atributos correspondem às colunas da tabela.
 """
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Enum
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Enum, JSON
 from sqlalchemy.orm import relationship
 from database import Base # Importa a classe Base do SQLAlchemy declarada em database.py
 from datetime import datetime
@@ -33,6 +33,10 @@ class OSStatus(str, enum.Enum):
     IN_PROGRESS = "Em Execução"
     COMPLETED = "Concluído"
     CANCELED = "Cancelado"
+
+class DeliveryType(str, enum.Enum):
+    OUTBOARD = "OUTBOARD"
+    STERNDRIVE = "STERNDRIVE"
 
 class ItemType(str, enum.Enum):
     """
@@ -290,6 +294,8 @@ class ServiceOrder(Base):
     notes = relationship("OrderNote", back_populates="order", cascade="all, delete-orphan")
     # Relacionamento com FiscalInvoice. Notas fiscais emitidas para esta OS.
     fiscal_invoices = relationship("FiscalInvoice", back_populates="service_order")
+    # Relacionamento com TechnicalDelivery. Entrega técnica.
+    technical_delivery = relationship("TechnicalDelivery", back_populates="service_order", uselist=False, cascade="all, delete-orphan")
 
 class ServiceItem(Base):
     """
@@ -684,3 +690,46 @@ class PartnerQuote(Base):
     tenant = relationship("Tenant")
     inspection = relationship("TechnicalInspection", back_populates="partner_quotes")
     partner = relationship("Partner", back_populates="partner_quotes")
+
+class TechnicalDelivery(Base):
+    """
+    Modelo para a tabela 'technical_deliveries'. 
+    Formulário de Entrega Técnica (Checklist/Start-up).
+    """
+    __tablename__ = "technical_deliveries"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False, index=True)
+    
+    service_order_id = Column(Integer, ForeignKey("service_orders.id"), nullable=False, unique=True)
+    
+    # Tipo: POPA ou CENTRO-RABETA
+    type = Column(Enum(DeliveryType), nullable=False)
+    
+    status = Column(String(50), default="DRAFT") # DRAFT, COMPLETED
+    
+    # Responsáveis
+    technician_id = Column(Integer, ForeignKey("users.id")) # Quem preencheu
+    customer_name = Column(String(200)) # Confirmar nome do cliente
+    
+    # Dados Gerais
+    date = Column(DateTime, default=datetime.utcnow)
+    location = Column(String(200)) # Local da entrega
+    
+    # O Checklist e Medições JSON
+    # Estrutura flexível para acomodar os dois tipos de formulário
+    # Ex: { "check_oil": true, "rpm_idle": 600, "sea_trial": [...] }
+    data = Column(JSON, nullable=True)
+    
+    # Assinaturas (URL ou Base64)
+    technician_signature_url = Column(Text, nullable=True)
+    customer_signature_url = Column(Text, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relacionamentos
+    tenant = relationship("Tenant")
+    service_order = relationship("ServiceOrder", back_populates="technical_delivery")
+    technician = relationship("User")

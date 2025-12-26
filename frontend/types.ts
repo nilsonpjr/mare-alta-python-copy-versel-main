@@ -552,3 +552,34 @@ export interface PartnerQuote {
   responseDate?: string;
   partner: Partner;
 }
+export interface TechnicalDelivery {
+  id: number;
+  serviceOrderId: number;
+  type: 'OUTBOARD' | 'STERNDRIVE';
+  status: string;
+  technicianId?: number;
+  customerName?: string;
+  location?: string;
+  date: string;
+  data?: any;
+  technicianSignatureUrl?: string;
+  customerSignatureUrl?: string;
+}
+
+export interface TechnicalDeliveryCreate {
+  serviceOrderId: number;
+  type: 'OUTBOARD' | 'STERNDRIVE';
+  status?: string;
+  location?: string;
+  customerName?: string;
+  data?: any;
+}
+
+export interface TechnicalDeliveryUpdate {
+  status?: string;
+  location?: string;
+  customerName?: string;
+  data?: any;
+  technicianSignatureUrl?: string;
+  customerSignatureUrl?: string;
+}
