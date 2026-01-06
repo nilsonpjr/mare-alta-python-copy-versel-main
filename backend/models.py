@@ -285,6 +285,7 @@ class ServiceOrder(Base):
     technician_name = Column(String(200)) # Nome do técnico responsável
     scheduled_at = Column(DateTime, nullable=True) # Data e hora agendada para o serviço
     estimated_duration = Column(Integer, nullable=True)  # Duração estimada em horas
+    checklist = Column(JSON, default=[]) # Checklist de itens (JSON)
     
     # Relacionamento com Boat. A embarcação desta OS.
     boat = relationship("Boat", back_populates="service_orders")

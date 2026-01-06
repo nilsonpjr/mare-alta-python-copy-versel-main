@@ -351,6 +351,7 @@ class ServiceOrderBase(CamelModel):
     technician_name: Optional[str] = None # Técnico responsável.
     scheduled_at: Optional[datetime] = None # Data agendada.
     estimated_duration: Optional[int] = None # Duração estimada em horas.
+    checklist: Optional[List[Dict[str, Any]]] = [] # Checklist de itens
 
 class ServiceOrderCreate(ServiceOrderBase):
     """
@@ -368,6 +369,7 @@ class ServiceOrderUpdate(CamelModel):
     technician_name: Optional[str] = None
     scheduled_at: Optional[datetime] = None
     estimated_duration: Optional[int] = None
+    checklist: Optional[List[Dict[str, Any]]] = None
 
 class ServiceOrder(ServiceOrderBase):
     """
@@ -378,6 +380,7 @@ class ServiceOrder(ServiceOrderBase):
     created_at: datetime # Data de criação.
     items: List[ServiceItem] = [] # Lista de itens de serviço.
     notes: List[OrderNote] = [] # Lista de notas.
+    checklist: List[Dict[str, Any]] = []
 
 # --- TRANSACTION SCHEMAS ---
 # Esquemas para validação e serialização de dados relacionados a transações financeiras.

@@ -147,7 +147,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
                 description: updatedOrder.description,
                 technicianName: updatedOrder.technicianName,
                 diagnosis: updatedOrder.diagnosis,
-                status: updatedOrder.status
+                status: updatedOrder.status,
+                checklist: updatedOrder.checklist // Agora suportado pelo Backend
             });
         } catch (error) {
             console.error("Falha ao atualizar ordem:", error);

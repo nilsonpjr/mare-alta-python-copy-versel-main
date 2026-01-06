@@ -304,6 +304,7 @@ export interface ServiceOrderUpdate {
   technicianName?: string;
   scheduledAt?: string;
   estimatedDuration?: number;
+  checklist?: ChecklistItem[];
 }
 
 export interface InvoiceItem {
