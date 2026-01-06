@@ -80,6 +80,12 @@ def update_existing_part(
     Requer autenticação.
     Levanta um HTTPException 404 se a peça não for encontrada.
     """
+    # Se o SKU foi alterado, verificar duplicidade no mesmo tenant
+    if part_update.sku:
+        existing = crud.get_part_by_sku(db, sku=part_update.sku)
+        if existing and existing.id != part_id and existing.tenant_id == current_user.tenant_id:
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="SKU já existe neste inventário")
+
     # Chama a função CRUD para atualizar a peça.
     updated_part = crud.update_part(db, part_id=part_id, part_update=part_update)
     if not updated_part:

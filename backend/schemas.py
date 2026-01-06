@@ -275,6 +275,8 @@ class PartUpdate(CamelModel):
     min_stock: Optional[float] = None
     location: Optional[str] = None
     manufacturer: Optional[str] = None
+    sku: Optional[str] = None
+    barcode: Optional[str] = None
 
 class Part(PartBase):
     """
