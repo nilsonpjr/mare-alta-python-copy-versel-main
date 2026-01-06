@@ -43,7 +43,23 @@ function App() {
   // Initialize storage with seed data on first load
   useEffect(() => {
     StorageService.initialize();
+    checkSession();
   }, []);
+
+  const checkSession = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Import dinâmico ou estático, aqui estamos no corpo da função
+        const { ApiService } = await import('./services/api');
+        const user = await ApiService.getMe();
+        handleLogin(user);
+      } catch (error) {
+        console.error("Session restoration failed:", error);
+        localStorage.removeItem('token');
+      }
+    }
+  };
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
