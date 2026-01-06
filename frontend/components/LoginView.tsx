@@ -39,7 +39,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
       }
     } catch (err: any) {
       console.error("Login Error:", err);
-      const msg = err.response?.data?.detail || "Falha ao entrar. Verifique suas credenciais.";
+      let msg = err.response?.data?.detail || "Falha ao entrar. Verifique suas credenciais.";
+
+      // Tenant-specific error handling
+      if (typeof msg === 'string' && (msg.toLowerCase().includes('tenant') || msg.toLowerCase().includes('locatário'))) {
+        msg = "Erro de Configuração de Conta: Sua conta não está vinculada a um ambiente (Tenant) válido. Contate o suporte.";
+      }
+
       setError(msg);
     } finally {
       setIsLoading(false);

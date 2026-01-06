@@ -49,6 +49,9 @@ export const InventoryView: React.FC = () => {
     // Selection for Batch Operations
     const [selectedPartIds, setSelectedPartIds] = useState<number[]>([]);
 
+    // Auto-link after create from Invoice
+    const [pendingLinkIndex, setPendingLinkIndex] = useState<number | null>(null);
+
     const toggleSelectPart = (id: number) => {
         if (selectedPartIds.includes(id)) {
             setSelectedPartIds(prev => prev.filter(pId => pId !== id));
@@ -212,6 +215,24 @@ export const InventoryView: React.FC = () => {
 
     const linkItemToPart = (index: number, partId: string) => {
         if (!invoiceForm.items) return;
+
+        if (partId === 'NEW_ITEM') {
+            const item = invoiceForm.items[index];
+            setNewPart({
+                name: item.name,
+                sku: item.sku,
+                cost: item.unitCost,
+                price: item.unitCost * 2, // Default markup 100%
+                quantity: 0,
+                minStock: 5,
+                location: '',
+                manufacturer: invoiceForm.supplier || ''
+            });
+            setPendingLinkIndex(index); // Remember who asked for creation
+            setIsPartModalOpen(true);
+            return;
+        }
+
         const newItems = [...invoiceForm.items];
         newItems[index].partId = partId;
         setInvoiceForm({ ...invoiceForm, items: newItems });
@@ -222,7 +243,7 @@ export const InventoryView: React.FC = () => {
         if (!newPart.name || !newPart.sku || !newPart.price) return;
 
         try {
-            await ApiService.createPart({
+            const createdPart = await ApiService.createPart({
                 name: newPart.name,
                 sku: newPart.sku,
                 barcode: newPart.barcode,
@@ -234,6 +255,20 @@ export const InventoryView: React.FC = () => {
                 manufacturer: newPart.manufacturer
             });
             await loadData();
+
+            // Auto-link logic
+            if (pendingLinkIndex !== null && invoiceForm.items) {
+                const newItems = [...invoiceForm.items];
+                // Since loadData reloads parts, we can use the ID from response
+                // Assuming createPart returns the object with ID
+                if (createdPart && createdPart.id) {
+                    newItems[pendingLinkIndex].partId = String(createdPart.id);
+                    setInvoiceForm(prev => ({ ...prev, items: newItems }));
+                    alert(`Item criado e vinculado: ${createdPart.name}`);
+                }
+                setPendingLinkIndex(null);
+            }
+
             setIsPartModalOpen(false);
             setNewPart({});
         } catch (error) {
@@ -744,6 +779,7 @@ export const InventoryView: React.FC = () => {
                                                     onChange={(e) => linkItemToPart(idx, e.target.value)}
                                                 >
                                                     <option value="">-- Selecione ou Cadastre --</option>
+                                                    <option value="NEW_ITEM" className="font-bold text-blue-600">➕ Cadastrar Novo Item</option>
                                                     {parts.map(p => (
                                                         <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
                                                     ))}

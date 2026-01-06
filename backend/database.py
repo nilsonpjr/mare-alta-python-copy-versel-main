@@ -63,3 +63,38 @@ def get_db():
         yield db # Retorna a sessão para o bloco que a chamou (endpoint do FastAPI).
     finally:
         db.close() # Garante que a sessão seja fechada, liberando os recursos.
+
+# --- TENANT MIDDLEWARE (SQLAlchemy Listener) ---
+from sqlalchemy import event
+from sqlalchemy.orm import Session
+import context
+
+@event.listens_for(SessionLocal, "do_orm_execute")
+def receive_do_orm_execute(orm_execute_state):
+    """
+    Automaticamente adiciona filtro de tenant_id em buscas select
+    se o modelo tiver a coluna tenant_id e um tenant estiver no contexto.
+    
+    Isso implementa Row Level Security (RLS) na camada de aplicação.
+    """
+    
+    # Verifica se há tenant no contexto
+    tenant_id = context.get_tenant_id()
+    
+    # Apenas intervimos se:
+    # 1. Temos um tenant_id (usuário logado)
+    # 2. É uma operação SELECT (is_select)
+    # 3. Não é um carregamento interno de coluna ou relacionamento (para evitar recursão/erros complexos)
+    if (
+        tenant_id is not None
+        and orm_execute_state.is_select
+        and not orm_execute_state.is_column_load
+        and not orm_execute_state.is_relationship_load
+    ):
+        mapper = orm_execute_state.bind_mapper
+        # Verifica se a tabela mapeada possui a coluna tenant_id
+        if mapper and hasattr(mapper.class_, "tenant_id"):
+             # Adiciona automaticamente o filtro WHERE tenant_id = X
+             orm_execute_state.statement = orm_execute_state.statement.filter(
+                 mapper.class_.tenant_id == tenant_id
+             )

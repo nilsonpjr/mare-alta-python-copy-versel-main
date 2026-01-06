@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import models
 import schemas
 from database import get_db
+import context
 
 load_dotenv()
 
@@ -112,7 +113,8 @@ def get_current_user(
     return user
 
 def get_current_active_user(current_user: models.User = Depends(get_current_user)):
-    """Verifica se usuário está ativo"""
+    """Verifica se usuário está ativo e define contexto"""
+    context.set_tenant_id(current_user.tenant_id)
     return current_user
 
 # --- AUTHORIZATION ---
