@@ -46,6 +46,25 @@ export const InventoryView: React.FC = () => {
     const [isLoadingMercury, setIsLoadingMercury] = useState(false);
     const [updateStatus, setUpdateStatus] = useState<Record<number, 'idle' | 'loading' | 'success' | 'error'>>({});
 
+    // Selection for Batch Operations
+    const [selectedPartIds, setSelectedPartIds] = useState<number[]>([]);
+
+    const toggleSelectPart = (id: number) => {
+        if (selectedPartIds.includes(id)) {
+            setSelectedPartIds(prev => prev.filter(pId => pId !== id));
+        } else {
+            setSelectedPartIds(prev => [...prev, id]);
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedPartIds.length === filteredParts.length) {
+            setSelectedPartIds([]);
+        } else {
+            setSelectedPartIds(filteredParts.map(p => p.id));
+        }
+    };
+
     useEffect(() => {
         loadData();
     }, []);
@@ -404,19 +423,28 @@ export const InventoryView: React.FC = () => {
 
     // --- UPDATE PRICES FROM MERCURY API ---
     const handleUpdatePricesFromMercury = async () => {
-        if (!window.confirm(`Atualizar preços de peças Mercury consultando a API?\n\nEssa operação será feita em LOTE (muito mais rápida). O sistema fará login uma única vez e buscará todos os itens.`)) {
+        const targetLabel = selectedPartIds.length > 0 ? `${selectedPartIds.length} itens selecionados` : 'TODOS os itens Mercury';
+
+        if (!window.confirm(`Atualizar preços consultando a API Mercury?\n\nAlvo: ${targetLabel}\n\nO sistema fará login único e buscará os itens em sequência.`)) {
             return;
         }
 
         setIsBulkPriceModalOpen(false);
-        // Filtra possíveis peças Mercury (ou sem fabricante definido)
-        const partsToUpdate = parts.filter(p =>
-            !p.manufacturer ||
-            p.manufacturer.toUpperCase().includes('MERCURY')
-        );
+
+        // Determina quais peças atualizar: Selecionadas OU Todas Mercury
+        let partsToUpdate: Part[] = [];
+
+        if (selectedPartIds.length > 0) {
+            partsToUpdate = parts.filter(p => selectedPartIds.includes(p.id));
+        } else {
+            partsToUpdate = parts.filter(p =>
+                !p.manufacturer ||
+                p.manufacturer.toUpperCase().includes('MERCURY')
+            );
+        }
 
         if (partsToUpdate.length === 0) {
-            alert("Nenhuma peça identificada como Mercury.");
+            alert("Nenhuma peça selecionada ou identificada como Mercury para atualização.");
             return;
         }
 
@@ -498,11 +526,16 @@ export const InventoryView: React.FC = () => {
                         <RefreshCw className="w-4 h-4" /> Consulta Mercury
                     </button>
                     <button
-                        onClick={() => setIsBulkPriceModalOpen(true)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm"
+                        onClick={handleUpdatePricesFromMercury}
+                        disabled={isLoadingMercury || (selectedPartIds.length === 0 && filteredParts.length === 0)}
+                        className={`px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm font-bold transition-colors ${selectedPartIds.length > 0
+                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                            : 'bg-green-600 hover:bg-green-700 text-white'
+                            }`}
                         title="Atualizar preços em massa"
                     >
-                        <RefreshCw className="w-4 h-4" /> Atualizar Preços
+                        <RefreshCw className="w-4 h-4" />
+                        {selectedPartIds.length > 0 ? `Atualizar Selecionados (${selectedPartIds.length})` : 'Atualizar Preços (Todos)'}
                     </button>
                 </div>
             </div>
@@ -554,6 +587,14 @@ export const InventoryView: React.FC = () => {
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-slate-50 text-slate-600 uppercase text-xs font-semibold sticky top-0 z-10">
                                     <tr>
+                                        <th className="w-10 px-6 py-4">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer w-4 h-4"
+                                                checked={filteredParts.length > 0 && selectedPartIds.length === filteredParts.length}
+                                                onChange={toggleSelectAll}
+                                            />
+                                        </th>
                                         <th className="px-6 py-4">SKU / Barcode</th>
                                         <th className="px-6 py-4">Descrição</th>
                                         <th className="px-6 py-4">Local</th>
@@ -566,7 +607,15 @@ export const InventoryView: React.FC = () => {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {filteredParts.map((part) => (
-                                        <tr key={part.id} className="hover:bg-slate-50">
+                                        <tr key={part.id} className={`hover:bg-slate-50 transition-colors ${selectedPartIds.includes(part.id) ? 'bg-indigo-50 hover:bg-indigo-100' : ''}`}>
+                                            <td className="px-6 py-4">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer w-4 h-4"
+                                                    checked={selectedPartIds.includes(part.id)}
+                                                    onChange={() => toggleSelectPart(part.id)}
+                                                />
+                                            </td>
                                             <td className="px-6 py-4 font-mono text-slate-500 text-xs">
                                                 <div className="flex items-center gap-2">
                                                     {part.sku}
