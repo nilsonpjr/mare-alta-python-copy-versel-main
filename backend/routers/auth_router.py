@@ -80,77 +80,7 @@ def refresh_token(current_user: models.User = Depends(auth.get_current_active_us
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Endpoint DEBUG (TEMPORÁRIO - REMOVER DEPOIS)
-@router.get("/debug-check/{email}/{password}")
-def debug_check_password(email: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        return {"result": "User Not Found"}
-    
-    is_valid = auth.verify_password(password, user.hashed_password)
-    
-    return {
-        "email": user.email,
-        "found": True,
-        "hash_prefix": user.hashed_password[:10] + "...",
-        "input_password_length": len(password),
-        "is_valid": is_valid
-    }
 
-@router.get("/debug-generate/{password}")
-def debug_generate_hash(password: str):
-    return {"password": password, "hash": auth.get_password_hash(password)}
-
-# Endpoint MÁGICO para bypass de login (Use com sabedoria)
-@router.get("/magic-login/{email}")
-def magic_login(email: str, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        return {"error": "User not found"}
-    
-    access_token = auth.create_access_token(
-        data={
-            "sub": user.email,
-            "tenant_id": user.tenant_id,
-            "role": user.role
-        }
-    )
-    return {"access_token": access_token, "instructions": "Run in browser console: localStorage.setItem('token', 'YOUR_TOKEN'); window.location.href = '/app';"}
-
-@router.get("/auto-login/{email}", response_class=HTMLResponse)
-def auto_login(email: str, db: Session = Depends(get_db)):
-    """Gera um HTML que faz o login automático e redireciona"""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        return "<h1>Erro: Usuário não encontrado</h1>"
-    
-    access_token = auth.create_access_token(
-        data={
-            "sub": user.email,
-            "tenant_id": user.tenant_id,
-            "role": user.role
-        }
-    )
-    
-    html_content = f"""
-    <html>
-        <head>
-            <title>Login Automático...</title>
-        </head>
-        <body>
-            <h1>Conectando você ao Mare Alta...</h1>
-            <p>Se não for redirecionado em 3 segundos, <a href="/app">clique aqui</a>.</p>
-            <script>
-                console.log("Setting auto-login token...");
-                localStorage.setItem('token', '{access_token}');
-                setTimeout(function() {{
-                    window.location.href = '/app';
-                }}, 1000);
-            </script>
-        </body>
-    </html>
-    """
-    return html_content
 
 @router.get("/me", response_model=schemas.User)
 def read_users_me(current_user: schemas.User = Depends(auth.get_current_active_user)):

@@ -15,7 +15,13 @@ from database import get_db
 load_dotenv()
 
 # Configuração
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY or SECRET_KEY == "your-secret-key-change-this":
+    print("WARNING: Configuração de SECRET_KEY insegura! Defina a variável de ambiente SECRET_KEY.")
+    # Em produção estrita, isso deveria levantar um erro:
+    # raise ValueError("No SECRET_KEY set for production")
+    if not SECRET_KEY:
+        SECRET_KEY = "your-secret-key-change-this" # Fallback apenas para dev local sem env
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 

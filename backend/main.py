@@ -42,11 +42,13 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Viverdi Nautica API")
 
 # Configura o Middleware CORS (Cross-Origin Resource Sharing).
-# Isso permite que o frontend (executando em um domínio/porta diferente)
-# faça requisições para esta API.
+# Recupera origens permitidas do ambiente ou usa "*" (padrão desenvolvimento inseguro).
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "*")
+origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite requisições de qualquer origem. Em produção, isso deve ser mais restritivo.
+    allow_origins=origins,
     allow_credentials=True, # Permite cookies e cabeçalhos de autorização.
     allow_methods=["*"],  # Permite todos os métodos HTTP (GET, POST, PUT, DELETE, etc.).
     allow_headers=["*"],  # Permite todos os cabeçalhos nas requisições.
@@ -73,56 +75,7 @@ async def log_requests(request, call_next):
         print(f"ASSET RESPONSE: {request.url.path} -> {response.status_code}")
     return response
 
-# Lógica para correcao de DB (Certificado Base64)
-def run_patch_db_logic():
-    try:
-        with engine.connect() as conn:
-            with conn.begin():
-                # Postgres
-                try:
-                    conn.execute(text("ALTER TABLE company_info ALTER COLUMN cert_file_path TYPE TEXT;"))
-                    return {"status": "success", "message": "Coluna alterada para TEXT (Postgres)"}
-                except Exception as e:
-                    # SQLite não precisa, MySQL sintaxe diferente
-                    try:
-                        conn.execute(text("ALTER TABLE company_info MODIFY COLUMN cert_file_path TEXT;"))
-                        return {"status": "success", "message": "Coluna alterada para TEXT (MySQL)"}
-                    except:
-                        pass
-                    return {"status": "warning", "message": f"Erro ou já aplicado: {str(e)}"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
 
-# Registra endpoint de patch em ambos os caminhos (com e sem /api)
-app.add_api_route("/api/config/patch-db-cert", run_patch_db_logic, methods=["GET"])
-app.add_api_route("/config/patch-db-cert", run_patch_db_logic, methods=["GET"])
-
-# Lógica para inicializacao de DB
-def run_init_db():
-    try:
-        models.Base.metadata.create_all(bind=engine)
-        return {"message": "Tabelas criadas com sucesso!"}
-    except Exception as e:
-        return {"error": str(e)}
-
-app.add_api_route("/api/config/init-db", run_init_db, methods=["GET"])
-app.add_api_route("/config/init-db", run_init_db, methods=["GET"])
-
-# Lógica para Debug DB
-def run_debug_db(db: Session = Depends(get_db)):
-    try:
-        # Consulta o nome do banco e o host conectado
-        result = db.execute(text("SELECT current_database(), inet_server_addr();")).fetchone()
-        return {
-            "connected_database": result[0],
-            "server_ip": str(result[1]),
-            "env_database_url_prefix": os.getenv("DATABASE_URL", "")[:15] + "..." # Mostra só o começo para não vazar senha
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-app.add_api_route("/api/debug/db-info", run_debug_db, methods=["GET"])
-app.add_api_route("/debug/db-info", run_debug_db, methods=["GET"])
 
 # --- ROUTERS CONFIGURATION ---
 # Configuração robusta para suportar Vercel (que pode remover prefixo) e Render/Local (que mantêm)
