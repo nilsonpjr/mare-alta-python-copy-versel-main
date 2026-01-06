@@ -11,7 +11,8 @@ from typing import List, Optional
 
 import models
 import schemas
-from auth import get_password_hash # Importa a função para hash de senhas
+from auth import get_password_hash
+from security import encrypt_value, decrypt_value # Importa funções de criptografia
 
 # --- USER CRUD ---
 # Funções para operações CRUD na tabela de usuários (models.User).
@@ -747,7 +748,15 @@ def get_company_info(db: Session, tenant_id: int):
     Returns:
         models.CompanyInfo: O objeto com as informações da empresa, ou None.
     """
-    return db.query(models.CompanyInfo).filter(models.CompanyInfo.tenant_id == tenant_id).first()
+    db_info = db.query(models.CompanyInfo).filter(models.CompanyInfo.tenant_id == tenant_id).first()
+    if db_info:
+        # Descriptografa dados sensíveis transparentemente ao ler
+        # Nota: Se quisermos esconder da API (frontend), deveríamos fazer isso em schemas ou criar outro DTO.
+        # Por enquanto, mantemos transparente para que o usuário veja o que digitou no form de config.
+        db_info.mercury_username = decrypt_value(db_info.mercury_username)
+        db_info.mercury_password = decrypt_value(db_info.mercury_password)
+        db_info.cert_password = decrypt_value(db_info.cert_password)
+    return db_info
 
 def update_company_info(db: Session, info: schemas.CompanyInfoCreate, tenant_id: int):
     """
@@ -781,7 +790,11 @@ def update_company_info(db: Session, info: schemas.CompanyInfoCreate, tenant_id:
     
     for key, value in update_data.items():
         if key != 'cert_base64': # Ja tratado acima
-            setattr(db_info, key, value)
+            # Criptografa campos sensíveis antes de salvar
+            if key in ['mercury_username', 'mercury_password', 'cert_password']:
+                setattr(db_info, key, encrypt_value(value))
+            else:
+                setattr(db_info, key, value)
             
     db.commit()
     db.refresh(db_info)
