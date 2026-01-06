@@ -404,7 +404,7 @@ export const InventoryView: React.FC = () => {
 
     // --- UPDATE PRICES FROM MERCURY API ---
     const handleUpdatePricesFromMercury = async () => {
-        if (!window.confirm(`Atualizar preços de peças Mercury consultando a API?\n\nIsso pode levar alguns minutos...`)) {
+        if (!window.confirm(`Atualizar preços de peças Mercury consultando a API?\n\nEssa operação será feita em LOTE (muito mais rápida). O sistema fará login uma única vez e buscará todos os itens.`)) {
             return;
         }
 
@@ -420,35 +420,41 @@ export const InventoryView: React.FC = () => {
             return;
         }
 
-        alert(`Iniciando atualização de ${partsToUpdate.length} peças. O status será exibido na tabela.`);
+        // Feedback inicial
+        const newStatus: Record<number, 'loading' | 'success' | 'error' | 'idle'> = {};
+        partsToUpdate.forEach(p => newStatus[p.id] = 'loading');
+        setUpdateStatus(prev => ({ ...prev, ...newStatus }));
 
-        let successCount = 0;
-        let errorCount = 0;
+        try {
+            const partIds = partsToUpdate.map(p => p.id);
+            const response = await ApiService.batchSyncMercuryPrices(partIds);
 
-        // Itera sequencialmente para não sobrecarregar
-        for (const part of partsToUpdate) {
-            setUpdateStatus(prev => ({ ...prev, [part.id]: 'loading' }));
-            try {
-                const result = await ApiService.syncMercuryPrice(part.id);
-                if (result.status === 'success') {
-                    setUpdateStatus(prev => ({ ...prev, [part.id]: 'success' }));
-                    successCount++;
-                } else {
-                    setUpdateStatus(prev => ({ ...prev, [part.id]: 'error' }));
-                    errorCount++;
-                }
-            } catch (error) {
-                console.error(`Erro ao atualizar peça ${part.sku}:`, error);
-                setUpdateStatus(prev => ({ ...prev, [part.id]: 'error' }));
-                errorCount++;
+            if (response.status === 'success') {
+                const results = response.results;
+                let successCount = 0;
+                let errorCount = 0;
+
+                const finalStatus: Record<number, 'loading' | 'success' | 'error' | 'idle'> = {};
+
+                results.forEach((res: any) => {
+                    if (res.status === 'updated') {
+                        finalStatus[res.id] = 'success';
+                        successCount++;
+                    } else {
+                        finalStatus[res.id] = 'error';
+                        errorCount++;
+                    }
+                });
+
+                setUpdateStatus(prev => ({ ...prev, ...finalStatus }));
+                await loadData(); // Recarrega para mostrar novos preços
+                alert(`Atualização concluída!\n\n✅ ${successCount} peças atualizadas\n⚠️ ${errorCount} não encontradas ou com erro`);
             }
-            // Pequeno delay
-            await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+            console.error("Erro na atualização em lote:", error);
+            setUpdateStatus({});
+            alert("Erro durante a atualização em massa. Verifique o console.");
         }
-
-        // Recarrega dados no final (ou parcial?)
-        loadData();
-        alert(`Atualização concluída!\n\n✅ ${successCount} peças atualizadas\n⚠️ ${errorCount} erros`);
     };
 
     // --- SEARCH HELPERS ---

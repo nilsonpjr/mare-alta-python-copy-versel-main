@@ -376,6 +376,11 @@ export const ApiService = {
         return response.data;
     },
 
+    batchSyncMercuryPrices: async (partIds: number[]) => {
+        const response = await api.post(`/mercury/batch-sync-prices`, partIds);
+        return response.data;
+    },
+
     // --- TRANSACTIONS (Transações Financeiras) ---
     /**
      * Obtém uma lista de todas as transações financeiras.

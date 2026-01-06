@@ -405,3 +405,129 @@ async def sync_part_price_mercury(
         "new_cost": cost,
         "updated_at": updated_part.last_price_updated_at
     }
+@router.post("/batch-sync-prices")
+async def batch_sync_part_prices(
+    part_ids: List[int],
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Sincroniza precos de multiplas pecas em uma unica sessao de navegador.
+    Muito mais rapido que chamadas individuais.
+    """
+    import models
+    from datetime import datetime
+    
+    # 1. Fetch credentials
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if not company or not company.mercury_username or not company.mercury_password:
+        raise HTTPException(status_code=400, detail="Credenciais Mercury não configuradas")
+    
+    # 2. Fetch parts
+    parts = db.query(models.Part).filter(models.Part.id.in_(part_ids)).all()
+    if not parts:
+        return {"status": "success", "updated_count": 0, "errors": []}
+    
+    results_summary = []
+    
+    try:
+        from playwright.async_api import async_playwright
+        
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            
+            try:
+                # --- LOGIN (ONCE) ---
+                print("Batch Sync: Logging in...")
+                login_url = "https://portal.mercurymarine.com.br/epdv/epdv001.asp"
+                await page.goto(login_url, timeout=60000)
+                await page.wait_for_load_state(timeout=60000)
+                
+                frame = None
+                for f in page.frames:
+                    try:
+                        if await f.query_selector("input[name='sUsuar']"):
+                            frame = f
+                            break
+                    except:
+                        continue
+                if frame is None:
+                    frame = page.main_frame
+                
+                await frame.fill("input[name='sUsuar']", company.mercury_username)
+                await frame.fill("input[name='sSenha']", company.mercury_password)
+                await frame.press("input[name='sSenha']", "Enter")
+                await page.wait_for_load_state(timeout=60000)
+                print("Batch Sync: Logged in.")
+                
+                # --- PROCESS ITEMS ---
+                for part in parts:
+                    try:
+                        print(f"Batch Sync: Searching SKU {part.sku}...")
+                        url_pesquisa = f"https://portal.mercurymarine.com.br/epdv/epdv002d2.asp?s_nr_pedido_web=11111111111111111&s_nr_tabpre=&s_fm_cod_com=null&s_desc_item={part.sku}"
+                        
+                        await page.goto(url_pesquisa, timeout=30000) # Timeout menor por item
+                        
+                        content = await page.content()
+                        # Quick check failures
+                        if "NoRecords" in content or "Nenhum registro encontrado" in content:
+                            results_summary.append({"id": part.id, "sku": part.sku, "status": "not_found"})
+                            continue
+                            
+                        soup = BeautifulSoup(content, "html.parser")
+                        # (Parsing logic simplified from search_product_playwright)
+                        form = soup.find("form", id="preco_item_web")
+                        if not form: 
+                            results_summary.append({"id": part.id, "sku": part.sku, "status": "parse_error"})
+                            continue
+
+                        # ... (Simplified extraction for speed) ...
+                        # Encontra a tabela de dados
+                        # Caminho 'sujo' mas robusto para a estrutura conhecida
+                        dados_localizados = None
+                        
+                        # Tenta encontrar tabelas
+                        tables = form.find_all("table")
+                        for t in tables:
+                            # Procura a linha com dados
+                            rows = t.find_all("tr", class_="Row")
+                            for row in rows:
+                                cols = row.find_all("td")
+                                if len(cols) >= 8:
+                                    item_code = cols[1].get_text(strip=True)
+                                    if item_code == part.sku:
+                                        dados_localizados = {
+                                            "valorVenda": cols[5].get_text(strip=True),
+                                            "valorCusto": cols[7].get_text(strip=True)
+                                        }
+                                        break
+                            if dados_localizados: break
+                        
+                        if dados_localizados:
+                            cost = parse_brl_currency(dados_localizados['valorCusto'])
+                            price = parse_brl_currency(dados_localizados['valorVenda'])
+                            
+                            # Atualiza DB
+                            part.cost = cost
+                            part.price = price
+                            part.last_price_updated_at = datetime.utcnow()
+                            db.add(part)
+                            # Commit a cada item ou em lotes? Commit a cada 5? Vamos commitar no loop para segurança.
+                            db.commit()
+                            results_summary.append({"id": part.id, "sku": part.sku, "status": "updated", "price": price})
+                        else:
+                            results_summary.append({"id": part.id, "sku": part.sku, "status": "not_found_in_table"})
+                            
+                    except Exception as item_err:
+                        print(f"Error syncing item {part.sku}: {item_err}")
+                        results_summary.append({"id": part.id, "sku": part.sku, "status": "error"})
+                        
+            finally:
+                await browser.close()
+                
+    except Exception as e:
+        print(f"Batch Sync Critical Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"status": "success", "results": results_summary}
