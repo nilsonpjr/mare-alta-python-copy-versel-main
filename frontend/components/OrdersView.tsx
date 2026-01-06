@@ -137,9 +137,13 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
     const isTechnician = role === UserRole.TECHNICIAN;
 
     const saveOrderUpdate = async (updatedOrder: ServiceOrder) => {
+        console.log("Saving order update:", updatedOrder);
         try {
             // Optimistic update
             setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+            if (selectedOrder && selectedOrder.id === updatedOrder.id) {
+                setSelectedOrder(updatedOrder);
+            }
 
             // Persist to Backend (Only supported fields)
             // Note: Checklist, TimeLogs, Attachments are not yet supported by Backend schema
