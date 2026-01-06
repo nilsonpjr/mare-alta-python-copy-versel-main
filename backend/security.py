@@ -37,14 +37,14 @@ def encrypt_value(value: str) -> str:
         return value
         
     if not cipher_suite:
-        return value # Fail-open (dangerous) or Raise error? Por enquanto retorna raw.
+        raise ValueError("CRITICAL: Encryption requested but cipher suite is unavailable. Check ENCRYPTION_KEY.")
 
     try:
         encrypted_bytes = cipher_suite.encrypt(value.encode("utf-8"))
         return f"enc:{encrypted_bytes.decode('utf-8')}"
     except Exception as e:
         print(f"Encryption failed: {e}")
-        return value
+        raise ValueError(f"Encryption failed: {e}")
 
 def decrypt_value(value: str) -> str:
     """Descriptografa uma string se ela começar com 'enc:'"""

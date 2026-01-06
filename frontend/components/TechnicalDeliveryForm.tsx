@@ -97,6 +97,11 @@ const STERNDRIVE_SECTIONS: DeliverySection[] = [
         title: "Prova de Mar (Performance)",
         icon: Wind,
         custom: "sea_trial_table" // Helper to render the complex table
+    },
+    {
+        title: "Assinaturas & Validação",
+        icon: UserCheck,
+        custom: "signatures"
     }
 ];
 
@@ -142,6 +147,11 @@ const OUTBOARD_SECTIONS: DeliverySection[] = [
             "Vazamentos (óleo/comb/água)", "Passagem água capô", "Torque Porca Hélice",
             "Nível óleo trim", "Nível óleo cárter", "Nível óleo rabeta", "Manual entregue"
         ]
+    },
+    {
+        title: "Assinaturas & Validação",
+        icon: UserCheck,
+        custom: "signatures"
     }
 ];
 
@@ -456,6 +466,81 @@ export const TechnicalDeliveryForm: React.FC<Props> = ({ orderId, onClose }) => 
                             {/* ... Tabela Sea Trial ... */}
                             <div className="bg-slate-50 p-4 border rounded text-center text-slate-500 text-sm">
                                 (Tabela de Sea Trial carregada - veja código completo)
+                            </div>
+                        </div>
+                    )}
+
+                    {currentSections[activeSection].custom === 'signatures' && (
+                        <div className="space-y-8">
+                            <div className="p-4 bg-sky-50 border border-sky-200 rounded-lg text-sm text-sky-800 flex items-start gap-2">
+                                <AlertTriangle className="w-5 h-5 shrink-0" />
+                                <div>
+                                    <strong>Atenção legal:</strong> Ao assinar, o cliente confirma que recebeu a embarcação em perfeitas condições e foi instruído sobre seu funcionamento básico.
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Técnico Helper */}
+                                <div className="border rounded-xl p-6 flex flex-col items-center bg-white shadow-sm">
+                                    <h3 className="font-bold text-lg mb-4 text-slate-700">Assinatura do Técnico</h3>
+                                    {signatures.technician ? (
+                                        <div className="relative group w-full">
+                                            <div className="border-2 border-dashed border-green-200 bg-green-50 rounded-lg p-2 flex items-center justify-center">
+                                                <img src={signatures.technician} alt="Assinatura Técnico" className="max-h-32 object-contain" />
+                                            </div>
+                                            <div className="text-center mt-2 text-green-700 text-xs font-bold flex items-center justify-center gap-1">
+                                                <UserCheck className="w-3 h-3" /> Assinado Digitalmente
+                                            </div>
+                                            <button
+                                                onClick={() => { setSignatureRole('TECHNICIAN'); setModalOpen(true); }}
+                                                className="mt-2 text-xs text-slate-400 underline hover:text-blue-600 w-full text-center"
+                                            >
+                                                Refazer Assinatura
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => { setSignatureRole('TECHNICIAN'); setModalOpen(true); }}
+                                            className="w-full py-8 border-2 border-dashed border-slate-300 rounded-lg text-slate-400 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 transition-all flex flex-col items-center gap-2"
+                                        >
+                                            <Wrench className="w-8 h-8" />
+                                            <span>Clique para assinar (Técnico)</span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Cliente Helper */}
+                                <div className="border rounded-xl p-6 flex flex-col items-center bg-white shadow-sm">
+                                    <h3 className="font-bold text-lg mb-4 text-slate-700">Assinatura do Cliente</h3>
+                                    {signatures.customer ? (
+                                        <div className="relative group w-full">
+                                            <div className="border-2 border-dashed border-green-200 bg-green-50 rounded-lg p-2 flex items-center justify-center">
+                                                <img src={signatures.customer} alt="Assinatura Cliente" className="max-h-32 object-contain" />
+                                            </div>
+                                            <div className="text-center mt-2 text-green-700 text-xs font-bold flex items-center justify-center gap-1">
+                                                <UserCheck className="w-3 h-3" /> Assinado Digitalmente
+                                            </div>
+                                            <button
+                                                onClick={() => { setSignatureRole('CUSTOMER'); setModalOpen(true); }}
+                                                className="mt-2 text-xs text-slate-400 underline hover:text-blue-600 w-full text-center"
+                                            >
+                                                Refazer Assinatura
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => { setSignatureRole('CUSTOMER'); setModalOpen(true); }}
+                                            className="w-full py-8 border-2 border-dashed border-slate-300 rounded-lg text-slate-400 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 transition-all flex flex-col items-center gap-2"
+                                        >
+                                            <UserCheck className="w-8 h-8" />
+                                            <span>Clique para assinar (Cliente)</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="mt-8 p-4 bg-slate-50 rounded text-center text-xs text-slate-400">
+                                As assinaturas são coletadas via Canvas HTML5 e armazenadas como Base64.
                             </div>
                         </div>
                     )}
