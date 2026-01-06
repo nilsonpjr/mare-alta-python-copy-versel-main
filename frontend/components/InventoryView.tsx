@@ -213,23 +213,64 @@ export const InventoryView: React.FC = () => {
         }
     };
 
-    const linkItemToPart = (index: number, partId: string) => {
+    const linkItemToPart = async (index: number, partId: string) => {
         if (!invoiceForm.items) return;
 
         if (partId === 'NEW_ITEM') {
             const item = invoiceForm.items[index];
+            // Initial data from XML
             setNewPart({
                 name: item.name,
                 sku: item.sku,
                 cost: item.unitCost,
-                price: item.unitCost * 2, // Default markup 100%
+                price: item.unitCost * 2, // Default markup fallback
                 quantity: 0,
                 minStock: 5,
                 location: '',
                 manufacturer: invoiceForm.supplier || ''
             });
-            setPendingLinkIndex(index); // Remember who asked for creation
+            setPendingLinkIndex(index);
             setIsPartModalOpen(true);
+
+            // Try to enhance with Mercury Data
+            // Only if it looks like a Mercury Part (simple heuristic or always try)
+            // Let's rely on backend efficiency or just try it.
+            try {
+                // Async fetch - don't block modal opening, but update state if results come in.
+                // We show a toast or just update fields if user hasn't edited them yet?
+                // For simplicity, we stick to updating the state if modal is still open.
+
+                // Note: ApiService.searchMercuryProduct returns { status: "success", results: [] }
+                // We use the first result if available.
+                ApiService.searchMercuryProduct(item.sku).then((response: any) => {
+                    if (response.status === 'success' && response.results && response.results.length > 0) {
+                        const hit = response.results[0];
+
+                        // Parse values
+                        const cleanPrice = (val: string) => {
+                            if (!val) return 0;
+                            return parseFloat(val.replace("R$", "").replace(/\./g, "").replace(",", ".").trim()) || 0;
+                        };
+
+                        const suggestedPrice = cleanPrice(hit.valorVenda);
+                        const suggestedCost = cleanPrice(hit.valorCusto); // Or use XML cost?
+
+                        if (suggestedPrice > 0) {
+                            setNewPart(prev => ({
+                                ...prev,
+                                price: suggestedPrice,
+                                cost: suggestedCost || prev.cost, // Prefer Mercury cost or keep XML
+                                description: hit.descricao || prev.name // Maybe update name too
+                            }));
+                            // Optional: Notification that data was auto-filled
+                            console.log("Mercury Data Auto-filled for", item.sku);
+                        }
+                    }
+                }).catch(err => console.error("Auto-Mercury search failed", err));
+
+            } catch (e) {
+                console.error(e);
+            }
             return;
         }
 
