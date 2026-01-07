@@ -7,10 +7,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 # Importa os esquemas de dados (Pydantic), funções CRUD e utilitários de autenticação.
-import schemas
-import crud
-import auth
-from database import get_db # Função de dependência para obter a sessão do banco de dados.
+from backend import schemas
+from backend import crud
+from backend import auth
+from backend.database import get_db # Função de dependência para obter a sessão do banco de dados.
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(prefix="/api/boats", tags=["Embarcações"])

@@ -7,10 +7,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-import schemas
-import crud
-import auth
-from database import get_db
+from backend import schemas
+from backend import crud
+from backend import auth
+from backend.database import get_db
 
 router = APIRouter(prefix="/api/partners", tags=["Parceiros"])
 

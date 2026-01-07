@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
 
-import models
-import schemas
-from database import get_db
-import context
+from backend import models
+from backend import schemas
+from backend.database import get_db
+from backend import context
 
 load_dotenv()
 

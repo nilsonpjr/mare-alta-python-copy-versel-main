@@ -67,7 +67,7 @@ def get_db():
 # --- TENANT MIDDLEWARE (SQLAlchemy Listener) ---
 from sqlalchemy import event
 from sqlalchemy.orm import Session
-import context
+from backend import context
 
 @event.listens_for(SessionLocal, "do_orm_execute")
 def receive_do_orm_execute(orm_execute_state):

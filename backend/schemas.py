@@ -10,7 +10,7 @@ from pydantic.alias_generators import to_camel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 # Importa os enums definidos nos modelos para uso nos schemas.
-from models import UserRole, OSStatus, ItemType, MovementType, DeliveryType
+from backend.models import UserRole, OSStatus, ItemType, MovementType, DeliveryType
 
 # Configuração base para converter snake_case (Python) para camelCase (JavaScript/JSON)
 # e permitir a criação de modelos a partir de instâncias ORM (from_attributes).
@@ -588,7 +588,7 @@ class QuickSaleRequest(CamelModel):
 # Schemas para rede de parceiros (Fase 3)
 
 # Importar novos enums
-from models import PartnerType, InspectionStatus, ChecklistItemSeverity, QuoteStatus
+from backend.models import PartnerType, InspectionStatus, ChecklistItemSeverity, QuoteStatus
 
 class PartnerBase(CamelModel):
     """Schema base para um parceiro."""

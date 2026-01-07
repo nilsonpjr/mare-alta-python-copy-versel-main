@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from services.storage_service import upload_file_to_storage
+from backend.services.storage_service import upload_file_to_storage
 import uuid
 
 router = APIRouter(prefix="/api/upload", tags=["Upload"])

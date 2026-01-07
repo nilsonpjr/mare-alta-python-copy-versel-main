@@ -9,10 +9,10 @@ from sqlalchemy import desc
 from datetime import datetime
 from typing import List, Optional
 
-import models
-import schemas
-from auth import get_password_hash
-from security import encrypt_value, decrypt_value # Importa funções de criptografia
+from backend import models
+from backend import schemas
+from backend.auth import get_password_hash
+from backend.security import encrypt_value, decrypt_value # Importa funções de criptografia
 
 # --- USER CRUD ---
 # Funções para operações CRUD na tabela de usuários (models.User).

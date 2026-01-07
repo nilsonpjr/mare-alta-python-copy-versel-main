@@ -12,13 +12,13 @@ import requests # Biblioteca para fazer requisições HTTP.
 import asyncio # Para rodar funções síncronas em um threadpool.
 from bs4 import BeautifulSoup # Biblioteca para parsing de HTML (web scraping).
 import re # Módulo para expressões regulares.
-import auth
-import schemas
+from backend import auth
+from backend import schemas
 
 # Adiciona o diretório pai (backend) ao sys.path para permitir importações relativas.
 # Isso é necessário para importar `services.fiscal_service` de `main.py`.
 # Mantido conforme estrutura existente.
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(
@@ -275,10 +275,10 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
 
 # --- ENDPOINTS ---
 
-from database import get_db
+from backend.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends
-import crud
+from backend import crud
 
 @router.get("/search/{item}")
 async def search_mercury_product(

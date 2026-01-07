@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
-from database import get_db
-import models
-import auth
+from backend.database import get_db
+from backend import models
+from backend import auth
 
 # Router prefix set in main.py, e.g., /api/admin
 router = APIRouter(prefix="/api/admin", tags=["Super Admin"])

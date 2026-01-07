@@ -12,25 +12,26 @@ import os
 import traceback
 
 # Importa os modelos de banco de dados para garantir que as tabelas sejam criadas.
-import models
+# Importa os modelos de banco de dados para garantir que as tabelas sejam criadas.
+from backend import models
 # Importa a configuração do banco de dados e a função para obter a sessão do DB.
-from database import engine, get_db
+from backend.database import engine, get_db
 
 # Importa os roteadores (grupos de endpoints) para diferentes funcionalidades da API.
 # Cada roteador gerencia um conjunto específico de rotas e suas operações.
-from routers.auth_router import router as auth_router
-from routers.orders_router import router as orders_router
-from routers.inventory_router import router as inventory_router
-from routers.clients_router import router as clients_router
-from routers.boats_router import router as boats_router
-from routers.fiscal_router import router as fiscal_router
-from routers.mercury_router import router as mercury_router
-from routers.transactions_router import router as transactions_router
-from routers.config_router import router as config_router
-from routers.partners_router import router as partners_router
-from routers.upload_router import router as upload_router
-from routers.admin_router import router as admin_router
-from routers.users_router import router as users_router
+from backend.routers.auth_router import router as auth_router
+from backend.routers.orders_router import router as orders_router
+from backend.routers.inventory_router import router as inventory_router
+from backend.routers.clients_router import router as clients_router
+from backend.routers.boats_router import router as boats_router
+from backend.routers.fiscal_router import router as fiscal_router
+from backend.routers.mercury_router import router as mercury_router
+from backend.routers.transactions_router import router as transactions_router
+from backend.routers.config_router import router as config_router
+from backend.routers.partners_router import router as partners_router
+from backend.routers.upload_router import router as upload_router
+from backend.routers.admin_router import router as admin_router
+from backend.routers.users_router import router as users_router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse # Importa JSONResponse para o erro 404

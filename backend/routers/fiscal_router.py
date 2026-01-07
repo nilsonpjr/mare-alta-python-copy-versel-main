@@ -13,15 +13,15 @@ import os
 from datetime import datetime
 
 # Adiciona o diretório pai (backend) ao sys.path para permitir importações relativas.
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from services.fiscal_service import fiscal_service # Importa o serviço que lida com a lógica fiscal.
-from auth import get_current_active_user
-import models
-from models import CompanyInfo, FiscalInvoice, Client, InvoiceType, InvoiceStatus
-from database import get_db
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from backend.services.fiscal_service import fiscal_service # Importa o serviço que lida com a lógica fiscal.
+from backend.auth import get_current_active_user
+from backend import models
+from backend.models import CompanyInfo, FiscalInvoice, Client, InvoiceType, InvoiceStatus
+from backend.database import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from services.fiscal_provider import FiscalProvider
+from backend.services.fiscal_provider import FiscalProvider
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(

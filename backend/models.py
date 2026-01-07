@@ -5,7 +5,7 @@ Cada classe representa uma tabela no banco de dados e seus atributos corresponde
 
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Enum, JSON
 from sqlalchemy.orm import relationship
-from database import Base # Importa a classe Base do SQLAlchemy declarada em database.py
+from backend.database import Base # Importa a classe Base do SQLAlchemy declarada em database.py
 from datetime import datetime
 import enum # Usado para definir enums Python que serão mapeados para o banco de dados
 
