@@ -61,6 +61,7 @@ class MovementType(str, enum.Enum):
     ADJUSTMENT_PLUS = "ADJUSTMENT_PLUS"
     ADJUSTMENT_MINUS = "ADJUSTMENT_MINUS"
     RETURN_OS = "RETURN_OS"
+    SALE_DIRECT = "SALE_DIRECT"
 
 class InvoiceType(str, enum.Enum):
     """
@@ -154,6 +155,7 @@ class User(Base):
     hashed_password = Column(String(200), nullable=False) # Senha do usuário (hash)
     role = Column(Enum(UserRole), nullable=False) # Papel do usuário (ADMIN, TECHNICIAN, CLIENT)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True) # ID do cliente associado, se for um usuário cliente
+    preferences = Column(JSON, default={}) # Preferencias de UI, flags de tutorial, etc.
     
     # Relacionamento com a tabela Client. Um usuário pode estar associado a um cliente.
     client = relationship("Client", back_populates="user")

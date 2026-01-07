@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { CompanyInfo, Manufacturer } from '../types';
-import { Plus, Trash, Settings as SettingsIcon, Save, ChevronRight, Globe, Lock, Loader2, Factory, Layers, Anchor, Ship, CreditCard, CheckCircle } from 'lucide-react';
+import { Plus, Trash, Settings as SettingsIcon, Save, ChevronRight, Globe, Lock, Loader2, Factory, Layers, Anchor, Ship, CreditCard, CheckCircle, RotateCcw } from 'lucide-react';
+
 
 export const SettingsView: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'boat' | 'engine' | 'integration' | 'subscription'>('boat');
+    const [activeTab, setActiveTab] = useState<'boat' | 'engine' | 'integration' | 'subscription' | 'system'>('boat');
     const [subscription, setSubscription] = useState<any>(null); // State for subscription data
 
     // Data State
@@ -187,6 +188,7 @@ export const SettingsView: React.FC = () => {
                 <TabButton id="engine" label="Motorização" icon={Ship} />
                 <TabButton id="integration" label="Integrações" icon={Globe} />
                 <TabButton id="subscription" label="Minha Assinatura" icon={CreditCard} />
+                <TabButton id="system" label="Sistema & Reset" icon={RotateCcw} />
             </div>
 
             <div className="flex-1 flex gap-8 overflow-hidden">
@@ -402,6 +404,37 @@ export const SettingsView: React.FC = () => {
                                         ) : (
                                             <><Save className="w-5 h-5" /> Salvar Configuração Fiscal</>
                                         )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : activeTab === 'system' ? (
+                    <div className="w-full max-w-3xl mx-auto anime-fade-in h-full overflow-y-auto custom-scrollbar">
+                        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                            <div className="bg-gradient-to-r from-slate-700 to-slate-600 p-8 text-white">
+                                <h3 className="text-xl font-bold mb-2">Preferências e Sistema</h3>
+                                <p className="text-slate-300 text-sm">Gerencie o comportamento do sistema e sua experiência de usuário.</p>
+                            </div>
+                            <div className="p-8">
+                                <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                                    <div>
+                                        <h4 className="font-bold text-slate-800 text-lg">Tutoriais Guiados</h4>
+                                        <p className="text-sm text-slate-500 mt-1">
+                                            Reative os balões de ajuda e visitas guiadas em todas as telas.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            localStorage.removeItem('onboarding_completed');
+                                            localStorage.removeItem('joyride_steps');
+                                            alert("Tutoriais Reiniciados! Visite a Dashboard ou Inventário para ver o tour novamente.");
+                                            window.location.reload();
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 hover:text-cyan-600 rounded-lg font-bold transition-colors shadow-sm"
+                                    >
+                                        <RotateCcw className="w-4 h-4" />
+                                        Reiniciar Tutoriais
                                     </button>
                                 </div>
                             </div>

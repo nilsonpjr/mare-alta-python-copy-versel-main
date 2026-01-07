@@ -1,5 +1,6 @@
 import React from 'react';
-import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck, FileText, Bot, Map, Calculator, Network, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, Wrench, Anchor, Package, DollarSign, Users, Ship, Calendar, MapPin, Settings, UserCheck, ClipboardList, LogOut, ChevronRight, X, ShieldCheck, FileText, Bot, Map, Calculator, Network, ClipboardCheck, ShoppingCart } from 'lucide-react';
+
 import { UserRole, User } from '../types';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
@@ -51,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'marinas', label: 'Marinas & Locais', icon: MapPin },
       { id: 'sep2', type: 'separator', label: 'Administrativo' },
       { id: 'inventory', label: 'Estoque', icon: Package },
+      { id: 'quick-sale', label: 'PDV Venda Rápida', icon: ShoppingCart },
       { id: 'fiscal', label: 'Notas Fiscais', icon: FileText },
       { id: 'finance', label: 'Financeiro', icon: DollarSign },
       { id: 'users', label: 'Usuários', icon: Users },
@@ -87,6 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
       { id: 'tech-orders', label: 'Meus Serviços', icon: ClipboardList },
       { id: 'schedule', label: 'Minha Agenda', icon: Calendar },
       { id: 'inspection', label: 'Inspeção Técnica', icon: ClipboardList },
+      { id: 'quick-sale', label: 'PDV (Vendas)', icon: ShoppingCart },
     ];
   } else {
     // Client

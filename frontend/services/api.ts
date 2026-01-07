@@ -237,6 +237,14 @@ export const ApiService = {
         return response.data;
     },
 
+    /**
+     * Processa uma Venda Direta (PDV).
+     */
+    quickSale: async (saleData: any) => {
+        const response = await api.post('/inventory/quick-sale', saleData);
+        return response.data;
+    },
+
     // --- CLIENTS & BOATS (Clientes e Embarcações) ---
     /**
      * Obtém uma lista de todos os clientes.

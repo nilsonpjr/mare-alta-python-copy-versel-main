@@ -59,6 +59,7 @@ class UserUpdate(CamelModel):
     password: Optional[str] = None
     role: Optional[UserRole] = None
     client_id: Optional[int] = None
+    preferences: Optional[dict] = None
 
 class User(UserBase):
     """
@@ -67,6 +68,7 @@ class User(UserBase):
     """
     id: int # ID único do usuário.
     tenant_id: int # ID do tenant.
+    preferences: Optional[dict] = {}
 
 class TenantSignup(CamelModel):
     """
@@ -561,6 +563,19 @@ class MaintenanceKit(MaintenanceKitBase):
     id: int
     created_at: datetime
     items: List[MaintenanceKitItem] = []
+
+
+# --- QUICK SALE SCHEMAS ---
+class QuickSaleItem(CamelModel):
+    part_id: int
+    quantity: float
+    discount_percent: float = 0.0
+
+class QuickSaleRequest(CamelModel):
+    items: List[QuickSaleItem]
+    payment_method: Optional[str] = "DINHEIRO"
+    notes: Optional[str] = None
+
 
 
 # --- PARTNER SCHEMAS ---

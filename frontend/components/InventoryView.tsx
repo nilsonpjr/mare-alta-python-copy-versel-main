@@ -6,6 +6,7 @@ import {
     Barcode, CheckCircle, Package, History, ArrowRight, Printer, Camera, X, RefreshCw, Trash2
 } from 'lucide-react';
 import { ApiService } from '../services/api';
+import { SystemTour } from './SystemTour';
 
 // Declaration for the external library loaded via script tag/importmap
 declare const Html5QrcodeScanner: any;
@@ -590,6 +591,7 @@ export const InventoryView: React.FC = () => {
                         {lowStockItems.length > 0 && <span className="bg-red-500 text-white text-[10px] px-1.5 rounded-full">{lowStockItems.length}</span>}
                     </button>
                     <button
+                        id="btn-add-part"
                         onClick={() => setIsPartModalOpen(true)}
                         className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm"
                     >
@@ -600,6 +602,13 @@ export const InventoryView: React.FC = () => {
                         className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm"
                     >
                         <RefreshCw className="w-4 h-4" /> Consulta Mercury
+                    </button>
+                    <button
+                        className={`text-slate-400 p-2 hover:bg-slate-100 rounded-lg ${isCameraOpen ? 'text-cyan-600 bg-cyan-50' : ''}`}
+                        onClick={() => setIsCameraOpen(!isCameraOpen)}
+                        title="Scanner Código de Barras"
+                    >
+                        <Camera className="w-5 h-5" />
                     </button>
                     <button
                         onClick={handleUpdatePricesFromMercury}
@@ -617,7 +626,7 @@ export const InventoryView: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-slate-200 mb-6 bg-white rounded-t-lg overflow-x-auto">
+            <div id="inventory-tabs" className="flex border-b border-slate-200 mb-6 bg-white rounded-t-lg overflow-x-auto">
                 {[
                     { id: 'overview', label: 'Visão Geral', icon: Search },
                     { id: 'entry', label: 'Entrada de Nota (NFe)', icon: UploadCloud },
@@ -1364,6 +1373,30 @@ export const InventoryView: React.FC = () => {
                     </div>
                 </div>
             )}
+            {/* System Tour */}
+            <SystemTour
+                tourKey="inventory_intro"
+                steps={[
+                    {
+                        target: 'body',
+                        title: 'Bem-vindo ao Estoque',
+                        content: 'Aqui você gerencia todas as peças, motores e materiais da sua marina. Acompanhe quantidades, valores e movimentações.',
+                        placement: 'center'
+                    },
+                    {
+                        target: '#btn-add-part',
+                        title: 'Adicionar Nova Peça',
+                        content: 'Clique aqui para cadastrar um novo item manualmente no sistema.',
+                        placement: 'bottom'
+                    },
+                    {
+                        target: '#inventory-tabs',
+                        title: 'Navegação',
+                        content: 'Alterne entre Visão Geral, Entrada de Notas (XML) e Histórico (Kardex) por aqui.',
+                        placement: 'bottom'
+                    }
+                ]}
+            />
         </div>
     );
 };

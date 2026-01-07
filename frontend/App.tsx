@@ -18,6 +18,8 @@ import { MaintenanceBudgetView } from './components/MaintenanceBudgetView';
 import { WarrantyLookupView } from './components/WarrantyLookupView';
 import { PartnersView } from './components/PartnersView';
 import { InspectionView } from './components/InspectionView';
+import { QuickSaleView } from './components/QuickSaleView';
+import { OnboardingProvider } from './context/OnboardingContext';
 import { FiscalView } from './components/FiscalView';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { UserRole, User } from './types';
@@ -143,6 +145,8 @@ function App() {
         return <PartnersView />;
       case 'inspection':
         return <InspectionView />;
+      case 'quick-sale':
+        return <QuickSaleView />;
       default:
         return <Dashboard setView={handleSetView} />;
     }
@@ -161,21 +165,8 @@ function App() {
   }
 
   return (
-    <>
-      <div className="flex bg-slate-50 min-h-screen font-sans">
-        {/* Mobile Header */}
-        <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 z-40 flex items-center px-4 justify-between shadow-md">
-          <div className="flex items-center gap-3 text-white">
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <Anchor className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold tracking-wide">MARE ALTA</span>
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2">
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
-
+    <OnboardingProvider currentUser={currentUser}>
+      <div className="flex bg-slate-100 min-h-screen font-sans text-slate-900">
         <Sidebar
           currentView={currentView}
           setView={handleSetView}
@@ -183,9 +174,10 @@ function App() {
           onLogout={handleLogout}
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
+          tenantPlan="ENTERPRISE"
         />
 
-        {/* Overlay for mobile menu */}
+        {/* Mobile Overlay */}
         {isMobileMenuOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -193,13 +185,23 @@ function App() {
           />
         )}
 
-        <main className="flex-1 h-screen overflow-y-auto pt-16 md:pt-0 md:ml-64 transition-all duration-300">
-          {renderContent()}
-        </main>
+        <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+          {/* Mobile Header */}
+          <header className="bg-white border-b border-slate-200 p-4 flex justify-between items-center md:hidden shrink-0 z-30 shadow-sm">
+            <h1 className="font-bold text-lg text-slate-800">Mare Alta</h1>
+            <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-600 p-2">
+              <Menu className="w-6 h-6" />
+            </button>
+          </header>
+
+          <main className="flex-1 overflow-auto bg-slate-50 relative custom-scrollbar">
+            {renderContent()}
+          </main>
+        </div>
       </div>
       <SpeedInsights />
-    </>
+    </OnboardingProvider>
   );
-}
+};
 
 export default App;

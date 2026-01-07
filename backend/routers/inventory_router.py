@@ -138,3 +138,79 @@ def create_stock_movement(
     """
     # Chama a função CRUD para criar a movimentação no banco de dados.
     return crud.create_stock_movement(db=db, movement=movement, user_name=current_user.name, tenant_id=current_user.tenant_id)
+
+
+# --- QUICK SALE (PDV) ---
+
+@router.post("/quick-sale")
+def process_quick_sale(
+    sale: schemas.QuickSaleRequest,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.require_role([models.UserRole.ADMIN, models.UserRole.TECHNICIAN]))
+):
+    """
+    Processa uma venda direta (PDV) de peças.
+    1. Valida estoque.
+    2. Deduz quantidades (MovementType.SALE_DIRECT).
+    3. Gera Transação de Entrada (Receita).
+    """
+    import models
+    from datetime import datetime
+    
+    total_sale_value = 0.0
+    items_summary = []
+    
+    # Validação Prévia de Estoque
+    for item in sale.items:
+        part = crud.get_part(db, part_id=item.part_id)
+        if not part:
+             raise HTTPException(status_code=404, detail=f"Peça ID {item.part_id} não encontrada.")
+        
+        if part.quantity < item.quantity:
+             raise HTTPException(status_code=400, detail=f"Estoque insuficiente para {part.name} (SKU: {part.sku}). Disponível: {part.quantity}")
+
+    # Processamento
+    try:
+        for item in sale.items:
+            part = crud.get_part(db, part_id=item.part_id) 
+            
+            # Calculo de valores para este item
+            unit_price = part.price
+            discount_amount = unit_price * (item.discount_percent / 100.0)
+            final_unit_price = unit_price - discount_amount
+            total_item = final_unit_price * item.quantity
+            
+            total_sale_value += total_item
+            
+            # Criar Movimento de Saída
+            mov = schemas.StockMovementCreate(
+                part_id=part.id,
+                type=models.MovementType.SALE_DIRECT,
+                quantity=item.quantity,
+                description=f"Venda Direta PDV - Desc: {item.discount_percent}%"
+            )
+            crud.create_stock_movement(db, mov, user_name=current_user.name, tenant_id=current_user.tenant_id)
+            
+            items_summary.append(f"{item.quantity}x {part.name}")
+            
+        # Criar Transação Financeira
+        if total_sale_value > 0:
+            transaction = models.Transaction(
+                tenant_id=current_user.tenant_id,
+                description=f"Venda Balcão: {', '.join(items_summary)[:100]}",
+                amount=total_sale_value,
+                type="INCOME", # Receita
+                category="VENDAS_PECAS",
+                date=datetime.utcnow(),
+                payment_method=sale.payment_method or "DINHEIRO",
+                notes=sale.notes
+            )
+            db.add(transaction)
+            db.commit()
+            
+        return {"status": "success", "total_value": total_sale_value, "items_count": len(sale.items)}
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao processar venda: {str(e)}")
+
