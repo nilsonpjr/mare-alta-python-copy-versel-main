@@ -18,10 +18,10 @@ except Exception as e:
     
     app = FastAPI()
     
-    @app.get("/api/{full_path:path}")
+    @app.api_route("/api/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
     def api_error_handler(full_path: str):
          return JSONResponse(status_code=500, content={"error": "Failed to start application", "detail": error_msg})
 
-    @app.get("/{full_path:path}")
+    @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
     def error_handler(full_path: str):
          return JSONResponse(status_code=500, content={"error": "Failed to start application", "detail": error_msg})
