@@ -245,6 +245,11 @@ export const ApiService = {
         return response.data;
     },
 
+    completeOnboarding: async () => {
+        const response = await api.patch('/users/me/complete-onboarding');
+        return response.data;
+    },
+
     // --- CLIENTS & BOATS (Clientes e Embarcações) ---
     /**
      * Obtém uma lista de todos os clientes.

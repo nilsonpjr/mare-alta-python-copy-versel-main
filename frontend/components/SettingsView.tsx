@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
+import { useOnboarding } from '../context/OnboardingContext';
 import { CompanyInfo, Manufacturer } from '../types';
 import { Plus, Trash, Settings as SettingsIcon, Save, ChevronRight, Globe, Lock, Loader2, Factory, Layers, Anchor, Ship, CreditCard, CheckCircle, RotateCcw } from 'lucide-react';
 
 
 export const SettingsView: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'boat' | 'engine' | 'integration' | 'subscription' | 'system'>('boat');
+    const { resetOnboarding } = useOnboarding();
     const [subscription, setSubscription] = useState<any>(null); // State for subscription data
 
     // Data State
@@ -425,9 +427,8 @@ export const SettingsView: React.FC = () => {
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => {
-                                            localStorage.removeItem('onboarding_completed');
-                                            localStorage.removeItem('joyride_steps');
+                                        onClick={async () => {
+                                            await resetOnboarding();
                                             alert("Tutoriais Reiniciados! Visite a Dashboard ou Inventário para ver o tour novamente.");
                                             window.location.reload();
                                         }}

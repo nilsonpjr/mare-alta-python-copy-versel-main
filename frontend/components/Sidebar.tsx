@@ -146,6 +146,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
             return (
               <button
                 key={item.id}
+                id={`sidebar-${item.id}`}
                 onClick={() => setView(item.id)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-900/20'

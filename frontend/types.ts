@@ -28,6 +28,7 @@ export interface User {
   email: string;
   role: UserRole;
   clientId?: number;
+  preferences?: Record<string, any>;
 }
 
 export interface TenantSignup {

@@ -9,6 +9,8 @@ interface OnboardingContextType {
     isStepCompleted: (stepId: string) => boolean;
     hasCompletedTutorial: (tutorialKey: string) => boolean;
     completeTutorial: (tutorialKey: string) => Promise<void>;
+    markOnboardingAsCompleted: () => Promise<void>;
+    isOnboardingCompleted: boolean;
 }
 
 const OnboardingContext = createContext<OnboardingContextType>({
@@ -18,6 +20,8 @@ const OnboardingContext = createContext<OnboardingContextType>({
     isStepCompleted: () => false,
     hasCompletedTutorial: () => false,
     completeTutorial: async () => { },
+    markOnboardingAsCompleted: async () => { },
+    isOnboardingCompleted: false,
 });
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode, currentUser: User | null }> = ({ children, currentUser }) => {
@@ -64,11 +68,23 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode, currentUs
         await updatePreferences(newPrefs);
     };
 
+    const markOnboardingAsCompleted = async () => {
+        setPreferences(prev => ({ ...prev, onboarding_completed: true }));
+        if (currentUser) {
+            try {
+                await ApiService.completeOnboarding();
+            } catch (error) {
+                console.error("Failed to complete onboarding", error);
+            }
+        }
+    };
+
     const resetOnboarding = async () => {
         const newPrefs = {
             ...preferences,
             onboarding_steps: {},
-            tutorials_completed: {}
+            tutorials_completed: {},
+            onboarding_completed: false
         };
         await updatePreferences(newPrefs);
     };
@@ -84,6 +100,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode, currentUs
         return false;
     };
 
+    const isOnboardingCompleted = !!preferences.onboarding_completed;
+
     return (
         <OnboardingContext.Provider value={{
             completedSteps: preferences.onboarding_steps || {},
@@ -91,7 +109,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode, currentUs
             resetOnboarding,
             isStepCompleted,
             hasCompletedTutorial,
-            completeTutorial
+            completeTutorial,
+            markOnboardingAsCompleted,
+            isOnboardingCompleted
         }}>
             {children}
         </OnboardingContext.Provider>

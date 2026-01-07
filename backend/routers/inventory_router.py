@@ -12,6 +12,7 @@ import schemas
 import crud
 import auth
 from database import get_db # Função de dependência para obter a sessão do banco de dados.
+import models
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(prefix="/api/inventory", tags=["Inventário"])
@@ -154,7 +155,6 @@ def process_quick_sale(
     2. Deduz quantidades (MovementType.SALE_DIRECT).
     3. Gera Transação de Entrada (Receita).
     """
-    import models
     from datetime import datetime
     
     total_sale_value = 0.0

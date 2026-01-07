@@ -20,6 +20,7 @@ import { PartnersView } from './components/PartnersView';
 import { InspectionView } from './components/InspectionView';
 import { QuickSaleView } from './components/QuickSaleView';
 import { OnboardingProvider } from './context/OnboardingContext';
+import { GlobalTour } from './components/GlobalTour';
 import { FiscalView } from './components/FiscalView';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { UserRole, User } from './types';
@@ -166,6 +167,7 @@ function App() {
 
   return (
     <OnboardingProvider currentUser={currentUser}>
+      <GlobalTour currentUser={currentUser} />
       <div className="flex bg-slate-100 min-h-screen font-sans text-slate-900">
         <Sidebar
           currentView={currentView}
