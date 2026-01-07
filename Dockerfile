@@ -30,7 +30,8 @@ RUN playwright install chromium
 # RUN playwright install-deps chromium  <-- Essa linha é a que demora muito (baixa deps do SO). A imagem base já deve ter.
 
 # Copiar código do backend
-COPY backend/ .
+# Copiar código do backend
+COPY backend /app/backend
 
 # Copiar o frontend buildado do estágio 1
 COPY --from=frontend-build /app/frontend/dist /frontend/dist
@@ -40,4 +41,4 @@ EXPOSE 8000
 
 # Comando de inicialização
 # Usamos sh -c para expandir a variável de ambiente PORT fornecida pelo Render
-CMD sh -c "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
+CMD sh -c "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"
