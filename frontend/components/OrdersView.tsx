@@ -135,6 +135,103 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
     };
 
     const isTechnician = role === UserRole.TECHNICIAN;
+    const isClient = role === UserRole.CLIENT;
+
+    if (isClient) {
+        return (
+            <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+                <header>
+                    <h1 className="text-3xl font-bold text-slate-800">Olá, Proprietário</h1>
+                    <p className="text-slate-500">Bem-vindo ao portal da sua embarcação.</p>
+                </header>
+
+                {/* PASSOS DO TOUR */}
+                <div id="boat-status-card" className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
+                    <div className="w-full md:w-1/3">
+                        <img
+                            src="https://images.unsplash.com/photo-1569263979104-865ab7dd8d17?auto=format&fit=crop&q=80&w=1000"
+                            alt="Boat"
+                            className="rounded-xl w-full h-48 object-cover shadow-md"
+                        />
+                    </div>
+                    <div className="flex-1 space-y-4 w-full">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800">Schaefer 303</h2>
+                                <p className="text-slate-500 font-mono">Phantom 303 • Mercury V8 300hp</p>
+                            </div>
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold text-sm">Em Dia</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-slate-50 p-3 rounded-lg">
+                                <p className="text-xs text-slate-500 uppercase font-bold">Próxima Revisão</p>
+                                <p className="font-bold text-slate-800">15/04/2026</p>
+                            </div>
+                            <div className="bg-slate-50 p-3 rounded-lg">
+                                <p className="text-xs text-slate-500 uppercase font-bold">Horas Motor</p>
+                                <p className="font-bold text-slate-800">142.5 h</p>
+                            </div>
+                        </div>
+
+                        <div className="w-full bg-slate-100 rounded-full h-2.5">
+                            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '85%' }}></div>
+                        </div>
+                        <p className="text-xs text-right text-slate-400">Saúde do Motor: 85%</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div id="pending-approvals" className="bg-white p-6 rounded-2xl shadow-md border border-slate-100">
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <AlertTriangle className="text-amber-500" />
+                            Aprovações Pendentes
+                        </h3>
+                        {orders.filter(o => o.status === OSStatus.PENDING).length > 0 ? (
+                            orders.filter(o => o.status === OSStatus.PENDING).map(o => (
+                                <div key={o.id} className="border-b last:border-0 py-4">
+                                    <h4 className="font-bold text-slate-800">{o.description}</h4>
+                                    <p className="text-sm text-slate-500 mb-2">Estimativa: R$ {o.totalValue.toFixed(2)}</p>
+                                    <button className="text-blue-600 text-sm font-bold hover:underline">Revisar e Aprovar →</button>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-slate-400 bg-slate-50 rounded-xl">
+                                <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                                <p>Tudo certo! Nenhuma pendência.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div id="boat-history" className="bg-white p-6 rounded-2xl shadow-md border border-slate-100">
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <Clock className="text-blue-500" />
+                            Histórico Recente
+                        </h3>
+                        <div className="space-y-4">
+                            {orders.filter(o => o.status === OSStatus.COMPLETED).slice(0, 3).map(o => (
+                                <div key={o.id} className="flex gap-4 items-start">
+                                    <div className="bg-emerald-100 p-2 rounded-full text-emerald-600 mt-1">
+                                        <CheckSquare className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800">{o.description}</h4>
+                                        <p className="text-xs text-slate-400">Finalizado em 10/12/2025</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {orders.filter(o => o.status === OSStatus.COMPLETED).length === 0 && (
+                                <p className="text-slate-400 text-sm">Nenhum serviço anterior registrado.</p>
+                            )}
+                        </div>
+                        <button className="w-full mt-4 py-2 text-slate-500 text-sm hover:text-slate-800 border bg-slate-50 rounded-lg">
+                            Ver Prontuário Completo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const saveOrderUpdate = async (updatedOrder: ServiceOrder) => {
         console.log("Saving order update:", updatedOrder);
@@ -537,7 +634,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
 
         useEffect(() => {
             if (boats.length > 0 && !boatId) {
-                setBoatId(boats[0].id);
+                setBoatId(String(boats[0].id));
             }
         }, [boats]);
 

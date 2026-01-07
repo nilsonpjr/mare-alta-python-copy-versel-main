@@ -28,7 +28,7 @@ export const MechanicAppView: React.FC = () => {
 
             {!activeOrderId ? (
                 // Task List View
-                <div className="space-y-4">
+                <div id="tech-schedule" className="space-y-4">
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">{t('mechanic.tasks')}</h3>
                     {myTasks.map(order => {
                         const boat = getBoat(order.boatId);
@@ -70,8 +70,8 @@ export const MechanicAppView: React.FC = () => {
                             <button
                                 onClick={() => setTimerActive(!timerActive)}
                                 className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold text-lg transition-all ${timerActive
-                                        ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/50 animate-pulse'
-                                        : 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+                                    ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/50 animate-pulse'
+                                    : 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
                                     }`}
                             >
                                 {timerActive ? <><PauseCircle /> {t('mechanic.buttons.stop')}</> : <><PlayCircle /> {t('mechanic.buttons.start')}</>}
@@ -80,7 +80,7 @@ export const MechanicAppView: React.FC = () => {
 
                         {/* Big Touch Buttons */}
                         <div className="grid grid-cols-2 gap-4">
-                            <button className="bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 p-6 rounded-xl flex flex-col items-center gap-3 border border-slate-200 dark:border-white/5 transition-colors">
+                            <button id="btn-checklist-entry" className="bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 p-6 rounded-xl flex flex-col items-center gap-3 border border-slate-200 dark:border-white/5 transition-colors">
                                 <CheckSquare className="w-10 h-10 text-purple-500 dark:text-purple-400" />
                                 <span className="text-slate-800 dark:text-white font-medium">{t('mechanic.buttons.checklist')}</span>
                             </button>
@@ -88,7 +88,7 @@ export const MechanicAppView: React.FC = () => {
                                 <Camera className="w-10 h-10 text-blue-500 dark:text-blue-400" />
                                 <span className="text-slate-800 dark:text-white font-medium">{t('mechanic.buttons.photo')}</span>
                             </button>
-                            <button className="bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 p-6 rounded-xl flex flex-col items-center gap-3 border border-slate-200 dark:border-white/5 transition-colors">
+                            <button id="btn-add-part-os" className="bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 p-6 rounded-xl flex flex-col items-center gap-3 border border-slate-200 dark:border-white/5 transition-colors">
                                 <Package className="w-10 h-10 text-amber-500 dark:text-amber-400" />
                                 <span className="text-slate-800 dark:text-white font-medium">{t('mechanic.buttons.parts')}</span>
                             </button>
@@ -112,6 +112,11 @@ export const MechanicAppView: React.FC = () => {
                             </li>
                         </ul>
                     </div>
+
+                    <button id="btn-finalize-os" className="w-full py-4 bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2">
+                        <CheckSquare className="w-5 h-5" />
+                        Finalizar Serviço
+                    </button>
                 </div>
             )}
         </div>

@@ -276,7 +276,7 @@ export const InventoryView: React.FC = () => {
         }
 
         const newItems = [...invoiceForm.items];
-        newItems[index].partId = partId;
+        newItems[index].partId = Number(partId);
         setInvoiceForm({ ...invoiceForm, items: newItems });
     };
 
@@ -304,7 +304,7 @@ export const InventoryView: React.FC = () => {
                 // Since loadData reloads parts, we can use the ID from response
                 // Assuming createPart returns the object with ID
                 if (createdPart && createdPart.id) {
-                    newItems[pendingLinkIndex].partId = String(createdPart.id);
+                    newItems[pendingLinkIndex].partId = createdPart.id;
                     setInvoiceForm(prev => ({ ...prev, items: newItems }));
                     alert(`Item criado e vinculado: ${createdPart.name}`);
                 }
@@ -562,12 +562,33 @@ export const InventoryView: React.FC = () => {
         }
     };
 
+    // Filters Advanced
+    const [selectedGroup, setSelectedGroup] = useState<string>('');
+    const [selectedSubgroup, setSelectedSubgroup] = useState<string>('');
+    const [compatibilitySearch, setCompatibilitySearch] = useState<string>('');
+
     // --- SEARCH HELPERS ---
-    const filteredParts = parts.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.barcode?.includes(searchTerm)
-    );
+    const availableGroups = Array.from(new Set(parts.map(p => p.group).filter(Boolean))) as string[];
+    const availableSubgroups = selectedGroup
+        ? Array.from(new Set(parts.filter(p => p.group === selectedGroup).map(p => p.subgroup).filter(Boolean))) as string[]
+        : [];
+
+    const filteredParts = parts.filter(p => {
+        const matchesSearch =
+            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.barcode?.includes(searchTerm);
+
+        const matchesGroup = !selectedGroup || p.group === selectedGroup;
+        const matchesSubgroup = !selectedSubgroup || p.subgroup === selectedSubgroup;
+
+        let matchesCompat = true;
+        if (compatibilitySearch && Array.isArray(p.compatibility)) {
+            matchesCompat = p.compatibility.some(c => c.toLowerCase().includes(compatibilitySearch.toLowerCase()));
+        }
+
+        return matchesSearch && matchesGroup && matchesSubgroup && matchesCompat;
+    });
 
     const lowStockItems = parts.filter(p => p.quantity <= p.minStock);
 
@@ -648,7 +669,7 @@ export const InventoryView: React.FC = () => {
                 {/* --- TAB: OVERVIEW --- */}
                 {activeTab === 'overview' && (
                     <div className="flex flex-col h-full">
-                        <div className="p-4 border-b border-slate-100 flex gap-4 bg-slate-50 items-center">
+                        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 bg-slate-50 md:items-center">
                             <div className="relative flex-1 max-w-md">
                                 <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
                                 <input
@@ -660,6 +681,37 @@ export const InventoryView: React.FC = () => {
                                     autoFocus
                                 />
                             </div>
+
+                            {/* Advanced Filters */}
+                            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+                                <select
+                                    className="p-2 border rounded-lg text-sm bg-white min-w-[120px]"
+                                    value={selectedGroup}
+                                    onChange={(e) => { setSelectedGroup(e.target.value); setSelectedSubgroup(''); }}
+                                >
+                                    <option value="">Grupo (Todos)</option>
+                                    {availableGroups.map(g => <option key={g} value={g}>{g}</option>)}
+                                </select>
+
+                                <select
+                                    className="p-2 border rounded-lg text-sm bg-white min-w-[120px]"
+                                    value={selectedSubgroup}
+                                    onChange={(e) => setSelectedSubgroup(e.target.value)}
+                                    disabled={!selectedGroup}
+                                >
+                                    <option value="">Subgrupo</option>
+                                    {availableSubgroups.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+
+                                <input
+                                    type="text"
+                                    placeholder="Compatibilidade (ex: V8)"
+                                    className="p-2 border rounded-lg text-sm bg-white w-40"
+                                    value={compatibilitySearch}
+                                    onChange={(e) => setCompatibilitySearch(e.target.value)}
+                                />
+                            </div>
+
                             <button
                                 onClick={() => setIsCameraOpen(true)}
                                 className="bg-slate-200 hover:bg-slate-300 text-slate-700 p-2 rounded-lg"
@@ -705,8 +757,8 @@ export const InventoryView: React.FC = () => {
                                                 <div className="flex items-center gap-2">
                                                     {part.sku}
                                                     {updateStatus[part.id] === 'loading' && <RefreshCw className="w-3 h-3 animate-spin text-blue-500" />}
-                                                    {updateStatus[part.id] === 'success' && <CheckCircle className="w-3 h-3 text-green-500" title="Preço atualizado com sucesso!" />}
-                                                    {updateStatus[part.id] === 'error' && <X className="w-3 h-3 text-red-500" title="Falha ao atualizar preço" />}
+                                                    {updateStatus[part.id] === 'success' && <span title="Preço atualizado com sucesso!"><CheckCircle className="w-3 h-3 text-green-500" /></span>}
+                                                    {updateStatus[part.id] === 'error' && <span title="Falha ao atualizar preço"><X className="w-3 h-3 text-red-500" /></span>}
                                                 </div>
                                                 {part.barcode && <div className="text-[10px] flex items-center gap-1"><Barcode className="w-3 h-3" /> {part.barcode}</div>}
                                             </td>
