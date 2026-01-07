@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
-import { Part } from '../types';
+import { Part, User, UserRole } from '../types';
 import { ShoppingCart, Plus, Trash2, Search, DollarSign, Package, CheckCircle, Smartphone } from 'lucide-react';
 
 interface CartItem extends Part {
@@ -8,7 +8,11 @@ interface CartItem extends Part {
     discountPercent: number;
 }
 
-export const QuickSaleView: React.FC = () => {
+interface QuickSaleProps {
+    currentUser: User;
+}
+
+export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [parts, setParts] = useState<Part[]>([]);
     const [filteredParts, setFilteredParts] = useState<Part[]>([]);
@@ -76,6 +80,13 @@ export const QuickSaleView: React.FC = () => {
 
     const updateDiscount = (id: number, discount: number) => {
         if (discount < 0 || discount > 100) return;
+
+        // Security Check for Technicians
+        if (currentUser.role === UserRole.TECHNICIAN && discount > 10) {
+            alert("Limite de desconto para técnicos é 10%. Solicite autorização.");
+            discount = 10;
+        }
+
         setCart(cart.map(i => i.id === id ? { ...i, discountPercent: discount } : i));
     };
 

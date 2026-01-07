@@ -1061,6 +1061,36 @@ export const InventoryView: React.FC = () => {
                                     />
                                 </div>
                                 <div>
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">Grupo (Família)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-2 border rounded bg-white text-slate-900"
+                                        value={newPart.group || ''}
+                                        placeholder="Ex: Filtragem"
+                                        onChange={e => setNewPart({ ...newPart, group: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">Subgrupo</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-2 border rounded bg-white text-slate-900"
+                                        value={newPart.subgroup || ''}
+                                        placeholder="Ex: Filtro de Óleo"
+                                        onChange={e => setNewPart({ ...newPart, subgroup: e.target.value })}
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">Compatibilidade (Modelos)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-2 border rounded bg-white text-slate-900"
+                                        value={newPart.compatibility ? newPart.compatibility.join(', ') : ''}
+                                        placeholder="Ex: Verado V8, ProXS, 150hp (Separar por vírgula)"
+                                        onChange={e => setNewPart({ ...newPart, compatibility: e.target.value.split(',').map(s => s.trim()) })}
+                                    />
+                                </div>
+                                <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">SKU (Código Interno)</label>
                                     <div className="flex gap-2">
                                         <input
@@ -1393,6 +1423,12 @@ export const InventoryView: React.FC = () => {
                         target: '#inventory-tabs',
                         title: 'Navegação',
                         content: 'Alterne entre Visão Geral, Entrada de Notas (XML) e Histórico (Kardex) por aqui.',
+                        placement: 'bottom'
+                    },
+                    {
+                        target: '#btn-add-part',
+                        title: 'Dica de Organização',
+                        content: 'Ao criar novas peças, não esqueça de definir o GRUPO (Família) e a COMPATIBILIDADE (ex: "Verado V8") para facilitar a busca por aplicação.',
                         placement: 'bottom'
                     }
                 ]}

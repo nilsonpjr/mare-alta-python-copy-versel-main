@@ -147,7 +147,7 @@ function App() {
       case 'inspection':
         return <InspectionView />;
       case 'quick-sale':
-        return <QuickSaleView />;
+        return <QuickSaleView currentUser={currentUser} />;
       default:
         return <Dashboard setView={handleSetView} />;
     }

@@ -161,6 +161,15 @@ def process_quick_sale(
     total_sale_value = 0.0
     items_summary = []
     
+    # Validação de Segurança (PDV)
+    if current_user.role == UserRole.TECHNICIAN:
+        for item in sale.items:
+            if item.discount_percent > 10:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, 
+                    detail="Técnicos só podem dar até 10% de desconto. Solicite autorização ao Admin."
+                )
+
     # Validação Prévia de Estoque
     for item in sale.items:
         part = crud.get_part(db, part_id=item.part_id)

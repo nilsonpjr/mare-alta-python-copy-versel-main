@@ -261,6 +261,9 @@ class Part(Base):
     min_stock = Column(Float, default=0) # Estoque mínimo para alerta
     location = Column(String(100)) # Localização física da peça no estoque
     manufacturer = Column(String(100)) # Fabricante da peça (ex: 'Mercury')
+    group = Column(String(100))      # Ex: "Filtragem"
+    subgroup = Column(String(100))   # Ex: "Filtro de Óleo"
+    compatibility = Column(JSON)     # Lista de modelos: ["V8", "V6", "150hp"]
     last_price_updated_at = Column(DateTime, nullable=True) # Data da última atualização automática de preço
     
     # Relacionamento com StockMovement. Uma peça pode ter múltiplos movimentos de estoque.

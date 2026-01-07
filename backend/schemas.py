@@ -259,6 +259,9 @@ class PartBase(CamelModel):
     min_stock: float = 0 # Estoque mínimo.
     location: Optional[str] = None # Localização no estoque.
     manufacturer: Optional[str] = None # Fabricante (ex: Mercury).
+    group: Optional[str] = None
+    subgroup: Optional[str] = None
+    compatibility: List[str] = []
 
 class PartCreate(PartBase):
     """
@@ -279,6 +282,9 @@ class PartUpdate(CamelModel):
     manufacturer: Optional[str] = None
     sku: Optional[str] = None
     barcode: Optional[str] = None
+    group: Optional[str] = None
+    subgroup: Optional[str] = None
+    compatibility: Optional[List[str]] = None
 
 class Part(PartBase):
     """
