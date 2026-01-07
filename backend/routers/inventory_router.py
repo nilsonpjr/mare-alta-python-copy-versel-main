@@ -13,6 +13,7 @@ import crud
 import auth
 from database import get_db # Função de dependência para obter a sessão do banco de dados.
 import models
+from models import UserRole
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(prefix="/api/inventory", tags=["Inventário"])
@@ -147,7 +148,7 @@ def create_stock_movement(
 def process_quick_sale(
     sale: schemas.QuickSaleRequest,
     db: Session = Depends(get_db),
-    current_user: schemas.User = Depends(auth.require_role([models.UserRole.ADMIN, models.UserRole.TECHNICIAN]))
+    current_user: schemas.User = Depends(auth.require_role([UserRole.ADMIN, UserRole.TECHNICIAN]))
 ):
     """
     Processa uma venda direta (PDV) de peças.
