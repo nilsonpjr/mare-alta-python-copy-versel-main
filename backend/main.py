@@ -161,7 +161,12 @@ if os.path.exists(frontend_dist):
              # Se chegou aqui e não bateu em nenhum router acima, é 404 de API real
             return JSONResponse(status_code=404, content={"message": "Endpoint API não encontrado"})
             
-        # Para qualquer outra rota, tenta servir o 'index.html' do frontend.
+        # Verifica se o arquivo existe fisicamente na pasta dist (ex: registerSW.js, manifest.webmanifest)
+        file_path = os.path.join(frontend_dist, full_path)
+        if os.path.isfile(file_path):
+             return FileResponse(file_path)
+
+        # Para qualquer outra rota não encontrada (e não sendo API), serve o 'index.html' (SPA).
         index_path = os.path.join(frontend_dist, "index.html")
         if os.path.exists(index_path):
             response = FileResponse(index_path)
