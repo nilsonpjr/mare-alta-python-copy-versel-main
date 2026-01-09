@@ -208,13 +208,11 @@ def process_quick_sale(
         if total_sale_value > 0:
             transaction = models.Transaction(
                 tenant_id=current_user.tenant_id,
-                description=f"Venda Balcão: {', '.join(items_summary)[:100]}",
+                description=f"Venda Balcão ({sale.payment_method or 'DINHEIRO'}): {', '.join(items_summary)[:100]}. Obs: {sale.notes or ''}",
                 amount=total_sale_value,
                 type="INCOME", # Receita
                 category="VENDAS_PECAS",
-                date=datetime.utcnow(),
-                payment_method=sale.payment_method or "DINHEIRO",
-                notes=sale.notes
+                date=datetime.utcnow()
             )
             db.add(transaction)
             db.commit()
