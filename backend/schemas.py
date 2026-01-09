@@ -261,7 +261,7 @@ class PartBase(CamelModel):
     manufacturer: Optional[str] = None # Fabricante (ex: Mercury).
     group: Optional[str] = None
     subgroup: Optional[str] = None
-    compatibility: List[str] = []
+    compatibility: Optional[List[str]] = None
 
 class PartCreate(PartBase):
     """
