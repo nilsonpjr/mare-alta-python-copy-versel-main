@@ -44,9 +44,13 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Viverdi Nautica API")
 
 # Configura o Middleware CORS (Cross-Origin Resource Sharing).
-# Recupera origens permitidas do ambiente ou usa "*" (padrão desenvolvimento inseguro).
+# Recupera origens permitidas do ambiente ou usa as conhecidas
 allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "*")
 origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+
+# Adiciona explicitamente o domínio da Vercel para garantir
+if "https://mare-alta-erp.vercel.app" not in origins and "*" not in origins:
+    origins.append("https://mare-alta-erp.vercel.app")
 
 app.add_middleware(
     CORSMiddleware,
