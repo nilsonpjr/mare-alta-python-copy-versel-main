@@ -1456,8 +1456,8 @@ export const InventoryView: React.FC = () => {
                 </div>
             )}
             {/* System Tour */}
-            {/* System Tour - Only start if data is loaded to prevent flashes */}
-            {parts.length > 0 && (
+            {/* System Tour - TEMPORARILY DISABLED FOR DEBUGGING */}
+            {/* {parts.length > 0 && (
                 <SystemTour
                     tourKey="inventory_intro"
                     steps={[
@@ -1487,7 +1487,7 @@ export const InventoryView: React.FC = () => {
                         }
                     ]}
                 />
-            )}
+            )} */}
         </div>
     );
 };
