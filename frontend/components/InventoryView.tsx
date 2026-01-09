@@ -1456,35 +1456,38 @@ export const InventoryView: React.FC = () => {
                 </div>
             )}
             {/* System Tour */}
-            <SystemTour
-                tourKey="inventory_intro"
-                steps={[
-                    {
-                        target: 'body',
-                        title: 'Bem-vindo ao Estoque',
-                        content: 'Aqui você gerencia todas as peças, motores e materiais da sua marina. Acompanhe quantidades, valores e movimentações.',
-                        placement: 'center'
-                    },
-                    {
-                        target: '#btn-add-part',
-                        title: 'Adicionar Nova Peça',
-                        content: 'Clique aqui para cadastrar um novo item manualmente no sistema.',
-                        placement: 'bottom'
-                    },
-                    {
-                        target: '#inventory-tabs',
-                        title: 'Navegação',
-                        content: 'Alterne entre Visão Geral, Entrada de Notas (XML) e Histórico (Kardex) por aqui.',
-                        placement: 'bottom'
-                    },
-                    {
-                        target: '#btn-add-part',
-                        title: 'Dica de Organização',
-                        content: 'Ao criar novas peças, não esqueça de definir o GRUPO (Família) e a COMPATIBILIDADE (ex: "Verado V8") para facilitar a busca por aplicação.',
-                        placement: 'bottom'
-                    }
-                ]}
-            />
+            {/* System Tour - Only start if data is loaded to prevent flashes */}
+            {parts.length > 0 && (
+                <SystemTour
+                    tourKey="inventory_intro"
+                    steps={[
+                        {
+                            target: 'body',
+                            title: 'Bem-vindo ao Estoque',
+                            content: 'Aqui você gerencia todas as peças, motores e materiais da sua marina. Acompanhe quantidades, valores e movimentações.',
+                            placement: 'center'
+                        },
+                        {
+                            target: '#btn-add-part',
+                            title: 'Adicionar Nova Peça',
+                            content: 'Clique aqui para cadastrar um novo item manualmente no sistema.',
+                            placement: 'bottom'
+                        },
+                        {
+                            target: '#inventory-tabs',
+                            title: 'Navegação',
+                            content: 'Alterne entre Visão Geral, Entrada de Notas (XML) e Histórico (Kardex) por aqui.',
+                            placement: 'bottom'
+                        },
+                        {
+                            target: '#btn-add-part',
+                            title: 'Dica de Organização',
+                            content: 'Ao criar novas peças, não esqueça de definir o GRUPO (Família) e a COMPATIBILIDADE (ex: "Verado V8") para facilitar a busca por aplicação.',
+                            placement: 'bottom'
+                        }
+                    ]}
+                />
+            )}
         </div>
     );
 };
