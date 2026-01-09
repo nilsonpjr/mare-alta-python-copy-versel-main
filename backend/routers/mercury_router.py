@@ -200,8 +200,8 @@ async def search_warranty_playwright(nro_motor: str, username: str, password: st
             nome_cli_element = soup.select_one("#warranty_clients table tbody tr:nth-of-type(3)")
             if nome_cli_element:
                  raw_text = nome_cli_element.get_text(strip=True)
-                 # Remove prefixos comuns encontrados
-                 cleaned_name = raw_text.replace("NOME: ", "").replace("NOME ", "").strip()
+                 # Remove prefixos comuns encontrados usando Regex para ser mais robusto com Case (Nome/NOME)
+                 cleaned_name = re.sub(r'^(NOME\s*:?\s*)', '', raw_text, flags=re.IGNORECASE).strip()
                  return cleaned_name
             return ""
         except Exception as e:
