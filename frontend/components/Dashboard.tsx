@@ -127,7 +127,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-slate-800 text-lg">Volume de Ordens de Serviço</h3>
           </div>
-          <div className="h-64 md:h-80 w-full">
+          <div className="h-64 md:h-80 w-full min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} barSize={40}>
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={10} interval={0} />
