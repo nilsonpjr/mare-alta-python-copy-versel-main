@@ -77,6 +77,20 @@ export const ApiService = {
     },
 
     /**
+     * Faz o upload de uma imagem e retorna a URL pública.
+     */
+    uploadImage: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post<{ url: string }>('/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
+
+    /**
      * Obtém os dados do usuário atualmente autenticado.
      * @returns Os dados do usuário.
      */
