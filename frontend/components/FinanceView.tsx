@@ -1,25 +1,39 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Transaction } from '../types';
-import { StorageService } from '../services/storage';
+import { Transaction, TransactionCreate } from '../types';
+import { ApiService } from '../services/api';
 import {
   DollarSign, TrendingUp, TrendingDown, Plus,
-  Search, FileText, Calendar, ArrowUpRight, ArrowDownRight
+  Search, FileText, Calendar, ArrowUpRight, ArrowDownRight, Loader2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export const FinanceView: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({
+  const [newTransaction, setNewTransaction] = useState<Partial<TransactionCreate>>({
     type: 'EXPENSE',
     date: new Date().toISOString().split('T')[0],
-    status: 'PAID'
+    status: 'PAID',
+    category: 'Geral'
   });
 
   useEffect(() => {
-    setTransactions(StorageService.getTransactions());
+    loadTransactions();
   }, []);
+
+  const loadTransactions = async () => {
+    setLoading(true);
+    try {
+      const data = await ApiService.getTransactions();
+      setTransactions(data);
+    } catch (error) {
+      console.error("Erro ao carregar transações:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const kpi = useMemo(() => {
     const income = transactions
@@ -37,29 +51,37 @@ export const FinanceView: React.FC = () => {
     return { income, expense, balance: income - expense, pending };
   }, [transactions]);
 
-  const handleSave = () => {
-    if (!newTransaction.description || !newTransaction.amount || !newTransaction.date) return;
+  const handleSave = async () => {
+    if (!newTransaction.description || !newTransaction.amount || !newTransaction.date) {
+      alert("Preencha todos os campos obrigatórios.");
+      return;
+    }
 
-    const transaction: Transaction = {
-      id: Date.now().toString(),
-      type: newTransaction.type || 'EXPENSE',
-      category: newTransaction.category || 'Geral',
-      description: newTransaction.description,
-      amount: Number(newTransaction.amount),
-      date: newTransaction.date,
-      status: newTransaction.status || 'PAID',
-      documentNumber: newTransaction.documentNumber
-    };
+    try {
+      const transactionToCreate: TransactionCreate = {
+        type: newTransaction.type as 'INCOME' | 'EXPENSE',
+        category: newTransaction.category || 'Geral',
+        description: newTransaction.description,
+        amount: Number(newTransaction.amount),
+        date: newTransaction.date,
+        status: newTransaction.status || 'PAID',
+        documentNumber: newTransaction.documentNumber,
+        orderId: newTransaction.orderId ? Number(newTransaction.orderId) : undefined
+      };
 
-    const updated = [transaction, ...transactions];
-    setTransactions(updated);
-    StorageService.saveTransactions(updated);
-    setIsModalOpen(false);
-    setNewTransaction({
-      type: 'EXPENSE',
-      date: new Date().toISOString().split('T')[0],
-      status: 'PAID'
-    });
+      await ApiService.createTransaction(transactionToCreate);
+      setIsModalOpen(false);
+      setNewTransaction({
+        type: 'EXPENSE',
+        date: new Date().toISOString().split('T')[0],
+        status: 'PAID',
+        category: 'Geral'
+      });
+      loadTransactions();
+    } catch (error) {
+      console.error("Erro ao salvar transação:", error);
+      alert("Erro ao salvar transação no servidor.");
+    }
   };
 
   const filteredTransactions = transactions.filter(t =>
@@ -68,12 +90,21 @@ export const FinanceView: React.FC = () => {
     t.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading && transactions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 p-8">
+        <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+        <p className="text-slate-500">Carregando dados financeiros...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Financeiro</h2>
-          <p className="text-slate-500 text-sm">Controle de Entradas e Saídas</p>
+          <p className="text-slate-500 text-sm">Controle de Entradas e Saídas (Banco de Dados)</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -95,7 +126,7 @@ export const FinanceView: React.FC = () => {
             </div>
             <span className="text-sm font-bold text-slate-500 uppercase">Receitas Totais</span>
           </div>
-          <p className="text-3xl font-bold text-slate-800">R$ {kpi.income.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-slate-800">R$ {kpi.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
@@ -108,7 +139,7 @@ export const FinanceView: React.FC = () => {
             </div>
             <span className="text-sm font-bold text-slate-500 uppercase">Despesas Totais</span>
           </div>
-          <p className="text-3xl font-bold text-slate-800">R$ {kpi.expense.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-slate-800">R$ {kpi.expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
         </div>
 
         <div className={`p-6 rounded-xl shadow-sm border relative overflow-hidden ${kpi.balance >= 0 ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white border-transparent' : 'bg-white border-slate-200 text-red-600'}`}>
@@ -121,7 +152,7 @@ export const FinanceView: React.FC = () => {
             </div>
             <span className={`text-sm font-bold uppercase ${kpi.balance >= 0 ? 'text-cyan-100' : 'text-slate-500'}`}>Saldo Líquido</span>
           </div>
-          <p className="text-3xl font-bold">R$ {kpi.balance.toFixed(2)}</p>
+          <p className="text-3xl font-bold">R$ {kpi.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
         </div>
       </div>
 
@@ -138,6 +169,7 @@ export const FinanceView: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          {loading && <Loader2 className="w-6 h-6 animate-spin text-slate-400 self-center" />}
         </div>
 
         <table className="w-full text-left text-sm">
@@ -154,7 +186,9 @@ export const FinanceView: React.FC = () => {
           <tbody className="divide-y divide-slate-100">
             {filteredTransactions.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-slate-400">Nenhum lançamento encontrado.</td>
+                <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+                  {loading ? 'Carregando...' : 'Nenhum lançamento encontrado.'}
+                </td>
               </tr>
             ) : filteredTransactions.map((t) => (
               <tr key={t.id} className="hover:bg-slate-50">
@@ -179,7 +213,7 @@ export const FinanceView: React.FC = () => {
                 </td>
                 <td className={`px-6 py-4 text-right font-bold ${t.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'
                   }`}>
-                  {t.type === 'EXPENSE' ? '-' : '+'} R$ {t.amount.toFixed(2)}
+                  {t.type === 'EXPENSE' ? '-' : '+'} R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </td>
                 <td className="px-6 py-4 text-center">
                   {t.status === 'PAID' ? (
