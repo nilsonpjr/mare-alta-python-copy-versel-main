@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { useOnboarding } from '../context/OnboardingContext';
 import { CompanyInfo, Manufacturer } from '../types';
-import { Plus, Trash, Settings as SettingsIcon, Save, ChevronRight, Globe, Lock, Loader2, Factory, Layers, Anchor, Ship, CreditCard, CheckCircle, RotateCcw } from 'lucide-react';
-
+import { Plus, Trash, Settings as SettingsIcon, Save, ChevronRight, Globe, Lock, Loader2, Factory, Layers, Anchor, Ship, CreditCard, CheckCircle, RotateCcw, Palette, Moon, Sun, Type } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export const SettingsView: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'boat' | 'engine' | 'integration' | 'subscription' | 'system'>('boat');
+    const [activeTab, setActiveTab] = useState<'boat' | 'engine' | 'integration' | 'subscription' | 'system' | 'appearance'>('boat');
     const { resetOnboarding } = useOnboarding();
-    const [subscription, setSubscription] = useState<any>(null); // State for subscription data
+    const { preferences, toggleDarkMode, setPrimaryColor, setFontFamily, savePreferences } = useTheme();
+    const [subscription, setSubscription] = useState<any>(null);
 
     // Data State
     const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
@@ -26,7 +27,7 @@ export const SettingsView: React.FC = () => {
     useEffect(() => {
         loadManufacturers();
         loadCompanyInfo();
-        loadSubscription(); // Carrega assinatura
+        loadSubscription();
     }, []);
 
     const loadSubscription = async () => {
@@ -63,7 +64,6 @@ export const SettingsView: React.FC = () => {
         setLoading(true);
         try {
             await ApiService.updateCompanyInfo(companyInfo);
-            // Feedback sutil em vez de alert
         } catch (error: any) {
             console.error("Erro ao salvar configurações:", error);
             alert("Erro ao salvar configurações.");
@@ -74,21 +74,17 @@ export const SettingsView: React.FC = () => {
 
     const handleAddBrand = async () => {
         if (!newBrandName.trim()) return;
-
         const type = activeTab === 'boat' ? 'BOAT' : 'ENGINE';
-
         if (manufacturers.some(m => m.name.toLowerCase() === newBrandName.trim().toLowerCase() && m.type === type)) {
             alert("Esta marca já existe!");
             return;
         }
-
         try {
             const newManuf = await ApiService.createManufacturer({
                 name: newBrandName.trim(),
                 type: type,
                 models: []
             } as any);
-
             setManufacturers([...manufacturers, { ...newManuf, models: [] }]);
             setNewBrandName('');
             setSelectedManufacturer(newManuf);
@@ -100,7 +96,6 @@ export const SettingsView: React.FC = () => {
 
     const handleDeleteBrand = async (manuf: Manufacturer) => {
         if (!window.confirm(`Tem certeza que deseja remover a marca ${manuf.name} e todos os seus modelos?`)) return;
-
         try {
             await ApiService.deleteManufacturer(manuf.id);
             setManufacturers(manufacturers.filter(m => m.id !== manuf.id));
@@ -115,15 +110,12 @@ export const SettingsView: React.FC = () => {
 
     const handleAddModel = async () => {
         if (!selectedManufacturer || !newModelName.trim()) return;
-
         try {
             const newModel = await ApiService.createModel(selectedManufacturer.id, newModelName.trim());
-
             const updatedManuf = {
                 ...selectedManufacturer,
                 models: [...selectedManufacturer.models, newModel].sort((a, b) => a.name.localeCompare(b.name))
             };
-
             setManufacturers(manufacturers.map(m => m.id === selectedManufacturer.id ? updatedManuf : m));
             setSelectedManufacturer(updatedManuf);
             setNewModelName('');
@@ -136,15 +128,12 @@ export const SettingsView: React.FC = () => {
     const handleDeleteModel = async (modelId: number) => {
         if (!selectedManufacturer) return;
         if (!window.confirm(`Remover modelo?`)) return;
-
         try {
             await ApiService.deleteModel(modelId);
-
             const updatedManuf = {
                 ...selectedManufacturer,
                 models: selectedManufacturer.models.filter(m => m.id !== modelId)
             };
-
             setManufacturers(manufacturers.map(m => m.id === selectedManufacturer.id ? updatedManuf : m));
             setSelectedManufacturer(updatedManuf);
         } catch (error) {
@@ -189,6 +178,7 @@ export const SettingsView: React.FC = () => {
                 <TabButton id="boat" label="Embarcações (Cascos)" icon={Anchor} />
                 <TabButton id="engine" label="Motorização" icon={Ship} />
                 <TabButton id="integration" label="Integrações" icon={Globe} />
+                <TabButton id="appearance" label="Personalização" icon={Palette} />
                 <TabButton id="subscription" label="Minha Assinatura" icon={CreditCard} />
                 <TabButton id="system" label="Sistema & Reset" icon={RotateCcw} />
             </div>
@@ -208,7 +198,6 @@ export const SettingsView: React.FC = () => {
                                     {subscription.status}
                                 </div>
                             </div>
-
                             <div className="p-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                                     <div>
@@ -231,12 +220,116 @@ export const SettingsView: React.FC = () => {
                                         </ul>
                                     </div>
                                 </div>
-
                                 <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 text-center">
                                     <h4 className="font-bold text-slate-800 mb-2">Precisa de mais recursos?</h4>
                                     <p className="text-slate-500 text-sm mb-4">Faça um upgrade para ter acesso a funcionalidades exclusivas.</p>
                                     <button className="bg-slate-900 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10">
                                         Falar com Consultor
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : activeTab === 'appearance' ? (
+                    <div className="w-full max-w-4xl mx-auto anime-fade-in h-full overflow-y-auto custom-scrollbar pr-2 pb-10">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 dark:border-slate-700 overflow-hidden mb-8">
+                            <div className="bg-gradient-to-r from-cyan-600 to-blue-700 p-8 text-white relative">
+                                <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-20">
+                                    <Palette className="w-32 h-32" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-2">Personalização Visual</h3>
+                                <p className="text-cyan-100 text-sm">Ajuste as cores, fontes e o tema do aplicativo para sua marca.</p>
+                            </div>
+
+                            <div className="p-8 space-y-10">
+                                <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-3 rounded-xl ${preferences.darkMode ? 'bg-slate-800 text-yellow-400' : 'bg-white text-slate-800 shadow-sm'}`}>
+                                            {preferences.darkMode ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-slate-800 dark:text-slate-100">Modo Noturno</h4>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">Alternar entre o visual claro e escuro</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={toggleDarkMode}
+                                        className={`w-14 h-8 rounded-full transition-colors relative ${preferences.darkMode ? 'bg-cyan-500' : 'bg-slate-300'}`}
+                                    >
+                                        <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all ${preferences.darkMode ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Palette className="w-4 h-4" /> Cor Identidade (Primária)
+                                    </h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[
+                                            { name: 'Ciano', color: '#0891b2' },
+                                            { name: 'Azul', color: '#1d4ed8' },
+                                            { name: 'Esmeralda', color: '#059669' },
+                                            { name: 'Indigo', color: '#4f46e5' },
+                                            { name: 'Laranja', color: '#ea580c' },
+                                            { name: 'Rosa', color: '#db2777' },
+                                            { name: 'Slate', color: '#334155' },
+                                            { name: 'Custom', color: preferences.primaryColor }
+                                        ].map((c, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => setPrimaryColor(c.color)}
+                                                className={`p-4 rounded-xl border-2 flex items-center gap-3 transition-all ${preferences.primaryColor === c.color ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200'}`}
+                                            >
+                                                <div className="w-8 h-8 rounded-lg shadow-inner" style={{ backgroundColor: c.color }} />
+                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{c.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="pt-2 flex items-center gap-4">
+                                        <label className="text-xs font-medium text-slate-500 italic">Personalizar código HEX:</label>
+                                        <input
+                                            type="color"
+                                            value={preferences.primaryColor}
+                                            onChange={(e) => setPrimaryColor(e.target.value)}
+                                            className="w-12 h-10 p-1 bg-white rounded cursor-pointer"
+                                        />
+                                        <span className="text-sm font-mono text-slate-600 dark:text-slate-400 uppercase">{preferences.primaryColor}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Type className="w-4 h-4" /> Tipografia (Fontes)
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {[
+                                            { name: 'Inter (Padrão)', value: 'Inter' },
+                                            { name: 'Source Sans Pro', value: 'Source Sans Pro' },
+                                            { name: 'Outfit', value: 'Outfit' },
+                                            { name: 'Roboto', value: 'Roboto' }
+                                        ].map((f, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => setFontFamily(f.value)}
+                                                className={`p-4 rounded-xl border-2 flex items-center justify-between transition-all ${preferences.fontFamily === f.value ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200'}`}
+                                            >
+                                                <span className="font-medium text-slate-700 dark:text-slate-200" style={{ fontFamily: f.value }}>{f.name}</span>
+                                                {preferences.fontFamily === f.value && <CheckCircle className="w-5 h-5 text-cyan-500" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="pt-8 flex justify-end">
+                                    <button
+                                        onClick={async () => {
+                                            setLoading(true);
+                                            await savePreferences();
+                                            setLoading(false);
+                                            alert("Preferências salvas com sucesso!");
+                                        }}
+                                        disabled={loading}
+                                        className="bg-slate-800 dark:bg-cyan-600 text-white px-8 py-3 rounded-xl hover:opacity-90 transition-all flex items-center gap-2 font-bold shadow-lg shadow-slate-800/20"
+                                    >
+                                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                        Salvar Alterações
                                     </button>
                                 </div>
                             </div>
@@ -257,155 +350,33 @@ export const SettingsView: React.FC = () => {
                                     </div>
                                 </div>
                                 <p className="text-slate-300 text-sm leading-relaxed max-w-xl">
-                                    Conecte sua conta do portal Mercury para habilitar funcionalidades exclusivas como
-                                    busca automática de peças, consulta de garantia em tempo real e sincronização de preços.
+                                    Conecte sua conta do portal Mercury para habilitar funcionalidades exclusivas.
                                 </p>
                             </div>
-
                             <div className="p-8 space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Usuário (Login)</label>
-                                        <div className="relative group">
-                                            <input
-                                                type="text"
-                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all group-hover:bg-white"
-                                                placeholder="Usuário do Portal"
-                                                value={companyInfo.mercuryUsername || ''}
-                                                onChange={e => setCompanyInfo({ ...companyInfo, mercuryUsername: e.target.value })}
-                                            />
-                                            <Globe className="absolute left-3 top-3.5 text-slate-400 w-5 h-5 group-hover:text-cyan-600 transition-colors" />
-                                        </div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Usuário</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                                            value={companyInfo.mercuryUsername || ''}
+                                            onChange={e => setCompanyInfo({ ...companyInfo, mercuryUsername: e.target.value })}
+                                        />
                                     </div>
-
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Senha</label>
-                                        <div className="relative group">
-                                            <input
-                                                type="password"
-                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all group-hover:bg-white"
-                                                placeholder="••••••••••••"
-                                                value={companyInfo.mercuryPassword || ''}
-                                                onChange={e => setCompanyInfo({ ...companyInfo, mercuryPassword: e.target.value })}
-                                            />
-                                            <Lock className="absolute left-3 top-3.5 text-slate-400 w-5 h-5 group-hover:text-cyan-600 transition-colors" />
-                                        </div>
+                                        <input
+                                            type="password"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                                            value={companyInfo.mercuryPassword || ''}
+                                            onChange={e => setCompanyInfo({ ...companyInfo, mercuryPassword: e.target.value })}
+                                        />
                                     </div>
                                 </div>
-
                                 <div className="pt-6 flex justify-end">
-                                    <button
-                                        onClick={handleSaveCompanyInfo}
-                                        disabled={loading}
-                                        className="bg-cyan-600 text-white px-8 py-3 rounded-lg hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/20 disabled:opacity-50 flex items-center gap-2 font-medium transition-all transform active:scale-95"
-                                    >
-                                        {loading ? (
-                                            <><Loader2 className="w-5 h-5 animate-spin" /> Salvando...</>
-                                        ) : (
-                                            <><Save className="w-5 h-5" /> Salvar Credenciais</>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* --- NOVA SEÇÃO: EMISSÃO FISCAL PRÓPRIA --- */}
-                        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden mt-8">
-                            <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 p-8 text-white">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="bg-white p-2 rounded-lg">
-                                        <div className="w-8 h-8 flex items-center justify-center text-emerald-800 font-bold bg-emerald-100 rounded">
-                                            NF
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold">Emissor Fiscal Próprio</h3>
-                                        <p className="text-emerald-200 text-sm">Emissão direta SEFAZ/Prefeituras (Sem custo por nota)</p>
-                                    </div>
-                                </div>
-                                <p className="text-emerald-100 text-sm leading-relaxed max-w-xl">
-                                    Configure seu Certificado Digital A1 para emitir NFe (Peças) e NFSe (Serviços)
-                                    diretamente pelos webservices governamentais. Suporte nativo para Paranaguá e Curitiba.
-                                </p>
-                            </div>
-
-                            <div className="p-8 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Cidade / Driver */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Município de Emissão</label>
-                                        <div className="relative group">
-                                            <select
-                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white appearance-none"
-                                                value={companyInfo.cityCode || '4118204'}
-                                                onChange={e => setCompanyInfo({ ...companyInfo, cityCode: e.target.value })}
-                                            >
-                                                <option value="4118204">Paranaguá - PR (Fly e-Nota)</option>
-                                                <option value="4106902">Curitiba - PR (ISS Curitiba)</option>
-                                            </select>
-                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🏢</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Ambiente */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ambiente</label>
-                                        <div className="relative group">
-                                            <select
-                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white appearance-none"
-                                                value={companyInfo.fiscalEnvironment || 'homologation'}
-                                                onChange={e => setCompanyInfo({ ...companyInfo, fiscalEnvironment: e.target.value })}
-                                            >
-                                                <option value="homologation">Homologação (Testes)</option>
-                                                <option value="production">Produção (Validade Jurídica)</option>
-                                            </select>
-                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🧪</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Certificado (Simulado Upload) */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome do Arquivo do Certificado (.pfx)</label>
-                                        <div className="relative group">
-                                            <input
-                                                type="text"
-                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white"
-                                                placeholder="ex: certs/certificado.pfx (Caminho relativo)"
-                                                value={companyInfo.certFilePath || ''}
-                                                onChange={e => setCompanyInfo({ ...companyInfo, certFilePath: e.target.value })}
-                                            />
-                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🔐</div>
-                                        </div>
-                                        <p className="text-xs text-slate-400">O arquivo deve estar na pasta <code>backend/certs</code> do servidor.</p>
-                                    </div>
-
-                                    {/* Senha Certificado */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Senha do Certificado</label>
-                                        <div className="relative group">
-                                            <input
-                                                type="password"
-                                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all group-hover:bg-white"
-                                                placeholder="••••••"
-                                                value={companyInfo.certPassword || ''}
-                                                onChange={e => setCompanyInfo({ ...companyInfo, certPassword: e.target.value })}
-                                            />
-                                            <div className="absolute left-3 top-3.5 text-slate-400 w-5 h-5">🔑</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="pt-6 flex justify-end">
-                                    <button
-                                        onClick={handleSaveCompanyInfo}
-                                        disabled={loading}
-                                        className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2 font-medium transition-all transform active:scale-95"
-                                    >
-                                        {loading ? (
-                                            <><Loader2 className="w-5 h-5 animate-spin" /> Salvando...</>
-                                        ) : (
-                                            <><Save className="w-5 h-5" /> Salvar Configuração Fiscal</>
-                                        )}
+                                    <button onClick={handleSaveCompanyInfo} className="bg-cyan-600 text-white px-8 py-3 rounded-lg flex items-center gap-2">
+                                        <Save className="w-5 h-5" /> Salvar Credenciais
                                     </button>
                                 </div>
                             </div>
@@ -416,162 +387,47 @@ export const SettingsView: React.FC = () => {
                         <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
                             <div className="bg-gradient-to-r from-slate-700 to-slate-600 p-8 text-white">
                                 <h3 className="text-xl font-bold mb-2">Preferências e Sistema</h3>
-                                <p className="text-slate-300 text-sm">Gerencie o comportamento do sistema e sua experiência de usuário.</p>
                             </div>
                             <div className="p-8">
-                                <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                                    <div>
-                                        <h4 className="font-bold text-slate-800 text-lg">Tutoriais Guiados</h4>
-                                        <p className="text-sm text-slate-500 mt-1">
-                                            Reative os balões de ajuda e visitas guiadas em todas as telas.
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            await resetOnboarding();
-                                            alert("Tutoriais Reiniciados! Visite a Dashboard ou Inventário para ver o tour novamente.");
-                                            window.location.reload();
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 hover:text-cyan-600 rounded-lg font-bold transition-colors shadow-sm"
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                        Reiniciar Tutoriais
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={async () => {
+                                        await resetOnboarding();
+                                        alert("Tutoriais Reiniciados!");
+                                        window.location.reload();
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg"
+                                >
+                                    <RotateCcw className="w-4 h-4" /> Reiniciar Tutoriais
+                                </button>
                             </div>
                         </div>
                     </div>
                 ) : (
                     <>
-                        {/* Manufacturers List (Left) */}
                         <div className="w-80 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                                <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                                    <Factory className="w-4 h-4 text-slate-400" />
-                                    Marcas Registradas
-                                </h3>
+                                <h3 className="font-bold text-slate-700 flex items-center gap-2">Marcas</h3>
                             </div>
-
-                            <div className="p-3 border-b border-slate-100">
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Nova Marca..."
-                                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                                        value={newBrandName}
-                                        onChange={(e) => setNewBrandName(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleAddBrand()}
-                                    />
-                                    <button
-                                        onClick={handleAddBrand}
-                                        className="bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg transition-colors"
+                            <div className="p-2 overflow-y-auto space-y-1">
+                                {filteredManufacturers.map(manuf => (
+                                    <div
+                                        key={manuf.id}
+                                        onClick={() => setSelectedManufacturer(manuf)}
+                                        className={`p-3 rounded-xl cursor-pointer ${selectedManufacturer?.id === manuf.id ? 'bg-cyan-50' : ''}`}
                                     >
-                                        <Plus className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                                {loadingData ? (
-                                    <div className="flex justify-center p-8 text-slate-300">
-                                        <Loader2 className="animate-spin w-6 h-6" />
+                                        {manuf.name}
                                     </div>
-                                ) : (
-                                    filteredManufacturers.map(manuf => (
-                                        <div
-                                            key={manuf.id}
-                                            onClick={() => setSelectedManufacturer(manuf)}
-                                            className={`
-                                                group flex justify-between items-center p-3 rounded-xl cursor-pointer transition-all duration-200 border
-                                                ${selectedManufacturer?.id === manuf.id
-                                                    ? 'bg-cyan-50 border-cyan-200 shadow-sm'
-                                                    : 'bg-transparent border-transparent hover:bg-slate-50 hover:border-slate-100'}
-                                            `}
-                                        >
-                                            <span className={`font-medium text-sm ${selectedManufacturer?.id === manuf.id ? 'text-cyan-900' : 'text-slate-600'}`}>
-                                                {manuf.name}
-                                            </span>
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDeleteBrand(manuf); }}
-                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                >
-                                                    <Trash className="w-3.5 h-3.5" />
-                                                </button>
-                                                {selectedManufacturer?.id === manuf.id && (
-                                                    <ChevronRight className="w-4 h-4 text-cyan-500" />
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
+                                ))}
                             </div>
                         </div>
-
-                        {/* Models Grid (Right) */}
-                        <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                                <div>
-                                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                        <Layers className="w-5 h-5 text-cyan-600" />
-                                        {selectedManufacturer ? selectedManufacturer.name : 'Selecione uma Marca'}
-                                    </h3>
-                                    <p className="text-sm text-slate-400">
-                                        {selectedManufacturer
-                                            ? `Gerenciando modelos para ${selectedManufacturer.name}`
-                                            : 'Escolha uma marca à esquerda para ver os modelos'}
-                                    </p>
-                                </div>
-
-                                {selectedManufacturer && (
-                                    <div className="flex gap-2 w-1/2 max-w-sm">
-                                        <input
-                                            type="text"
-                                            placeholder="Adicionar novo modelo..."
-                                            className="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent shadow-sm"
-                                            value={newModelName}
-                                            onChange={(e) => setNewModelName(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleAddModel()}
-                                        />
-                                        <button
-                                            onClick={handleAddModel}
-                                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
-                                        >
-                                            <Plus className="w-4 h-4" /> <span className="hidden lg:inline">Adicionar</span>
-                                        </button>
-                                    </div>
-                                )}
+                        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="p-6 border-b border-slate-100">
+                                <h3 className="font-bold text-lg">{selectedManufacturer?.name || 'Selecione uma Marca'}</h3>
                             </div>
-
-                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30">
-                                {selectedManufacturer ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                        {selectedManufacturer.models.map(model => (
-                                            <div key={model.id} className="group bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-cyan-200 transition-all duration-200 flex justify-between items-center">
-                                                <span className="text-slate-700 font-medium">{model.name}</span>
-                                                <button
-                                                    onClick={() => handleDeleteModel(model.id)}
-                                                    className="text-slate-300 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                >
-                                                    <Trash className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {selectedManufacturer.models.length === 0 && (
-                                            <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
-                                                <Layers className="w-12 h-12 mb-3 opacity-20" />
-                                                <p>Nenhum modelo cadastrado.</p>
-                                                <p className="text-sm opacity-60">Use o campo acima para adicionar.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                                        <Factory className="w-16 h-16 mb-4 opacity-10" />
-                                        <p className="text-lg font-medium text-slate-500">Nenhuma Marca Selecionada</p>
-                                        <p className="text-sm">Selecione uma marca na lista ao lado para gerenciar seus modelos.</p>
-                                    </div>
-                                )}
+                            <div className="p-6">
+                                {selectedManufacturer?.models.map(model => (
+                                    <div key={model.id} className="p-4 border-b">{model.name}</div>
+                                ))}
                             </div>
                         </div>
                     </>
@@ -580,3 +436,4 @@ export const SettingsView: React.FC = () => {
         </div>
     );
 };
+export default SettingsView;

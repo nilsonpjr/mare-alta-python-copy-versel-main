@@ -35,6 +35,7 @@ import { MechanicAppView } from './components/MechanicAppView';
 import { AnalystChecklistView } from './components/AnalystChecklistView';
 import { ArchitectureView } from './components/ArchitectureView';
 import { SuperAdminView } from './components/SuperAdminView';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -165,44 +166,46 @@ function App() {
   }
 
   return (
-    <OnboardingProvider currentUser={currentUser}>
-      <GlobalTour currentUser={currentUser} />
-      <div className="flex bg-slate-100 min-h-screen font-sans text-slate-900">
-        <Sidebar
-          currentView={currentView}
-          setView={handleSetView}
-          currentUser={currentUser}
-          onLogout={handleLogout}
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-          tenantPlan="ENTERPRISE"
-        />
-
-        {/* Mobile Overlay */}
-        {isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
+    <ThemeProvider user={currentUser}>
+      <OnboardingProvider currentUser={currentUser}>
+        <GlobalTour currentUser={currentUser} />
+        <div className="flex bg-slate-100 dark:bg-slate-900 min-h-screen font-sans text-slate-900 dark:text-slate-100">
+          <Sidebar
+            currentView={currentView}
+            setView={handleSetView}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            tenantPlan="ENTERPRISE"
           />
-        )}
 
-        <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-          {/* Mobile Header */}
-          <header className="bg-white border-b border-slate-200 p-4 flex justify-between items-center md:hidden shrink-0 z-30 shadow-sm">
-            <h1 className="font-bold text-lg text-slate-800">Mare Alta</h1>
-            <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-600 p-2">
-              <Menu className="w-6 h-6" />
-            </button>
-          </header>
+          {/* Mobile Overlay */}
+          {isMobileMenuOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+          )}
 
-          <main className="flex-1 overflow-auto bg-slate-50 relative custom-scrollbar">
-            {renderContent()}
-          </main>
+          <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+            {/* Mobile Header */}
+            <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4 flex justify-between items-center md:hidden shrink-0 z-30 shadow-sm">
+              <h1 className="font-bold text-lg text-slate-800 dark:text-slate-100">Mare Alta</h1>
+              <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-600 dark:text-slate-400 p-2">
+                <Menu className="w-6 h-6" />
+              </button>
+            </header>
+
+            <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 relative custom-scrollbar">
+              {renderContent()}
+            </main>
+          </div>
         </div>
-      </div>
-      <SpeedInsights />
-    </OnboardingProvider>
+        <SpeedInsights />
+      </OnboardingProvider>
+    </ThemeProvider>
   );
-};
+}
 
 export default App;
