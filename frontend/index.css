@@ -40,3 +40,16 @@
 .dark ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+@keyframes pulse-skeleton {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-skeleton {
+  animation: pulse-skeleton 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: rgba(226, 232, 240, 0.8);
+}
+
+.dark .animate-skeleton {
+  background-color: rgba(30, 41, 59, 0.8);
+}

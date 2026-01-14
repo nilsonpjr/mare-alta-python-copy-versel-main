@@ -52,6 +52,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
     { name: 'Concluído', value: orders.filter(o => o.status === OSStatus.COMPLETED).length, color: '#10b981' },
   ];
 
+  const SkeletonKPI = () => (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden animate-pulse">
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-12 h-12 bg-slate-100 rounded-xl animate-skeleton" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-24 bg-slate-200 rounded animate-skeleton" />
+        <div className="h-8 w-40 bg-slate-200 rounded animate-skeleton" />
+      </div>
+    </div>
+  );
+
   const KPICard = ({ label, value, icon: Icon, colorClass, gradientClass, subText, onClick }: any) => (
     <div
       onClick={onClick}
@@ -87,39 +99,50 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-        <KPICard
-          label="Receita Aprovada"
-          value={`R$ ${kpi.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={Wallet}
-          colorClass="bg-emerald-50 text-emerald-600"
-          gradientClass="bg-gradient-to-r from-emerald-400 to-teal-500"
-          onClick={() => setView('finance')}
-        />
-        <KPICard
-          label="Solicitações Pendentes"
-          value={kpi.pendingOrders}
-          icon={AlertCircle}
-          colorClass="bg-amber-50 text-amber-600"
-          gradientClass="bg-gradient-to-r from-amber-400 to-orange-500"
-          subText="Ação Necessária"
-          onClick={() => setView('orders')}
-        />
-        <KPICard
-          label="Embarcações em Serviço"
-          value={kpi.activeOrders}
-          icon={Wrench}
-          colorClass="bg-blue-50 text-blue-600"
-          gradientClass="bg-gradient-to-r from-blue-400 to-cyan-500"
-          onClick={() => setView('orders')}
-        />
-        <KPICard
-          label="Alerta de Estoque"
-          value={kpi.lowStock}
-          icon={Package}
-          colorClass="bg-red-50 text-red-600"
-          gradientClass="bg-gradient-to-r from-red-400 to-rose-500"
-          onClick={() => setView('inventory')}
-        />
+        {loading && orders.length === 0 ? (
+          <>
+            <SkeletonKPI />
+            <SkeletonKPI />
+            <SkeletonKPI />
+            <SkeletonKPI />
+          </>
+        ) : (
+          <>
+            <KPICard
+              label="Receita Aprovada"
+              value={`R$ ${kpi.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+              icon={Wallet}
+              colorClass="bg-emerald-50 text-emerald-600"
+              gradientClass="bg-gradient-to-r from-emerald-400 to-teal-500"
+              onClick={() => setView('finance')}
+            />
+            <KPICard
+              label="Solicitações Pendentes"
+              value={kpi.pendingOrders}
+              icon={AlertCircle}
+              colorClass="bg-amber-50 text-amber-600"
+              gradientClass="bg-gradient-to-r from-amber-400 to-orange-500"
+              subText="Ação Necessária"
+              onClick={() => setView('orders')}
+            />
+            <KPICard
+              label="Embarcações em Serviço"
+              value={kpi.activeOrders}
+              icon={Wrench}
+              colorClass="bg-blue-50 text-blue-600"
+              gradientClass="bg-gradient-to-r from-blue-400 to-cyan-500"
+              onClick={() => setView('orders')}
+            />
+            <KPICard
+              label="Alerta de Estoque"
+              value={kpi.lowStock}
+              icon={Package}
+              colorClass="bg-red-50 text-red-600"
+              gradientClass="bg-gradient-to-r from-red-400 to-rose-500"
+              onClick={() => setView('inventory')}
+            />
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
@@ -149,7 +172,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
         <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[420px]">
           <h3 className="font-bold text-slate-800 text-lg mb-4">Últimas Atualizações</h3>
           <div className="flex-1 overflow-y-auto pr-2 space-y-4 scrollbar-thin">
-            {orders.slice(0, 10).map(order => (
+            {loading && orders.length === 0 ? (
+              Array(6).fill(0).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 p-3 animate-pulse">
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-200 animate-skeleton" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/4 bg-slate-200 rounded animate-skeleton" />
+                    <div className="h-3 w-1/2 bg-slate-100 rounded animate-skeleton" />
+                  </div>
+                </div>
+              ))
+            ) : orders.length === 0 ? (
+              <p className="text-center text-slate-400 py-8 text-sm">Nenhuma atualização.</p>
+            ) : orders.slice(0, 10).map(order => (
               <div
                 key={order.id}
                 onClick={() => setView('orders')}

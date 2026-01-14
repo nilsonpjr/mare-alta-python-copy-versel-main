@@ -71,6 +71,7 @@ export const FinanceView: React.FC = () => {
 
       await ApiService.createTransaction(transactionToCreate);
       setIsModalOpen(false);
+      setDisplayAmount('');
       setNewTransaction({
         type: 'EXPENSE',
         date: new Date().toISOString().split('T')[0],
@@ -90,14 +91,46 @@ export const FinanceView: React.FC = () => {
     t.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading && transactions.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 p-8">
-        <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-        <p className="text-slate-500">Carregando dados financeiros...</p>
+  const formatCurrencyInput = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const amount = Number(digits) / 100;
+    return amount.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      style: 'currency',
+      currency: 'BRL'
+    });
+  };
+
+  const [displayAmount, setDisplayAmount] = useState('');
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    const digits = rawValue.replace(/\D/g, '');
+    const amount = Number(digits) / 100;
+    setNewTransaction({ ...newTransaction, amount });
+    setDisplayAmount(formatCurrencyInput(digits));
+  };
+
+  const SkeletonCard = () => (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-9 h-9 rounded-lg animate-skeleton" />
+        <div className="h-4 w-24 rounded animate-skeleton" />
       </div>
-    );
-  }
+      <div className="h-8 w-40 rounded animate-skeleton" />
+    </div>
+  );
+
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4"><div className="h-4 w-20 rounded animate-skeleton" /></td>
+      <td className="px-6 py-4"><div className="h-4 w-full rounded animate-skeleton" /></td>
+      <td className="px-6 py-4"><div className="h-4 w-32 rounded animate-skeleton" /></td>
+      <td className="px-6 py-4"><div className="h-6 w-16 mx-auto rounded-full animate-skeleton" /></td>
+      <td className="px-6 py-4 text-right"><div className="h-4 w-24 ml-auto rounded animate-skeleton" /></td>
+      <td className="px-6 py-4"><div className="h-4 w-16 mx-auto rounded animate-skeleton" /></td>
+    </tr>
+  );
 
   return (
     <div className="p-8">
@@ -116,44 +149,54 @@ export const FinanceView: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <TrendingUp className="w-16 h-16 text-emerald-600" />
-          </div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-              <ArrowUpRight className="w-5 h-5" />
+        {loading && transactions.length === 0 ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          <>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <TrendingUp className="w-16 h-16 text-emerald-600" />
+              </div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                  <ArrowUpRight className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-bold text-slate-500 uppercase">Receitas Totais</span>
+              </div>
+              <p className="text-3xl font-bold text-slate-800">R$ {kpi.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             </div>
-            <span className="text-sm font-bold text-slate-500 uppercase">Receitas Totais</span>
-          </div>
-          <p className="text-3xl font-bold text-slate-800">R$ {kpi.income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-        </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <TrendingDown className="w-16 h-16 text-red-600" />
-          </div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-red-100 text-red-600 rounded-lg">
-              <ArrowDownRight className="w-5 h-5" />
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <TrendingDown className="w-16 h-16 text-red-600" />
+              </div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+                  <ArrowDownRight className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-bold text-slate-500 uppercase">Despesas Totais</span>
+              </div>
+              <p className="text-3xl font-bold text-slate-800">R$ {kpi.expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             </div>
-            <span className="text-sm font-bold text-slate-500 uppercase">Despesas Totais</span>
-          </div>
-          <p className="text-3xl font-bold text-slate-800">R$ {kpi.expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-        </div>
 
-        <div className={`p-6 rounded-xl shadow-sm border relative overflow-hidden ${kpi.balance >= 0 ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white border-transparent' : 'bg-white border-slate-200 text-red-600'}`}>
-          <div className="absolute top-0 right-0 p-4 opacity-20">
-            <DollarSign className="w-16 h-16 text-white" />
-          </div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${kpi.balance >= 0 ? 'bg-white/20' : 'bg-red-100'}`}>
-              <DollarSign className={`w-5 h-5 ${kpi.balance >= 0 ? 'text-white' : 'text-red-600'}`} />
+            <div className={`p-6 rounded-xl shadow-sm border relative overflow-hidden ${kpi.balance >= 0 ? 'bg-gradient-to-br from-cyan-600 to-blue-700 text-white border-transparent' : 'bg-white border-slate-200 text-red-600'}`}>
+              <div className="absolute top-0 right-0 p-4 opacity-20">
+                <DollarSign className="w-16 h-16 text-white" />
+              </div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`p-2 rounded-lg ${kpi.balance >= 0 ? 'bg-white/20' : 'bg-red-100'}`}>
+                  <DollarSign className={`w-5 h-5 ${kpi.balance >= 0 ? 'text-white' : 'text-red-600'}`} />
+                </div>
+                <span className={`text-sm font-bold uppercase ${kpi.balance >= 0 ? 'text-cyan-100' : 'text-slate-500'}`}>Saldo Líquido</span>
+              </div>
+              <p className="text-3xl font-bold">R$ {kpi.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             </div>
-            <span className={`text-sm font-bold uppercase ${kpi.balance >= 0 ? 'text-cyan-100' : 'text-slate-500'}`}>Saldo Líquido</span>
-          </div>
-          <p className="text-3xl font-bold">R$ {kpi.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-        </div>
+          </>
+        )}
       </div>
 
       {/* Transaction List */}
@@ -184,10 +227,18 @@ export const FinanceView: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredTransactions.length === 0 ? (
+            {loading && transactions.length === 0 ? (
+              <>
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </>
+            ) : filteredTransactions.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
-                  {loading ? 'Carregando...' : 'Nenhum lançamento encontrado.'}
+                  Nenhum lançamento encontrado.
                 </td>
               </tr>
             ) : filteredTransactions.map((t) => (
@@ -296,11 +347,11 @@ export const FinanceView: React.FC = () => {
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">Valor (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  className="w-full p-2 border rounded bg-white text-slate-900"
-                  value={newTransaction.amount || ''}
-                  onChange={e => setNewTransaction({ ...newTransaction, amount: Number(e.target.value) })}
+                  type="text"
+                  className="w-full p-2 border rounded bg-white text-slate-900 font-bold text-lg"
+                  placeholder="R$ 0,00"
+                  value={displayAmount}
+                  onChange={handleAmountChange}
                 />
               </div>
 

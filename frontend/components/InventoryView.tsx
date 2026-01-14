@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { SystemTour } from './SystemTour';
+import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '../utils/formatters';
 
 // Declaration for the external library loaded via script tag/importmap
 declare const Html5QrcodeScanner: any;
@@ -15,6 +16,7 @@ export const InventoryView: React.FC = () => {
     const [parts, setParts] = useState<Part[]>([]);
     const [movements, setMovements] = useState<StockMovement[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [loading, setLoading] = useState(true);
 
     // Tabs: 'overview', 'entry', 'count', 'kardex'
     const [activeTab, setActiveTab] = useState('overview');
@@ -104,6 +106,7 @@ export const InventoryView: React.FC = () => {
     }, [isCameraOpen]);
 
     const loadData = async () => {
+        setLoading(true);
         try {
             const [partsData, movementsData] = await Promise.all([
                 ApiService.getParts(),
@@ -114,8 +117,27 @@ export const InventoryView: React.FC = () => {
             setInvoices([]); // Backend Invoice entity not yet implemented
         } catch (error) {
             console.error("Erro ao carregar dados do estoque:", error);
+        } finally {
+            setLoading(false);
         }
     };
+
+    const SkeletonRow = () => (
+        <tr className="animate-pulse">
+            <td className="px-6 py-4"><div className="h-4 w-4 bg-slate-200 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4">
+                <div className="h-4 w-24 bg-slate-200 rounded animate-skeleton mb-1" />
+                <div className="h-3 w-16 bg-slate-100 rounded animate-skeleton" />
+            </td>
+            <td className="px-6 py-4"><div className="h-4 w-full bg-slate-200 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-20 bg-slate-200 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4 text-center"><div className="h-4 w-10 mx-auto bg-slate-200 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4 text-right"><div className="h-4 w-16 ml-auto bg-slate-200 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4 text-right"><div className="h-4 w-16 ml-auto bg-slate-200 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-6 w-16 mx-auto bg-slate-200 rounded-full animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-20 mx-auto bg-slate-200 rounded animate-skeleton" /></td>
+        </tr>
+    );
 
     // --- XML PARSER LOGIC ---
     const handleXmlUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -743,60 +765,76 @@ export const InventoryView: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {filteredParts.map((part) => (
-                                        <tr key={part.id} className={`hover:bg-slate-50 transition-colors ${selectedPartIds.includes(part.id) ? 'bg-indigo-50 hover:bg-indigo-100' : ''}`}>
-                                            <td className="px-6 py-4">
-                                                <input
-                                                    type="checkbox"
-                                                    className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer w-4 h-4"
-                                                    checked={selectedPartIds.includes(part.id)}
-                                                    onChange={() => toggleSelectPart(part.id)}
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4 font-mono text-slate-500 text-xs">
-                                                <div className="flex items-center gap-2">
-                                                    {part.sku}
-                                                    {updateStatus[part.id] === 'loading' && <RefreshCw className="w-3 h-3 animate-spin text-blue-500" />}
-                                                    {updateStatus[part.id] === 'success' && <span title="Preço atualizado com sucesso!"><CheckCircle className="w-3 h-3 text-green-500" /></span>}
-                                                    {updateStatus[part.id] === 'error' && <span title="Falha ao atualizar preço"><X className="w-3 h-3 text-red-500" /></span>}
-                                                </div>
-                                                {part.barcode && <div className="text-[10px] flex items-center gap-1"><Barcode className="w-3 h-3" /> {part.barcode}</div>}
-                                            </td>
-                                            <td className="px-6 py-4 font-medium text-slate-900">{part.name}</td>
-                                            <td className="px-6 py-4 text-slate-600 text-xs">{part.location || '-'}</td>
-                                            <td className="px-6 py-4 text-center font-bold">{part.quantity}</td>
-                                            <td className="px-6 py-4 text-right text-slate-500">R$ {part.cost.toFixed(2)}</td>
-                                            <td className="px-6 py-4 text-right font-medium text-slate-900">R$ {part.price.toFixed(2)}</td>
-                                            <td className="px-6 py-4 text-center">
-                                                {part.quantity <= part.minStock ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium">
-                                                        <AlertTriangle className="w-3 h-3" /> Baixo
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
-                                                        Normal
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <button
-                                                        onClick={() => handleEditPart(part)}
-                                                        className="text-blue-600 hover:text-blue-800 font-medium text-xs"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeletePart(part.id)}
-                                                        className="text-slate-400 hover:text-red-600 transition-colors"
-                                                        title="Apagar"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
+                                    {loading && parts.length === 0 ? (
+                                        <>
+                                            <SkeletonRow />
+                                            <SkeletonRow />
+                                            <SkeletonRow />
+                                            <SkeletonRow />
+                                            <SkeletonRow />
+                                        </>
+                                    ) : filteredParts.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={9} className="px-6 py-12 text-center text-slate-400">
+                                                Nenhum item encontrado no estoque.
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        filteredParts.map((part) => (
+                                            <tr key={part.id} className={`hover:bg-slate-50 transition-colors ${selectedPartIds.includes(part.id) ? 'bg-indigo-50 hover:bg-indigo-100' : ''}`}>
+                                                <td className="px-6 py-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer w-4 h-4"
+                                                        checked={selectedPartIds.includes(part.id)}
+                                                        onChange={() => toggleSelectPart(part.id)}
+                                                    />
+                                                </td>
+                                                <td className="px-6 py-4 font-mono text-slate-500 text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        {part.sku}
+                                                        {updateStatus[part.id] === 'loading' && <RefreshCw className="w-3 h-3 animate-spin text-blue-500" />}
+                                                        {updateStatus[part.id] === 'success' && <span title="Preço atualizado com sucesso!"><CheckCircle className="w-3 h-3 text-green-500" /></span>}
+                                                        {updateStatus[part.id] === 'error' && <span title="Falha ao atualizar preço"><X className="w-3 h-3 text-red-500" /></span>}
+                                                    </div>
+                                                    {part.barcode && <div className="text-[10px] flex items-center gap-1"><Barcode className="w-3 h-3" /> {part.barcode}</div>}
+                                                </td>
+                                                <td className="px-6 py-4 font-medium text-slate-900">{part.name}</td>
+                                                <td className="px-6 py-4 text-slate-600 text-xs">{part.location || '-'}</td>
+                                                <td className="px-6 py-4 text-center font-bold">{part.quantity}</td>
+                                                <td className="px-6 py-4 text-right text-slate-500">R$ {part.cost.toFixed(2)}</td>
+                                                <td className="px-6 py-4 text-right font-medium text-slate-900">R$ {part.price.toFixed(2)}</td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {part.quantity <= part.minStock ? (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium">
+                                                            <AlertTriangle className="w-3 h-3" /> Baixo
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+                                                            Normal
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <div className="flex justify-center gap-2">
+                                                        <button
+                                                            onClick={() => handleEditPart(part)}
+                                                            className="text-blue-600 hover:text-blue-800 font-medium text-xs"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeletePart(part.id)}
+                                                            className="text-slate-400 hover:text-red-600 transition-colors"
+                                                            title="Apagar"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -1193,19 +1231,21 @@ export const InventoryView: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Preço Custo</label>
                                     <input
-                                        type="number"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.cost || ''}
-                                        onChange={e => setNewPart({ ...newPart, cost: Number(e.target.value) })}
+                                        type="text"
+                                        className="w-full p-2 border rounded bg-white text-slate-900 font-bold"
+                                        placeholder="R$ 0,00"
+                                        value={formatCurrencyInput(newPart.cost || 0)}
+                                        onChange={e => setNewPart({ ...newPart, cost: parseCurrencyInput(e.target.value) })}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-700 mb-1">Preço Venda</label>
                                     <input
-                                        type="number"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.price || ''}
-                                        onChange={e => setNewPart({ ...newPart, price: Number(e.target.value) })}
+                                        type="text"
+                                        className="w-full p-2 border rounded bg-white text-slate-900 font-bold text-cyan-600"
+                                        placeholder="R$ 0,00"
+                                        value={formatCurrencyInput(newPart.price || 0)}
+                                        onChange={e => setNewPart({ ...newPart, price: parseCurrencyInput(e.target.value) })}
                                     />
                                 </div>
                                 <div>
@@ -1368,24 +1408,19 @@ export const InventoryView: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Custo (R$)</label>
                                 <input
-                                    type="number"
-                                    step="0.01"
-                                    className="w-full p-2 border rounded bg-white text-slate-900"
-                                    value={editingPart.cost}
-                                    onChange={e => {
-                                        const newCost = parseFloat(e.target.value) || 0;
-                                        setEditingPart({ ...editingPart, cost: newCost });
-                                    }}
+                                    type="text"
+                                    className="w-full p-2 border rounded bg-white text-slate-900 font-bold"
+                                    value={formatCurrencyInput(editingPart.cost)}
+                                    onChange={e => setEditingPart({ ...editingPart, cost: parseCurrencyInput(e.target.value) })}
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Preço Venda (R$)</label>
                                 <input
-                                    type="number"
-                                    step="0.01"
-                                    className="w-full p-2 border rounded bg-white text-slate-900"
-                                    value={editingPart.price}
-                                    onChange={e => setEditingPart({ ...editingPart, price: parseFloat(e.target.value) || 0 })}
+                                    type="text"
+                                    className="w-full p-2 border rounded bg-white text-slate-900 font-bold text-cyan-600"
+                                    value={formatCurrencyInput(editingPart.price)}
+                                    onChange={e => setEditingPart({ ...editingPart, price: parseCurrencyInput(e.target.value) })}
                                 />
                             </div>
                             <div className="col-span-2 bg-blue-50 p-3 rounded text-sm text-blue-800">

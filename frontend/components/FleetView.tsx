@@ -46,14 +46,29 @@ export const FleetView: React.FC = () => {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12">
-        <Loader2 className="w-10 h-10 text-cyan-600 animate-spin mb-4" />
-        <p className="text-slate-500">Localizando embarcações...</p>
+  const SkeletonCard = () => (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col animate-pulse">
+      <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
+        <div className="space-y-2">
+          <div className="h-5 w-32 bg-slate-200 rounded animate-skeleton" />
+          <div className="h-4 w-48 bg-slate-100 rounded animate-skeleton" />
+        </div>
+        <div className="w-10 h-10 bg-blue-50 rounded-full animate-skeleton" />
       </div>
-    );
-  }
+      <div className="p-4 space-y-4">
+        <div className="h-8 w-full bg-slate-100 rounded animate-skeleton" />
+        <div className="h-4 w-24 bg-slate-200 rounded animate-skeleton" />
+        <div className="space-y-3">
+          <div className="h-12 w-full bg-slate-50 border border-slate-100 rounded-lg animate-skeleton" />
+          <div className="h-12 w-full bg-slate-50 border border-slate-100 rounded-lg animate-skeleton" />
+        </div>
+        <div className="flex gap-2 pt-4">
+          <div className="h-10 flex-1 bg-slate-50 rounded animate-skeleton" />
+          <div className="h-10 flex-1 bg-slate-50 rounded animate-skeleton" />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="p-8">
@@ -63,60 +78,69 @@ export const FleetView: React.FC = () => {
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {boats.map(boat => (
-          <div key={boat.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-            <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-lg text-slate-800">{boat.name}</h3>
-                <p className="text-sm text-slate-500 font-mono">{boat.hullId} • {boat.model}</p>
+        {loading && boats.length === 0 ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          boats.map(boat => (
+            <div key={boat.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+              <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-800">{boat.name}</h3>
+                  <p className="text-sm text-slate-500 font-mono">{boat.hullId} • {boat.model}</p>
+                </div>
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700">
+                  <Ship className="w-5 h-5 animate-float" />
+                </div>
               </div>
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700">
-                <Ship className="w-5 h-5 animate-float" />
+
+              <div className="p-4 flex-1 flex flex-col">
+                <div className="mb-4 text-xs bg-slate-100 p-2 rounded text-slate-600">
+                  Proprietário: <span className="font-bold">{getClientName(boat.clientId)}</span>
+                </div>
+
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Motorização</h4>
+                <div className="space-y-3 flex-1">
+                  {boat.engines.length === 0 && <p className="text-sm text-slate-400">Nenhum motor cadastrado.</p>}
+                  {boat.engines.slice(0, 2).map(engine => (
+                    <div key={engine.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div>
+                        <p className="font-medium text-slate-800">{engine.model}</p>
+                        <p className="text-xs text-slate-500">S/N: {engine.serialNumber}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-slate-700">{engine.hours} hrs</p>
+                        <p className="text-xs text-slate-400">Ano {engine.year}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {boat.engines.length > 2 && (
+                    <p className="text-xs text-center text-slate-400 italic">+ {boat.engines.length - 2} motores...</p>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
+                  <button
+                    onClick={() => setHistoryBoat(boat)}
+                    className="flex-1 py-2 text-sm text-cyan-700 bg-cyan-50 hover:bg-cyan-100 rounded font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <History className="w-4 h-4" /> Ver Histórico
+                  </button>
+                  <button
+                    onClick={() => setDetailsBoat(boat)}
+                    className="flex-1 py-2 text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" /> Detalhes Técnicos
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div className="p-4 flex-1 flex flex-col">
-              <div className="mb-4 text-xs bg-slate-100 p-2 rounded text-slate-600">
-                Proprietário: <span className="font-bold">{getClientName(boat.clientId)}</span>
-              </div>
-
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Motorização</h4>
-              <div className="space-y-3 flex-1">
-                {boat.engines.length === 0 && <p className="text-sm text-slate-400">Nenhum motor cadastrado.</p>}
-                {boat.engines.slice(0, 2).map(engine => (
-                  <div key={engine.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <div>
-                      <p className="font-medium text-slate-800">{engine.model}</p>
-                      <p className="text-xs text-slate-500">S/N: {engine.serialNumber}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-slate-700">{engine.hours} hrs</p>
-                      <p className="text-xs text-slate-400">Ano {engine.year}</p>
-                    </div>
-                  </div>
-                ))}
-                {boat.engines.length > 2 && (
-                  <p className="text-xs text-center text-slate-400 italic">+ {boat.engines.length - 2} motores...</p>
-                )}
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
-                <button
-                  onClick={() => setHistoryBoat(boat)}
-                  className="flex-1 py-2 text-sm text-cyan-700 bg-cyan-50 hover:bg-cyan-100 rounded font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <History className="w-4 h-4" /> Ver Histórico
-                </button>
-                <button
-                  onClick={() => setDetailsBoat(boat)}
-                  className="flex-1 py-2 text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 rounded font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <Settings className="w-4 h-4" /> Detalhes Técnicos
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* --- HISTORY MODAL --- */}
@@ -149,8 +173,8 @@ export const FleetView: React.FC = () => {
                           </span>
                         </div>
                         <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${order.status === 'Concluído' ? 'bg-emerald-100 text-emerald-700' :
-                            order.status === 'Em Execução' ? 'bg-blue-100 text-blue-700' :
-                              order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                          order.status === 'Em Execução' ? 'bg-blue-100 text-blue-700' :
+                            order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
                           }`}>{order.status}</span>
                       </div>
                       <p className="text-sm text-slate-700 mb-3 bg-slate-50 p-2 rounded border border-slate-100">{order.description}</p>
