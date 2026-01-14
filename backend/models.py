@@ -141,6 +141,7 @@ class Tenant(Base):
     plan = Column(String(50), default="START") # Plano contratado (START, PRO, ENTERPRISE)
     is_active = Column(Boolean, default=True) # Se o tenant está ativo
     created_at = Column(DateTime, default=datetime.utcnow)
+    users = relationship("User", back_populates="tenant")
 
 class User(Base):
     """
@@ -157,8 +158,13 @@ class User(Base):
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True) # ID do cliente associado, se for um usuário cliente
     preferences = Column(JSON, default={}) # Preferencias de UI, flags de tutorial, etc.
     
-    # Relacionamento com a tabela Client. Um usuário pode estar associado a um cliente.
+    # Relacionamentos
     client = relationship("Client", back_populates="user")
+    tenant = relationship("Tenant", back_populates="users")
+
+    @property
+    def tenant_plan(self):
+        return self.tenant.plan if self.tenant else "START"
 
 class Client(Base):
     """

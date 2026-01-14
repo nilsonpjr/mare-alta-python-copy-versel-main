@@ -34,17 +34,17 @@ export const CRMView: React.FC = () => {
     const getClient = (id: number) => clients.find(c => c.id === id);
 
     const SkeletonItem = () => (
-        <div className="p-4 border border-slate-100 bg-slate-50/50 rounded-lg animate-pulse">
+        <div className="p-4 border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg animate-pulse">
             <div className="flex justify-between items-start mb-3">
                 <div className="space-y-2">
-                    <div className="h-4 w-32 bg-slate-200 rounded animate-skeleton" />
-                    <div className="h-3 w-48 bg-slate-100 rounded animate-skeleton" />
+                    <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-skeleton" />
+                    <div className="h-3 w-48 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" />
                 </div>
-                <div className="h-5 w-24 bg-slate-200 rounded animate-skeleton" />
+                <div className="h-5 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-skeleton" />
             </div>
             <div className="flex gap-4 mt-4">
-                <div className="h-3 w-24 bg-slate-100 rounded animate-skeleton" />
-                <div className="h-3 w-16 bg-slate-100 rounded animate-skeleton" />
+                <div className="h-3 w-24 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" />
+                <div className="h-3 w-16 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" />
             </div>
         </div>
     );
@@ -77,18 +77,18 @@ export const CRMView: React.FC = () => {
     }).filter(r => r.isDue); // Only show those due
 
     return (
-        <div className="p-8">
+        <div className="p-8 bg-slate-50 dark:bg-slate-900 min-h-full transition-colors">
             <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    <UserCheck className="w-6 h-6 text-cyan-600" />
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <UserCheck className="w-6 h-6 text-primary" />
                     CRM & Fidelização
                 </h2>
-                <p className="text-slate-500">Monitoramento de revisões preventivas e contato com clientes.</p>
+                <p className="text-slate-500 dark:text-slate-400">Monitoramento de revisões preventivas e contato com clientes.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                         <Bell className="w-5 h-5 text-red-500" />
                         Revisões Vencidas (Por Data)
                     </h3>
@@ -99,46 +99,50 @@ export const CRMView: React.FC = () => {
                                 <SkeletonItem />
                                 <SkeletonItem />
                             </>
-                        ) : maintenanceReminders.length === 0 ? (
-                            <p className="text-slate-400">Nenhum cliente com revisão atrasada.</p>
-                        ) : (
-                            maintenanceReminders.map((reminder, idx) => (
-                                <div key={idx} className="p-4 border border-red-100 bg-red-50 rounded-lg">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="font-bold text-slate-800">{reminder.boat.name}</h4>
-                                            <p className="text-sm text-slate-600">{reminder.client?.name}</p>
-                                        </div>
-                                        <span className="bg-red-200 text-red-800 text-xs font-bold px-2 py-1 rounded">
-                                            {reminder.daysOverdue} dias atrasado
+                        ) : null}
+                        {maintenanceReminders.length === 0 && !loading && <p className="text-slate-400 dark:text-slate-500 text-sm italic">Nenhuma revisão pendente no momento.</p>}
+                        {maintenanceReminders.map((reminder, idx) => (
+                            <div key={idx} className="p-4 border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-700/30 rounded-lg flex justify-between items-center group hover:border-primary transition-all">
+                                <div>
+                                    <h4 className="font-bold text-slate-800 dark:text-white">{reminder.boat.name}</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{reminder.client?.name} • {reminder.client?.phone}</p>
+                                    <div className="flex gap-4 mt-2">
+                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 uppercase font-bold">
+                                            <Calendar className="w-3 h-3" /> Venceu em {reminder.nextDate.toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <div className="mt-3 text-sm flex gap-4 text-slate-500">
-                                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Última: {reminder.lastDate.toLocaleDateString()}</span>
-                                        <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {reminder.hours} hrs</span>
-                                    </div>
-                                    <div className="mt-3 pt-3 border-t border-red-200 flex justify-end">
-                                        <a
-                                            href={`https://wa.me/55${reminder.client?.phone.replace(/\D/g, '')}`}
-                                            target="_blank"
-                                            className="flex items-center gap-2 text-green-700 font-bold text-sm hover:underline"
-                                        >
-                                            <Phone className="w-4 h-4" /> Contatar via WhatsApp
-                                        </a>
-                                    </div>
                                 </div>
-                            ))
-                        )}
+                                <div className="text-right">
+                                    <span className="text-xs font-bold text-red-600 dark:text-red-400 block">+ {reminder.daysOverdue} dias</span>
+                                    <button className="mt-2 text-[10px] font-bold uppercase bg-primary text-white px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Contatar
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h3 className="font-bold text-slate-700 mb-4">Campanhas de Marketing</h3>
-                    <div className="p-4 bg-slate-50 rounded-lg text-center border border-slate-200 border-dashed">
-                        <p className="text-slate-500 mb-2">Envie promoções de verão para toda a base.</p>
-                        <button className="bg-slate-800 text-white px-4 py-2 rounded text-sm hover:bg-slate-700">
-                            Criar Nova Campanha
-                        </button>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-primary" />
+                        Próximos Contatos (Fidelização)
+                    </h3>
+                    <div className="space-y-3">
+                        {boats.slice(0, 5).map((boat, idx) => (
+                            <div key={idx} className="p-3 border border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30 rounded-lg flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                        {boat.name.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-800 dark:text-white text-sm">{boat.name}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Última visita: 3 meses atrás</p>
+                                    </div>
+                                </div>
+                                <Phone className="w-4 h-4 text-slate-300 dark:text-slate-600 hover:text-primary cursor-pointer transition-colors" />
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

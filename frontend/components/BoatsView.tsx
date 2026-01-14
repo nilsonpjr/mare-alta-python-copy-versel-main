@@ -144,7 +144,7 @@ export const BoatsView: React.FC = () => {
     const handleDeleteBoat = async (id: number) => {
         if (confirm('Tem certeza que deseja excluir esta embarcação?')) {
             try {
-                await ApiService.deleteBoat(id.toString());
+                await ApiService.deleteBoat(id);
                 await loadData();
             } catch (error) {
                 console.error("Erro ao excluir embarcação:", error);
@@ -188,21 +188,21 @@ export const BoatsView: React.FC = () => {
         setMercurySearchResult(null); // Clear search result
     };
 
-    const removeEngine = (engineId: string) => {
+    const removeEngine = (engineId: number) => {
         setEditingBoat({
             ...editingBoat,
             engines: editingBoat.engines?.filter(e => e.id !== engineId)
         });
     };
 
-    const getClientName = (id: string) => {
+    const getClientName = (id: number) => {
         const client = clients.find(c => c.id === id);
         return client ? client.name : 'Desconhecido';
     };
 
-    const getMarinaName = (id?: string | number) => {
+    const getMarinaName = (id?: number) => {
         if (!id) return 'Oficina / Pátio Próprio';
-        const marina = marinas.find(m => m.id.toString() === id.toString());
+        const marina = marinas.find(m => m.id === id);
         return marina ? marina.name : 'Marina Desconhecida';
     };
 
@@ -253,25 +253,28 @@ export const BoatsView: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 bg-slate-50 dark:bg-slate-900 min-h-full transition-colors">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-2xl font-bold text-slate-800">Gestão de Embarcações</h2>
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <Anchor className="w-6 h-6 text-primary" />
+                    Frota de Embarcações
+                </h2>
                 <button
                     onClick={openNew}
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm w-full md:w-auto justify-center"
+                    className="bg-primary text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90 transition-all w-full md:w-auto justify-center font-bold text-sm"
                 >
-                    <Plus className="w-4 h-4" /> Nova Embarcação
+                    <Plus className="w-5 h-5" /> Nova Embarcação
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex gap-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                     <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
                             placeholder="Buscar por nome, inscrição ou proprietário..."
-                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-slate-900"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -280,7 +283,7 @@ export const BoatsView: React.FC = () => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm min-w-[800px]">
-                        <thead className="bg-slate-50 text-slate-600 uppercase text-xs font-semibold">
+                        <thead className="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100 dark:border-slate-700">
                             <tr>
                                 <th className="px-6 py-4">Embarcação (Nome)</th>
                                 <th className="px-6 py-4">Uso</th>
@@ -290,32 +293,32 @@ export const BoatsView: React.FC = () => {
                                 <th className="px-6 py-4 text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
                             {filteredBoats.map(boat => (
-                                <tr key={boat.id} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 font-medium text-slate-900">
-                                        <div className="text-base font-bold text-cyan-700">{boat.name}</div>
-                                        <div className="text-xs text-slate-500 font-normal">{boat.model} • {boat.hullId}</div>
+                                <tr key={boat.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="text-base font-bold text-primary">{boat.name}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{boat.model} • {boat.hullId}</div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                                        <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-600">
                                             {boat.usageType || 'LAZER'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-slate-600">
+                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
                                         <div className="flex items-center gap-2">
-                                            <MapPin className={`w-4 h-4 ${boat.marinaId ? 'text-blue-500' : 'text-orange-500'}`} />
+                                            <MapPin className={`w-4 h-4 ${boat.marinaId ? 'text-primary' : 'text-amber-500'}`} />
                                             {getMarinaName(boat.marinaId)}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-slate-700">
+                                    <td className="px-6 py-4 text-slate-700 dark:text-slate-200">
                                         <div className="flex items-center gap-2">
-                                            <UserCircle className="w-4 h-4 text-slate-400" />
+                                            <UserCircle className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                                             {getClientName(boat.clientId)}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">
+                                        <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-bold border border-primary/20">
                                             {boat.engines.length}
                                         </span>
                                     </td>
@@ -434,7 +437,7 @@ export const BoatsView: React.FC = () => {
                                     <select
                                         className="w-full p-2 border rounded bg-white text-slate-900"
                                         value={editingBoat.clientId || ''}
-                                        onChange={e => setEditingBoat({ ...editingBoat, clientId: e.target.value })}
+                                        onChange={e => setEditingBoat({ ...editingBoat, clientId: Number(e.target.value) })}
                                     >
                                         <option value="">Selecione um cliente...</option>
                                         {clients.map(c => (
@@ -450,7 +453,7 @@ export const BoatsView: React.FC = () => {
                                     <select
                                         className="w-full p-2 border rounded bg-white text-slate-900"
                                         value={editingBoat.marinaId || ''}
-                                        onChange={e => setEditingBoat({ ...editingBoat, marinaId: e.target.value })}
+                                        onChange={e => setEditingBoat({ ...editingBoat, marinaId: e.target.value ? Number(e.target.value) : undefined })}
                                     >
                                         <option value="">Oficina / Pátio Mare Alta</option>
                                         {marinas.map(m => (

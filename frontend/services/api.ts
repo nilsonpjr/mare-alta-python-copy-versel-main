@@ -18,7 +18,7 @@ import {
 // Define a URL base da API.
 // Em produção, usa o caminho relativo '/api' (assumindo que o frontend é servido pelo backend).
 // Em desenvolvimento, usa 'http://localhost:8000/api' para se conectar ao backend local.
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://mare-alta-python-copy-versel.onrender.com/api' : 'http://localhost:8000/api');
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api');
 
 // Cria uma instância do Axios com a URL base e cabeçalhos padrão.
 console.log('API_URL:', API_URL); // Debug: Check which API URL is being used
@@ -349,7 +349,7 @@ export const ApiService = {
      * Deleta uma embarcação.
      * @param id O ID da embarcação a ser deletada.
      */
-    deleteBoat: async (id: string) => {
+    deleteBoat: async (id: number) => {
         await api.delete(`/boats/${id}`);
     },
 
@@ -698,7 +698,7 @@ export const ApiService = {
     },
 
     // --- TECHNICAL DELIVERY ---
-    getTechnicalDelivery: async (orderId: string | number) => {
+    getTechnicalDelivery: async (orderId: number) => {
         try {
             const response = await api.get(`/orders/${orderId}/technical-delivery`);
             return response.data;
@@ -708,12 +708,12 @@ export const ApiService = {
 
     },
 
-    createTechnicalDelivery: async (orderId: string | number, data: any) => {
+    createTechnicalDelivery: async (orderId: number, data: any) => {
         const response = await api.post(`/orders/${orderId}/technical-delivery`, data);
         return response.data;
     },
 
-    updateTechnicalDelivery: async (orderId: string | number, data: any) => {
+    updateTechnicalDelivery: async (orderId: number, data: any) => {
         const response = await api.put(`/orders/${orderId}/technical-delivery`, data);
         return response.data;
     }

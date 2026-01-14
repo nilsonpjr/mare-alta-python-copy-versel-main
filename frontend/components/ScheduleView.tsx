@@ -18,9 +18,9 @@ const getPriorityColor = (p: Priority) => {
 
 const getStatusColor = (s: Status) => {
     switch (s) {
-        case Status.DONE: return 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100';
-        case Status.IN_PROGRESS: return 'bg-blue-50 border-blue-200 hover:bg-blue-100';
-        default: return 'bg-white border-gray-200 hover:border-blue-300';
+        case Status.DONE: return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30';
+        case Status.IN_PROGRESS: return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30';
+        default: return 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary';
     }
 }
 
@@ -91,23 +91,23 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             `}
             style={{
                 borderLeftWidth: '4px',
-                borderLeftColor: technician ? technician.color : (isPrimary ? '#0284c7' : '#7dd3fc')
+                borderLeftColor: technician ? technician.color : (isPrimary ? 'var(--primary)' : 'var(--primary-light, #7dd3fc)')
             }}
         >
             <div className="flex justify-between items-start mb-0.5">
                 <div className="flex items-center gap-1">
                     {isDone ? (
-                        <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1 rounded flex items-center border border-emerald-200 font-bold print:border-gray-300 print:text-black">
+                        <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1 rounded flex items-center border border-emerald-200 dark:border-emerald-800 font-bold print:border-gray-300 print:text-black">
                             {isPrintMode ? '(OK)' : <CheckCircle2 className="w-2 h-2 mr-1" />}
                             {!isPrintMode && 'Concluído'}
                         </span>
                     ) : isPrimary ? (
-                        <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1 rounded flex items-center border border-yellow-200 font-bold print:border-gray-300 print:text-black">
+                        <span className="text-[10px] bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 px-1 rounded flex items-center border border-yellow-200 dark:border-yellow-800 font-bold print:border-gray-300 print:text-black">
                             {isPrintMode ? '★' : <Star className="w-2 h-2 mr-1 fill-yellow-500" />}
                             {!isPrintMode && 'Principal'}
                         </span>
                     ) : (
-                        <span className="text-[10px] bg-gray-100 text-gray-600 px-1 rounded flex items-center border border-gray-200 print:border-gray-300 print:text-black">
+                        <span className="text-[10px] bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 px-1 rounded flex items-center border border-gray-200 dark:border-slate-600 print:border-gray-300 print:text-black">
                             {isPrintMode ? '↳' : <Link className="w-2 h-2 mr-1" />}
                             {!isPrintMode && 'Continuação'}
                         </span>
@@ -124,23 +124,23 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 )}
             </div>
 
-            <h4 className={`font-semibold leading-tight mb-1 truncate ${isDone ? 'text-emerald-900 line-through' : 'text-gray-800'} ${isPrintMode ? 'text-[10px]' : 'text-xs'}`}>
+            <h4 className={`font-semibold leading-tight mb-1 truncate ${isDone ? 'text-emerald-900 dark:text-emerald-400 line-through' : 'text-gray-800 dark:text-slate-100'} ${isPrintMode ? 'text-[10px]' : 'text-xs'}`}>
                 {service.serviceName}
             </h4>
 
             <div className="flex items-center justify-between mt-1">
-                <div className="flex items-center text-[10px] text-gray-500">
+                <div className="flex items-center text-[10px] text-gray-500 dark:text-slate-400">
                     {!isPrintMode && <MapPin className="w-3 h-3 mr-1" />}
-                    <span className="truncate max-w-[80px] print:max-w-none font-medium text-gray-900">{service.location}</span>
+                    <span className="truncate max-w-[80px] print:max-w-none font-medium text-gray-900 dark:text-slate-200">{service.location}</span>
                 </div>
                 {!isDone && !isPrintMode && (
                     <div className="flex gap-1">
                         {service.osStatusLabel && (
-                            <span className="text-[9px] uppercase font-bold px-1 py-0.5 rounded border bg-purple-50 text-purple-700 border-purple-200">
+                            <span className="text-[9px] uppercase font-bold px-1 py-0.5 rounded border bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800">
                                 {service.osStatusLabel}
                             </span>
                         )}
-                        <span className={`text-[9px] uppercase font-bold px-1 py-0.5 rounded border ${getPriorityColor(service.priority)}`}>
+                        <span className={`text-[9px] uppercase font-bold px-1 py-0.5 rounded border ${getPriorityColor(service.priority).replace('bg-red-50', 'bg-red-50 dark:bg-red-900/40').replace('text-red-700', 'text-red-700 dark:text-red-400').replace('border-red-200', 'border-red-200 dark:border-red-800').replace('bg-amber-50', 'bg-amber-50 dark:bg-amber-900/40').replace('text-amber-700', 'text-amber-700 dark:text-amber-400').replace('border-amber-200', 'border-amber-200 dark:border-amber-800').replace('bg-blue-50', 'bg-blue-50 dark:bg-blue-900/40').replace('text-blue-700', 'text-blue-700 dark:text-blue-400').replace('border-blue-200', 'border-blue-200 dark:border-blue-800')}`}>
                             {service.priority}
                         </span>
                     </div>
@@ -159,29 +159,29 @@ interface ServiceDetailsModalProps {
 
 const ServiceDetailsModal: React.FC<ServiceDetailsModalProps> = ({ service, onClose, onEdit, techs }) => {
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in print:hidden">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]">
-                <div className="p-5 border-b border-gray-100 flex justify-between items-start bg-gray-50/50">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in print:hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 dark:border-slate-700 flex flex-col max-h-[90vh]">
+                <div className="p-5 border-b border-gray-100 dark:border-slate-700 flex justify-between items-start bg-gray-50/50 dark:bg-slate-900/50">
                     <div>
-                        <h3 className="text-xl font-bold text-gray-900">{service.serviceName}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{service.serviceName}</h3>
                         <div className="flex items-center gap-2 mt-2">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${service.status === Status.DONE
-                                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                                ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                                 : service.status === Status.IN_PROGRESS
-                                    ? 'bg-blue-100 text-blue-800 border-blue-200'
-                                    : 'bg-amber-100 text-amber-800 border-amber-200'
+                                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                                    : 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800'
                                 }`}>
                                 {service.status}
                             </span>
                             {service.defaultTechnicianId && (
-                                <span className="text-xs text-gray-500 flex items-center">
+                                <span className="text-xs text-gray-500 dark:text-slate-400 flex items-center">
                                     <UserIcon className="w-3 h-3 mr-1" />
                                     {techs.find(t => t.id === service.defaultTechnicianId)?.name || 'Técnico'}
                                 </span>
                             )}
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full transition">
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -189,34 +189,34 @@ const ServiceDetailsModal: React.FC<ServiceDetailsModalProps> = ({ service, onCl
                 <div className="p-6 overflow-y-auto space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 mb-1 flex items-center"><MapPin className="w-3 h-3 mr-1" /> Local</span>
-                            <span className="font-medium text-gray-800">{service.location}</span>
+                            <span className="text-xs text-gray-500 dark:text-slate-400 mb-1 flex items-center"><MapPin className="w-3 h-3 mr-1" /> Local</span>
+                            <span className="font-medium text-gray-800 dark:text-slate-200">{service.location}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 mb-1 flex items-center"><Clock className="w-3 h-3 mr-1" /> Duração Estimada</span>
-                            <span className="font-medium text-gray-800">{service.timeEstimate}</span>
+                            <span className="text-xs text-gray-500 dark:text-slate-400 mb-1 flex items-center"><Clock className="w-3 h-3 mr-1" /> Duração Estimada</span>
+                            <span className="font-medium text-gray-800 dark:text-slate-200">{service.timeEstimate}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 mb-1 flex items-center"><Tag className="w-3 h-3 mr-1" /> Tipo</span>
-                            <span className="font-medium text-gray-800">{service.type}</span>
+                            <span className="text-xs text-gray-500 dark:text-slate-400 mb-1 flex items-center"><Tag className="w-3 h-3 mr-1" /> Tipo</span>
+                            <span className="font-medium text-gray-800 dark:text-slate-200">{service.type}</span>
                         </div>
                     </div>
 
                     <div className="pt-2">
-                        <span className="text-xs text-gray-500 mb-1 block">Modo de Execução</span>
-                        <span className="inline-block px-2 py-1 bg-gray-100 rounded text-sm text-gray-700">{service.execution}</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400 mb-1 block">Modo de Execução</span>
+                        <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-slate-900 rounded text-sm text-gray-700 dark:text-slate-300">{service.execution}</span>
                     </div>
 
-                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <span className="text-xs text-gray-500 mb-1 block font-medium">Observações</span>
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    <div className="bg-gray-50 dark:bg-slate-900/50 p-3 rounded-lg border border-gray-100 dark:border-slate-700">
+                        <span className="text-xs text-gray-500 dark:text-slate-400 mb-1 block font-medium">Observações</span>
+                        <p className="text-sm text-gray-700 dark:text-slate-300 whitespace-pre-wrap">
                             {service.observations || "Nenhuma observação registrada."}
                         </p>
                     </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 mt-auto">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition">
+                <div className="p-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-2 mt-auto">
+                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 transition">
                         Fechar
                     </button>
                     {/* Botão Editar desabilitado por enquanto no Modal, focar na funcionalidade de arrastar */}
@@ -396,17 +396,17 @@ export function ScheduleView() {
 
     const getPeriodIcon = (p: Period) => {
         switch (p) {
-            case Period.MORNING: return <Sun className="w-3 h-3 text-amber-500" />;
-            case Period.AFTERNOON: return <Sunset className="w-3 h-3 text-orange-500" />;
-            case Period.NIGHT: return <Moon className="w-3 h-3 text-indigo-400" />;
+            case Period.MORNING: return <Sun className="w-3 h-3 text-amber-500 dark:text-amber-400" />;
+            case Period.AFTERNOON: return <Sunset className="w-3 h-3 text-orange-500 dark:text-orange-400" />;
+            case Period.NIGHT: return <Moon className="w-3 h-3 text-indigo-400 dark:text-indigo-300" />;
         }
     }
 
     const getPeriodBg = (p: Period) => {
         switch (p) {
-            case Period.MORNING: return 'bg-amber-50/50';
-            case Period.AFTERNOON: return 'bg-orange-50/50';
-            case Period.NIGHT: return 'bg-indigo-50/50';
+            case Period.MORNING: return 'bg-amber-50/50 dark:bg-amber-900/10';
+            case Period.AFTERNOON: return 'bg-orange-50/50 dark:bg-orange-900/10';
+            case Period.NIGHT: return 'bg-indigo-50/50 dark:bg-indigo-900/10';
         }
     }
 
@@ -417,11 +417,11 @@ export function ScheduleView() {
     const currentTechName = techFilter === 'ALL' ? 'Geral' : techs.find(t => t.id === techFilter)?.name || 'Técnico';
 
     if (loading) {
-        return <div className="flex h-full items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+        return <div className="flex h-full items-center justify-center bg-slate-50 dark:bg-slate-900"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
     }
 
     return (
-        <div className="flex flex-col h-full space-y-4 relative w-full bg-white">
+        <div className="flex flex-col h-full space-y-4 relative w-full bg-slate-50 dark:bg-slate-900 transition-colors">
 
             {/* PRINT VIEW */}
             <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-4 text-sm">
@@ -449,24 +449,24 @@ export function ScheduleView() {
             )}
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex-shrink-0 gap-4 print:hidden">
+            <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 flex-shrink-0 gap-4 print:hidden">
                 <div className="flex items-center w-full md:w-auto">
-                    <Calendar className="mr-3 text-blue-600 h-6 w-6" />
+                    <Calendar className="mr-3 text-primary h-6 w-6" />
                     <div>
-                        <h2 className="text-xl font-bold text-gray-800">Linha do Tempo</h2>
-                        <p className="text-xs text-gray-500 hidden md:block">Gestão visual de serviços</p>
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Linha do Tempo</h2>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 hidden md:block">Gestão visual de serviços</p>
                     </div>
                 </div>
 
-                <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg p-1 w-full md:w-auto">
-                    <div className="px-2 text-gray-400"><Filter className="w-4 h-4" /></div>
+                <div className="flex items-center bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg p-1 w-full md:w-auto">
+                    <div className="px-2 text-gray-400 dark:text-slate-500"><Filter className="w-4 h-4" /></div>
                     <select
                         value={techFilter}
                         onChange={(e) => setTechFilter(e.target.value)}
-                        className="bg-transparent text-sm border-none focus:ring-0 text-gray-700 w-full"
+                        className="bg-transparent text-sm border-none focus:ring-0 text-gray-700 dark:text-slate-200 w-full"
                     >
                         <option value="ALL">Todos os Técnicos</option>
-                        {techs.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        {techs.map(t => <option key={t.id} value={t.id} className="dark:bg-slate-900">{t.name}</option>)}
                     </select>
                 </div>
 
@@ -502,19 +502,19 @@ export function ScheduleView() {
                     onDrop={(e) => handleDrop(e, undefined, undefined)}
                     className={`
                 fixed md:sticky md:static top-0 left-0 h-full z-40 
-                bg-gray-100 border-r border-gray-200 
+                bg-gray-100 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 
                 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl md:shadow-xl
                 w-64 md:w-[260px] md:min-w-[260px] md:rounded-xl md:border md:mb-4
                 ${isBacklogOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}
                 >
-                    <div className="p-3 border-b border-gray-200 bg-gray-200 md:rounded-t-xl flex justify-between items-center sticky top-0 z-10">
-                        <span className="font-bold text-gray-700 flex items-center text-sm">
-                            <AlertCircle className="w-4 h-4 mr-2" /> Ordens em Aberto
+                    <div className="p-3 border-b border-gray-200 dark:border-slate-700 bg-gray-200 dark:bg-slate-800 md:rounded-t-xl flex justify-between items-center sticky top-0 z-10">
+                        <span className="font-bold text-gray-700 dark:text-slate-200 flex items-center text-sm">
+                            <AlertCircle className="w-4 h-4 mr-2 text-primary" /> Ordens em Aberto
                         </span>
-                        <span className="bg-gray-300 text-gray-600 text-xs px-2 py-0.5 rounded-full">{backlog.length}</span>
+                        <span className="bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-slate-400 text-xs px-2 py-0.5 rounded-full">{backlog.length}</span>
                     </div>
-                    <div className="p-2 overflow-y-auto flex-1 bg-gray-100">
+                    <div className="p-2 overflow-y-auto flex-1 bg-gray-100 dark:bg-slate-900/50">
                         {backlog.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-center p-4">
                                 <ClipboardList className="w-8 h-8 mb-2 opacity-50" />
@@ -542,14 +542,14 @@ export function ScheduleView() {
                         return (
                             <div
                                 key={dateStr}
-                                className={`min-w-[280px] w-[280px] flex-shrink-0 rounded-xl flex flex-col border transition-colors h-full ${isToday ? 'bg-blue-50/30 border-blue-200 shadow-md ring-1 ring-blue-100' : 'bg-white border-gray-200'
+                                className={`min-w-[280px] w-[280px] flex-shrink-0 rounded-xl flex flex-col border transition-colors h-full ${isToday ? 'bg-primary/5 dark:bg-primary/10 border-primary shadow-md ring-1 ring-primary/10' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700'
                                     }`}
                             >
-                                <div className={`p-2 border-b rounded-t-xl text-center sticky top-0 z-10 ${isToday ? 'bg-blue-100 border-blue-200' : 'bg-white/95 backdrop-blur border-gray-200'}`}>
-                                    <span className={`block text-[10px] font-bold uppercase ${isToday ? 'text-blue-600' : 'text-gray-400'}`}>
+                                <div className={`p-2 border-b rounded-t-xl text-center sticky top-0 z-10 ${isToday ? 'bg-primary/10 dark:bg-primary/20 border-primary' : 'bg-white/95 dark:bg-slate-800/95 backdrop-blur border-gray-200 dark:border-slate-700'}`}>
+                                    <span className={`block text-[10px] font-bold uppercase ${isToday ? 'text-primary' : 'text-gray-400'}`}>
                                         {date.toLocaleDateString('pt-BR', { weekday: 'long' })}
                                     </span>
-                                    <span className={`text-sm font-bold ${isToday ? 'text-blue-800' : 'text-gray-700'}`}>
+                                    <span className={`text-sm font-bold ${isToday ? 'text-primary' : 'text-gray-700 dark:text-slate-200'}`}>
                                         {date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
                                     </span>
                                 </div>

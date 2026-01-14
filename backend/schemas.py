@@ -68,6 +68,7 @@ class User(UserBase):
     """
     id: int # ID único do usuário.
     tenant_id: int # ID do tenant.
+    tenant_plan: Optional[str] = "START" # NOVO: Plano do tenant para controle de features no frontend.
     preferences: Optional[dict] = {}
 
 class TenantSignup(CamelModel):

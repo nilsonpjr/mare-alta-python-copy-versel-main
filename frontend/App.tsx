@@ -177,7 +177,7 @@ function App() {
             onLogout={handleLogout}
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
-            tenantPlan="ENTERPRISE"
+            tenantPlan={currentUser.tenantPlan || 'START'}
           />
 
           {/* Mobile Overlay */}

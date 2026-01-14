@@ -3,7 +3,7 @@ import { Part, Invoice, InvoiceItem, StockMovement } from '../types';
 // import { StorageService } from '../services/storage';
 import {
     Plus, Search, AlertTriangle, ShoppingCart, UploadCloud, FileText,
-    Barcode, CheckCircle, Package, History, ArrowRight, Printer, Camera, X, RefreshCw, Trash2
+    Barcode, CheckCircle, Package, History, ArrowRight, Printer, Camera, X, RefreshCw, Trash2, Edit2
 } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { SystemTour } from './SystemTour';
@@ -123,19 +123,19 @@ export const InventoryView: React.FC = () => {
     };
 
     const SkeletonRow = () => (
-        <tr className="animate-pulse">
-            <td className="px-6 py-4"><div className="h-4 w-4 bg-slate-200 rounded animate-skeleton" /></td>
-            <td className="px-6 py-4">
-                <div className="h-4 w-24 bg-slate-200 rounded animate-skeleton mb-1" />
-                <div className="h-3 w-16 bg-slate-100 rounded animate-skeleton" />
+        <tr className="animate-pulse border-b border-slate-50 dark:border-slate-700/50">
+            <td className="px-6 py-4"><div className="h-4 w-4 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-24 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-48 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-16 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-20 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-20 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4"><div className="h-4 w-20 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" /></td>
+            <td className="px-6 py-4 flex justify-center gap-2">
+                <div className="h-8 w-8 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" />
+                <div className="h-8 w-8 bg-slate-100 dark:bg-slate-700 rounded animate-skeleton" />
             </td>
-            <td className="px-6 py-4"><div className="h-4 w-full bg-slate-200 rounded animate-skeleton" /></td>
-            <td className="px-6 py-4"><div className="h-4 w-20 bg-slate-200 rounded animate-skeleton" /></td>
-            <td className="px-6 py-4 text-center"><div className="h-4 w-10 mx-auto bg-slate-200 rounded animate-skeleton" /></td>
-            <td className="px-6 py-4 text-right"><div className="h-4 w-16 ml-auto bg-slate-200 rounded animate-skeleton" /></td>
-            <td className="px-6 py-4 text-right"><div className="h-4 w-16 ml-auto bg-slate-200 rounded animate-skeleton" /></td>
-            <td className="px-6 py-4"><div className="h-6 w-16 mx-auto bg-slate-200 rounded-full animate-skeleton" /></td>
-            <td className="px-6 py-4"><div className="h-4 w-20 mx-auto bg-slate-200 rounded animate-skeleton" /></td>
         </tr>
     );
 
@@ -615,39 +615,42 @@ export const InventoryView: React.FC = () => {
     const lowStockItems = parts.filter(p => p.quantity <= p.minStock);
 
     return (
-        <div className="p-4 md:p-8 h-full flex flex-col">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div className="p-8 bg-slate-50 dark:bg-slate-900 min-h-full transition-colors">
+            {/* Header Section */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <Package className="w-6 h-6 text-cyan-600" />
-                        Controle de Estoque & Logística
+                    <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 tracking-tight">
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <Package className="w-8 h-8 text-primary" />
+                        </div>
+                        GESTÃO DE ESTOQUE
                     </h2>
-                    <p className="text-sm text-slate-500">Gestão de peças, entradas de notas e inventário.</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium italic mt-1">Controle de peças, compras e movimentações de saída.</p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-3">
                     <button
                         onClick={() => setIsPurchaseModalOpen(true)}
-                        className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm font-medium border border-amber-200 text-sm"
+                        className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-5 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-200/20 dark:shadow-black/20 font-bold border border-amber-200 dark:border-amber-800 text-xs uppercase tracking-wider transition-all hover:scale-[1.02]"
                     >
                         <ShoppingCart className="w-4 h-4" /> Compras
-                        {lowStockItems.length > 0 && <span className="bg-red-500 text-white text-[10px] px-1.5 rounded-full">{lowStockItems.length}</span>}
+                        {lowStockItems.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">{lowStockItems.length}</span>}
                     </button>
                     <button
                         id="btn-add-part"
                         onClick={() => setIsPartModalOpen(true)}
-                        className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm"
+                        className="bg-primary hover:opacity-90 text-white px-5 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-primary/25 text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02]"
                     >
                         <Plus className="w-4 h-4" /> Novo Item
                     </button>
                     <button
                         onClick={() => setIsMercuryModalOpen(true)}
-                        className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm"
+                        className="bg-slate-800 dark:bg-slate-700 hover:opacity-90 text-white px-5 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-slate-200/20 dark:shadow-black/40 text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02]"
                     >
                         <RefreshCw className="w-4 h-4" /> Consulta Mercury
                     </button>
                     <button
-                        className={`text-slate-400 p-2 hover:bg-slate-100 rounded-lg ${isCameraOpen ? 'text-cyan-600 bg-cyan-50' : ''}`}
+                        className={`p-3 rounded-2xl transition-all shadow-md ${isCameraOpen ? 'bg-primary text-white scale-110 shadow-primary/30' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary'}`}
                         onClick={() => setIsCameraOpen(!isCameraOpen)}
                         title="Scanner Código de Barras"
                     >
@@ -656,20 +659,20 @@ export const InventoryView: React.FC = () => {
                     <button
                         onClick={handleUpdatePricesFromMercury}
                         disabled={isLoadingMercury || (selectedPartIds.length === 0 && filteredParts.length === 0)}
-                        className={`px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm font-bold transition-colors ${selectedPartIds.length > 0
-                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                            : 'bg-green-600 hover:bg-green-700 text-white'
+                        className={`px-6 py-3 rounded-2xl flex items-center gap-2 shadow-lg text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 ${selectedPartIds.length > 0
+                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200/50'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200/50 dark:shadow-black/20'
                             }`}
                         title="Atualizar preços em massa"
                     >
-                        <RefreshCw className="w-4 h-4" />
+                        <RefreshCw className={`w-4 h-4 ${isLoadingMercury ? 'animate-spin' : ''}`} />
                         {selectedPartIds.length > 0 ? `Atualizar Selecionados (${selectedPartIds.length})` : 'Atualizar Preços (Todos)'}
                     </button>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div id="inventory-tabs" className="flex border-b border-slate-200 mb-6 bg-white rounded-t-lg overflow-x-auto">
+            <div id="inventory-tabs" className="flex bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-700 mb-8 overflow-x-auto no-scrollbar gap-2 transition-all">
                 {[
                     { id: 'overview', label: 'Visão Geral', icon: Search },
                     { id: 'entry', label: 'Entrada de Nota (NFe)', icon: UploadCloud },
@@ -679,92 +682,89 @@ export const InventoryView: React.FC = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id ? 'border-cyan-500 text-cyan-700 bg-cyan-50' : 'border-transparent text-slate-500 hover:bg-slate-50'}`}
+                        className={`flex items-center gap-2.5 px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap ${activeTab === tab.id
+                            ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50'}`}
                     >
-                        <tab.icon className="w-4 h-4" /> {tab.label}
+                        <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-slate-400'}`} /> {tab.label}
                     </button>
                 ))}
             </div>
 
-            <div className="flex-1 bg-white rounded-b-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+            <div className="flex-1 bg-white dark:bg-slate-800 rounded-b-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col transition-all">
 
                 {/* --- TAB: OVERVIEW --- */}
                 {activeTab === 'overview' && (
-                    <div className="flex flex-col h-full">
-                        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 bg-slate-50 md:items-center">
-                            <div className="relative flex-1 max-w-md">
-                                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por nome, SKU ou Código de Barras..."
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-slate-900"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    autoFocus
-                                />
+                    <div className="bg-white dark:bg-slate-800 p-4 lg:p-6 rounded-xl flex flex-col gap-6">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div className="flex flex-col md:flex-row gap-3 flex-1">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Pesquisar por SKU, nome, código de barras ou compatibilidade..."
+                                        className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 font-medium transition-all"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+
+                                {/* Advanced Filters */}
+                                <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+                                    <select
+                                        className="px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 min-w-[140px] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                                        value={selectedGroup}
+                                        onChange={(e) => { setSelectedGroup(e.target.value); setSelectedSubgroup(''); }}
+                                    >
+                                        <option value="">Grupo (Todos)</option>
+                                        {availableGroups.map(g => <option key={g} value={g}>{g}</option>)}
+                                    </select>
+
+                                    <select
+                                        className="px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 min-w-[140px] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer disabled:opacity-30"
+                                        value={selectedSubgroup}
+                                        onChange={(e) => setSelectedSubgroup(e.target.value)}
+                                        disabled={!selectedGroup}
+                                    >
+                                        <option value="">Subgrupo</option>
+                                        {availableSubgroups.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+
+                                    <input
+                                        type="text"
+                                        placeholder="Compatibilidade (ex: V8)"
+                                        className="px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl text-[11px] font-bold bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 w-44 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                        value={compatibilitySearch}
+                                        onChange={(e) => setCompatibilitySearch(e.target.value)}
+                                    />
+                                </div>
                             </div>
-
-                            {/* Advanced Filters */}
-                            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-                                <select
-                                    className="p-2 border rounded-lg text-sm bg-white min-w-[120px]"
-                                    value={selectedGroup}
-                                    onChange={(e) => { setSelectedGroup(e.target.value); setSelectedSubgroup(''); }}
-                                >
-                                    <option value="">Grupo (Todos)</option>
-                                    {availableGroups.map(g => <option key={g} value={g}>{g}</option>)}
-                                </select>
-
-                                <select
-                                    className="p-2 border rounded-lg text-sm bg-white min-w-[120px]"
-                                    value={selectedSubgroup}
-                                    onChange={(e) => setSelectedSubgroup(e.target.value)}
-                                    disabled={!selectedGroup}
-                                >
-                                    <option value="">Subgrupo</option>
-                                    {availableSubgroups.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>
-
-                                <input
-                                    type="text"
-                                    placeholder="Compatibilidade (ex: V8)"
-                                    className="p-2 border rounded-lg text-sm bg-white w-40"
-                                    value={compatibilitySearch}
-                                    onChange={(e) => setCompatibilitySearch(e.target.value)}
-                                />
-                            </div>
-
-                            <button
-                                onClick={() => setIsCameraOpen(true)}
-                                className="bg-slate-200 hover:bg-slate-300 text-slate-700 p-2 rounded-lg"
-                                title="Ler Código de Barras (Câmera)"
-                            >
-                                <Camera className="w-5 h-5" />
-                            </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 text-slate-600 uppercase text-xs font-semibold sticky top-0 z-10">
+
+                        <div className="flex-1 overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-700">
+                            <table className="w-full text-left text-sm min-w-[1000px]">
+                                <thead className="bg-slate-50/80 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-black tracking-widest sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700 backdrop-blur-sm">
                                     <tr>
-                                        <th className="w-10 px-6 py-4">
+                                        <th className="w-10 px-8 py-5">
                                             <input
                                                 type="checkbox"
-                                                className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer w-4 h-4"
+                                                className="rounded-lg border-slate-300 dark:border-slate-600 text-primary focus:ring-primary/20 cursor-pointer w-5 h-5 bg-white dark:bg-slate-900 transition-all"
                                                 checked={filteredParts.length > 0 && selectedPartIds.length === filteredParts.length}
                                                 onChange={toggleSelectAll}
                                             />
                                         </th>
-                                        <th className="px-6 py-4">SKU / Barcode</th>
-                                        <th className="px-6 py-4">Descrição</th>
-                                        <th className="px-6 py-4">Local</th>
-                                        <th className="px-6 py-4 text-center">Estoque</th>
-                                        <th className="px-6 py-4 text-right">Custo Médio</th>
-                                        <th className="px-6 py-4 text-right">Venda</th>
-                                        <th className="px-6 py-4 text-center">Status</th>
-                                        <th className="px-6 py-4 text-center">Ações</th>
+                                        <th className="px-8 py-5">SKU / Identificação</th>
+                                        <th className="px-8 py-5">Descrição do Item</th>
+                                        <th className="px-8 py-5">Localização</th>
+                                        <th className="px-8 py-5 text-center">Saldo</th>
+                                        <th className="px-8 py-5 text-right">Custo Médio</th>
+                                        <th className="px-8 py-5 text-right">Preço Venda</th>
+                                        <th className="px-8 py-5 text-center">Status Estoque</th>
+                                        <th className="px-8 py-5 text-center">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
                                     {loading && parts.length === 0 ? (
                                         <>
                                             <SkeletonRow />
@@ -775,60 +775,75 @@ export const InventoryView: React.FC = () => {
                                         </>
                                     ) : filteredParts.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} className="px-6 py-12 text-center text-slate-400">
-                                                Nenhum item encontrado no estoque.
+                                            <td colSpan={9} className="px-8 py-20 text-center">
+                                                <Package className="w-12 h-12 text-slate-200 dark:text-slate-700 mx-auto mb-4" />
+                                                <p className="text-slate-400 dark:text-slate-500 font-medium italic">Nenhum item encontrado nesta categoria ou busca.</p>
                                             </td>
                                         </tr>
                                     ) : (
                                         filteredParts.map((part) => (
-                                            <tr key={part.id} className={`hover:bg-slate-50 transition-colors ${selectedPartIds.includes(part.id) ? 'bg-indigo-50 hover:bg-indigo-100' : ''}`}>
-                                                <td className="px-6 py-4">
+                                            <tr key={part.id} className={`hover:bg-slate-50/50 dark:hover:bg-primary/5 transition-colors group ${selectedPartIds.includes(part.id) ? 'bg-primary/5 dark:bg-primary/10' : ''}`}>
+                                                <td className="px-8 py-5">
                                                     <input
                                                         type="checkbox"
-                                                        className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer w-4 h-4"
+                                                        className="rounded-lg border-slate-300 dark:border-slate-600 text-primary focus:ring-primary/20 cursor-pointer w-5 h-5 bg-white dark:bg-slate-900 transition-all"
                                                         checked={selectedPartIds.includes(part.id)}
                                                         onChange={() => toggleSelectPart(part.id)}
                                                     />
                                                 </td>
-                                                <td className="px-6 py-4 font-mono text-slate-500 text-xs">
-                                                    <div className="flex items-center gap-2">
-                                                        {part.sku}
-                                                        {updateStatus[part.id] === 'loading' && <RefreshCw className="w-3 h-3 animate-spin text-blue-500" />}
-                                                        {updateStatus[part.id] === 'success' && <span title="Preço atualizado com sucesso!"><CheckCircle className="w-3 h-3 text-green-500" /></span>}
-                                                        {updateStatus[part.id] === 'error' && <span title="Falha ao atualizar preço"><X className="w-3 h-3 text-red-500" /></span>}
+                                                <td className="px-8 py-5">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2 font-mono text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                            {part.sku}
+                                                            {updateStatus[part.id] === 'loading' && <RefreshCw className="w-3 h-3 animate-spin text-primary" />}
+                                                            {updateStatus[part.id] === 'success' && <span title="Preço atualizado com sucesso!"><CheckCircle className="w-3 h-3 text-emerald-500" /></span>}
+                                                            {updateStatus[part.id] === 'error' && <span title="Falha ao atualizar preço"><X className="w-3 h-3 text-red-500" /></span>}
+                                                        </div>
+                                                        {part.barcode && <div className="text-[10px] text-slate-400 flex items-center gap-1 font-medium"><Barcode className="w-3 h-3" /> {part.barcode}</div>}
                                                     </div>
-                                                    {part.barcode && <div className="text-[10px] flex items-center gap-1"><Barcode className="w-3 h-3" /> {part.barcode}</div>}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium text-slate-900">{part.name}</td>
-                                                <td className="px-6 py-4 text-slate-600 text-xs">{part.location || '-'}</td>
-                                                <td className="px-6 py-4 text-center font-bold">{part.quantity}</td>
-                                                <td className="px-6 py-4 text-right text-slate-500">R$ {part.cost.toFixed(2)}</td>
-                                                <td className="px-6 py-4 text-right font-medium text-slate-900">R$ {part.price.toFixed(2)}</td>
-                                                <td className="px-6 py-4 text-center">
+                                                <td className="px-8 py-5">
+                                                    <span className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">{part.name}</span>
+                                                    {part.manufacturer && <div className="text-[10px] text-primary font-black uppercase tracking-tighter mt-0.5">{part.manufacturer}</div>}
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    <span className="text-slate-500 dark:text-slate-400 text-xs font-medium bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                                                        {part.location || '--'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5 text-center">
+                                                    <span className={`text-sm font-black ${part.quantity <= part.minStock ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                                                        {part.quantity}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5 text-right font-medium text-slate-500 dark:text-slate-400 italic">R$ {part.cost.toFixed(2)}</td>
+                                                <td className="px-8 py-5 text-right font-black text-slate-900 dark:text-slate-100">R$ {part.price.toFixed(2)}</td>
+                                                <td className="px-8 py-5 text-center">
                                                     {part.quantity <= part.minStock ? (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium">
-                                                            <AlertTriangle className="w-3 h-3" /> Baixo
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-black uppercase tracking-wider border border-red-200 dark:border-red-800 shadow-sm shadow-red-200/20">
+                                                            <AlertTriangle className="w-3 h-3" /> Reposição
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
-                                                            Normal
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800 shadow-sm shadow-emerald-200/20">
+                                                            <CheckCircle className="w-3 h-3" /> Adequado
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <div className="flex justify-center gap-2">
+                                                <td className="px-8 py-5 text-center">
+                                                    <div className="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
                                                             onClick={() => handleEditPart(part)}
-                                                            className="text-blue-600 hover:text-blue-800 font-medium text-xs"
+                                                            className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                                                            title="Editar Item"
                                                         >
-                                                            Editar
+                                                            <Edit2 className="w-4.5 h-4.5" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeletePart(part.id)}
-                                                            className="text-slate-400 hover:text-red-600 transition-colors"
-                                                            title="Apagar"
+                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                                                            title="Apagar permanentemente"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-4.5 h-4.5" />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -843,11 +858,13 @@ export const InventoryView: React.FC = () => {
 
                 {/* --- TAB: INVOICE ENTRY --- */}
                 {activeTab === 'entry' && (
-                    <div className="flex flex-col h-full p-6 overflow-y-auto">
-                        <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-8 text-center mb-6">
-                            <UploadCloud className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-                            <p className="text-slate-600 font-medium">Importar XML da Nota Fiscal</p>
-                            <p className="text-xs text-slate-400 mb-4">Arraste o arquivo ou clique para selecionar</p>
+                    <div className="flex flex-col h-full p-8 overflow-y-auto no-scrollbar gap-8">
+                        <div className="bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[2rem] p-12 text-center transition-all hover:border-primary/50 group">
+                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl w-fit mx-auto mb-4 shadow-xl shadow-slate-200/50 dark:shadow-black/20 group-hover:scale-110 transition-transform">
+                                <UploadCloud className="w-10 h-10 text-primary" />
+                            </div>
+                            <p className="text-slate-800 dark:text-white font-black text-lg tracking-tight">IMPORTAR XML DA NOTA FISCAL</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium italic mb-6">Arraste o arquivo ou utilize o seletor abaixo</p>
                             <input
                                 type="file"
                                 accept=".xml"
@@ -857,69 +874,81 @@ export const InventoryView: React.FC = () => {
                             />
                             <label
                                 htmlFor="xmlUpload"
-                                className="bg-cyan-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-cyan-700 text-sm font-medium"
+                                className="bg-primary text-white px-8 py-3.5 rounded-2xl cursor-pointer hover:opacity-90 transition-all font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/25 inline-flex items-center gap-2"
                             >
-                                Selecionar Arquivo XML
+                                <FileText className="w-5 h-5" />
+                                Escolher Arquivo XML
                             </label>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">Número da Nota</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Número da Nota</label>
                                 <input
-                                    className="w-full p-2 border rounded bg-white text-slate-900"
+                                    className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                     value={invoiceForm.number || ''}
                                     onChange={e => setInvoiceForm({ ...invoiceForm, number: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">Fornecedor</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Fornecedor / Emitente</label>
                                 <input
-                                    className="w-full p-2 border rounded bg-white text-slate-900"
+                                    className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                     value={invoiceForm.supplier || ''}
                                     onChange={e => setInvoiceForm({ ...invoiceForm, supplier: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">Data Emissão</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Data de Emissão</label>
                                 <input
                                     type="date"
-                                    className="w-full p-2 border rounded bg-white text-slate-900"
+                                    className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                     value={invoiceForm.date || ''}
                                     onChange={e => setInvoiceForm({ ...invoiceForm, date: e.target.value })}
                                 />
                             </div>
                         </div>
 
-                        <h3 className="font-bold text-slate-700 mb-2">Itens da Nota</h3>
-                        <div className="border rounded-lg overflow-hidden mb-6">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-100">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-widest uppercase flex items-center gap-2">
+                                <Package className="w-5 h-5 text-primary" />
+                                ITENS DETALHADOS DA NOTA
+                            </h3>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                {invoiceForm.items?.length || 0} Itens encontrados
+                            </div>
+                        </div>
+
+                        <div className="rounded-[2rem] border border-slate-100 dark:border-slate-700 overflow-hidden shadow-inner bg-slate-50/30 dark:bg-slate-900/10">
+                            <table className="w-full text-left text-sm min-w-[900px]">
+                                <thead className="bg-slate-100/50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-black tracking-widest">
                                     <tr>
-                                        <th className="p-3">Código (NF)</th>
-                                        <th className="p-3">Produto (Descrição na Nota)</th>
-                                        <th className="p-3 text-right">Qtd</th>
-                                        <th className="p-3 text-right">V. Unit</th>
-                                        <th className="p-3 text-right">Total</th>
-                                        <th className="p-3">Vincular ao Produto do Sistema</th>
+                                        <th className="px-6 py-4">Código (NF)</th>
+                                        <th className="px-6 py-4">Descrição do Produto</th>
+                                        <th className="px-6 py-4 text-center">Qtd</th>
+                                        <th className="px-6 py-4 text-right">V. Unit</th>
+                                        <th className="px-6 py-4 text-right">Subtotal</th>
+                                        <th className="px-6 py-4">Vinculação de Sistema</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                                     {invoiceForm.items?.map((item, idx) => (
-                                        <tr key={idx} className="border-b">
-                                            <td className="p-3 font-mono text-xs">{item.sku}</td>
-                                            <td className="p-3">{item.name}</td>
-                                            <td className="p-3 text-right">{item.quantity}</td>
-                                            <td className="p-3 text-right">R$ {item.unitCost.toFixed(2)}</td>
-                                            <td className="p-3 text-right font-bold">R$ {item.total.toFixed(2)}</td>
-                                            <td className="p-3">
+                                        <tr key={idx} className="hover:bg-white dark:hover:bg-slate-800 transition-colors">
+                                            <td className="px-6 py-4 font-mono text-xs font-bold text-slate-500 dark:text-slate-400">{item.sku}</td>
+                                            <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{item.name}</td>
+                                            <td className="px-6 py-4 text-center font-black text-primary">{item.quantity}</td>
+                                            <td className="px-6 py-4 text-right text-slate-500 dark:text-slate-400 italic">R$ {item.unitCost.toFixed(2)}</td>
+                                            <td className="px-6 py-4 text-right font-black text-slate-900 dark:text-white">R$ {item.total.toFixed(2)}</td>
+                                            <td className="px-6 py-4">
                                                 <select
-                                                    className={`w-full p-1.5 border rounded text-xs bg-white text-slate-900 ${!item.partId ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'}`}
+                                                    className={`w-full px-4 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-widest focus:outline-none transition-all cursor-pointer appearance-none ${!item.partId
+                                                        ? 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 text-red-600'
+                                                        : 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600'}`}
                                                     value={item.partId || ''}
                                                     onChange={(e) => linkItemToPart(idx, e.target.value)}
                                                 >
-                                                    <option value="">-- Selecione ou Cadastre --</option>
-                                                    <option value="NEW_ITEM" className="font-bold text-blue-600">➕ Cadastrar Novo Item</option>
+                                                    <option value="">NÃO VINCULADO</option>
+                                                    <option value="NEW_ITEM" className="font-black text-primary">✚ CADASTRAR NOVO</option>
                                                     {parts.map(p => (
                                                         <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
                                                     ))}
@@ -928,16 +957,25 @@ export const InventoryView: React.FC = () => {
                                         </tr>
                                     ))}
                                     {(!invoiceForm.items || invoiceForm.items.length === 0) && (
-                                        <tr><td colSpan={6} className="p-8 text-center text-slate-400">Nenhum item adicionado. Importe um XML ou adicione manualmente.</td></tr>
+                                        <tr><td colSpan={6} className="px-6 py-20 text-center text-slate-400 dark:text-slate-500 italic uppercase text-[10px] font-black tracking-[0.2em]">Nenhum item carregado. Importe um arquivo XML acima.</td></tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
 
-                        <div className="flex justify-end gap-3">
-                            <button onClick={() => setInvoiceForm({ items: [] })} className="px-4 py-2 text-slate-600 border rounded hover:bg-slate-50">Limpar</button>
-                            <button onClick={handleInvoiceSubmit} className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-bold shadow">
-                                Processar Entrada de Estoque
+                        <div className="flex justify-end gap-4 pb-8">
+                            <button
+                                onClick={() => setInvoiceForm({ items: [] })}
+                                className="px-8 py-3.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-black text-[10px] uppercase tracking-widest transition-all"
+                            >
+                                Limpar Tudo
+                            </button>
+                            <button
+                                onClick={handleInvoiceSubmit}
+                                className="px-10 py-3.5 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-200 dark:shadow-black/20 hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-2"
+                            >
+                                <CheckCircle className="w-5 h-5" />
+                                Processar e Atualizar Estoque
                             </button>
                         </div>
                     </div>
@@ -945,51 +983,59 @@ export const InventoryView: React.FC = () => {
 
                 {/* --- TAB: INVENTORY COUNT --- */}
                 {activeTab === 'count' && (
-                    <div className="flex flex-col h-full">
-                        <div className="p-4 bg-amber-50 border-b border-amber-100 text-amber-900 text-sm flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <AlertTriangle className="w-5 h-5" />
-                                <span>Modo Balanço: As alterações aqui ajustarão o estoque imediatamente.</span>
+                    <div className="flex flex-col h-full bg-white dark:bg-slate-800">
+                        <div className="p-6 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-800/50 flex justify-between items-center transition-colors">
+                            <div className="flex items-center gap-4 text-amber-800 dark:text-amber-400">
+                                <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-xl">
+                                    <AlertTriangle className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="font-black text-xs uppercase tracking-widest">Modo Balanço Ativo</p>
+                                    <p className="text-[11px] font-medium opacity-80 italic">As alterações salvas aqui ajustarão o saldo físico imediatamente no sistema.</p>
+                                </div>
                             </div>
                             <button
                                 onClick={handleInventoryFinish}
-                                className="bg-amber-600 text-white px-4 py-2 rounded font-bold hover:bg-amber-700"
+                                className="bg-amber-600 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-amber-200 dark:shadow-black/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
                             >
-                                Finalizar Balanço
+                                <CheckCircle className="w-4 h-4" />
+                                Finalizar e Ajustar Tudo
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 sticky top-0 z-10">
+                        <div className="flex-1 overflow-x-auto">
+                            <table className="w-full text-left text-sm min-w-[800px]">
+                                <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-black tracking-widest sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700 backdrop-blur-sm">
                                     <tr>
-                                        <th className="px-6 py-4">Produto</th>
-                                        <th className="px-6 py-4">Local</th>
-                                        <th className="px-6 py-4 text-center">Estoque Sistema</th>
-                                        <th className="px-6 py-4 text-center">Contagem Física</th>
-                                        <th className="px-6 py-4 text-center">Diferença</th>
+                                        <th className="px-8 py-5">Identificação do Item</th>
+                                        <th className="px-8 py-5">Localização</th>
+                                        <th className="px-8 py-5 text-center">Saldo Atual</th>
+                                        <th className="px-8 py-5 text-center">Contagem Real</th>
+                                        <th className="px-8 py-5 text-center">Divergência</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50 font-medium">
                                     {parts.map(part => {
                                         const counted = inventoryCounts[part.id] ?? part.quantity;
                                         const diff = counted - part.quantity;
                                         return (
-                                            <tr key={part.id} className={diff !== 0 ? 'bg-red-50' : ''}>
-                                                <td className="px-6 py-4">
-                                                    <div className="font-bold">{part.name}</div>
-                                                    <div className="text-xs text-slate-500 font-mono">{part.sku}</div>
+                                            <tr key={part.id} className={`transition-colors ${diff !== 0 ? 'bg-red-50/50 dark:bg-red-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-900/30'}`}>
+                                                <td className="px-8 py-5">
+                                                    <div className="font-bold text-slate-800 dark:text-slate-100">{part.name}</div>
+                                                    <div className="text-[10px] text-slate-400 font-mono font-bold">{part.sku}</div>
                                                 </td>
-                                                <td className="px-6 py-4 text-xs">{part.location}</td>
-                                                <td className="px-6 py-4 text-center font-medium text-slate-500">{part.quantity}</td>
-                                                <td className="px-6 py-4 text-center">
+                                                <td className="px-8 py-5">
+                                                    <span className="text-xs bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{part.location || '--'}</span>
+                                                </td>
+                                                <td className="px-8 py-5 text-center font-black text-slate-400">{part.quantity}</td>
+                                                <td className="px-8 py-5 text-center">
                                                     <input
                                                         type="number"
-                                                        className="w-20 p-1 border rounded text-center font-bold bg-white text-slate-900"
+                                                        className="w-24 px-4 py-2 border rounded-xl text-center font-black bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all border-slate-200 dark:border-slate-700"
                                                         value={counted}
                                                         onChange={(e) => setInventoryCounts({ ...inventoryCounts, [part.id]: Number(e.target.value) })}
                                                     />
                                                 </td>
-                                                <td className={`px-6 py-4 text-center font-bold ${diff < 0 ? 'text-red-600' : diff > 0 ? 'text-blue-600' : 'text-slate-300'}`}>
+                                                <td className={`px-8 py-5 text-center font-black text-sm tracking-tighter ${diff < 0 ? 'text-red-500' : diff > 0 ? 'text-indigo-500' : 'text-slate-200 dark:text-slate-700'}`}>
                                                     {diff > 0 ? '+' : ''}{diff}
                                                 </td>
                                             </tr>
@@ -1003,39 +1049,48 @@ export const InventoryView: React.FC = () => {
 
                 {/* --- TAB: KARDEX --- */}
                 {activeTab === 'kardex' && (
-                    <div className="flex flex-col h-full">
-                        <div className="flex-1 overflow-y-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 sticky top-0 z-10">
+                    <div className="flex flex-col h-full bg-white dark:bg-slate-800">
+                        <div className="flex-1 overflow-x-auto">
+                            <table className="w-full text-left text-sm min-w-[900px]">
+                                <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-black tracking-widest sticky top-0 z-10 border-b border-slate-100 dark:border-slate-700 backdrop-blur-sm">
                                     <tr>
-                                        <th className="px-6 py-4">Data/Hora</th>
-                                        <th className="px-6 py-4">Produto</th>
-                                        <th className="px-6 py-4">Tipo Movimento</th>
-                                        <th className="px-6 py-4">Histórico</th>
-                                        <th className="px-6 py-4 text-right">Qtd</th>
+                                        <th className="px-8 py-5">Data e Horário</th>
+                                        <th className="px-8 py-5">Item / Descrição</th>
+                                        <th className="px-8 py-5">Tipo de Movimentação</th>
+                                        <th className="px-8 py-5">Histórico / Observação</th>
+                                        <th className="px-8 py-5 text-right">Quantidade</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {movements.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-400">Nenhuma movimentação registrada.</td></tr>}
+                                <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                    {movements.length === 0 && <tr><td colSpan={5} className="px-8 py-32 text-center text-slate-300 dark:text-slate-600 font-black uppercase text-[10px] tracking-widest">Nenhuma movimentação registrada no sistema.</td></tr>}
                                     {[...movements].reverse().map(mov => { // Show newest first
                                         const part = parts.find(p => p.id === mov.partId);
+                                        const isPositive = mov.type.includes('IN') || mov.type === 'ADJUSTMENT_PLUS';
                                         return (
-                                            <tr key={mov.id}>
-                                                <td className="px-6 py-4 text-xs text-slate-500">
+                                            <tr key={mov.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                                                <td className="px-8 py-5 text-[11px] font-bold text-slate-400 dark:text-slate-500 italic">
                                                     {new Date(mov.date).toLocaleString('pt-BR')}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium">{part?.name || 'Item Excluído'}</td>
-                                                <td className="px-6 py-4 text-xs">
-                                                    <span className={`px-2 py-1 rounded-full font-bold ${mov.type.includes('IN') || mov.type === 'ADJUSTMENT_PLUS' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                                <td className="px-8 py-5">
+                                                    <div className="font-bold text-slate-800 dark:text-slate-100">{part?.name || 'Item Removido'}</div>
+                                                    <div className="text-[10px] text-primary font-black uppercase tracking-tighter">{part?.sku || '---'}</div>
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isPositive
+                                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800'
+                                                        : 'bg-red-50 dark:bg-red-900/20 text-red-600 border-red-100 dark:border-red-800'
                                                         }`}>
                                                         {mov.type === 'IN_INVOICE' ? 'ENTRADA (NF)' :
                                                             mov.type === 'OUT_OS' ? 'SAÍDA (OS)' :
                                                                 mov.type === 'ADJUSTMENT_PLUS' ? 'AJUSTE (+)' : 'AJUSTE (-)'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-500 text-xs">{mov.description} <span className="text-slate-400">({mov.user})</span></td>
-                                                <td className="px-6 py-4 text-right font-mono font-bold">
-                                                    {mov.type.includes('OUT') || mov.type.includes('MINUS') ? '-' : '+'}{mov.quantity}
+                                                <td className="px-8 py-5">
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium italic mb-0.5 line-clamp-1">"{mov.description}"</p>
+                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">RESPONSÁVEL: {mov.user}</div>
+                                                </td>
+                                                <td className={`px-8 py-5 text-right font-black text-base tracking-tighter ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                    {isPositive ? '+' : '-'}{mov.quantity}
                                                 </td>
                                             </tr>
                                         );
@@ -1051,400 +1106,506 @@ export const InventoryView: React.FC = () => {
             {/* --- MODALS --- */}
 
             {/* Camera/Barcode Modal */}
-            {
-                isCameraOpen && (
-                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center">
-                            <Camera className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                            <h3 className="font-bold text-lg mb-2">Ler Código de Barras</h3>
+            {isCameraOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl border border-slate-100 dark:border-slate-700">
+                        <div className="p-4 bg-primary/10 rounded-2xl w-fit mx-auto mb-6">
+                            <Camera className="w-12 h-12 text-primary" />
+                        </div>
+                        <h3 className="font-black text-slate-800 dark:text-white text-xl mb-2 uppercase tracking-tight">SCANNER ATIVO</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-8 italic">Posicione o código de barras no centro da área de leitura.</p>
 
-                            {/* HTML5 QR Code Render Area */}
-                            <div id="reader" className="w-full mb-4 bg-slate-100 rounded"></div>
+                        <div id="reader" className="w-full mb-8 bg-slate-50 dark:bg-slate-900 rounded-3xl overflow-hidden border-2 border-primary/20"></div>
 
+                        <div className="relative mb-8">
                             <input
                                 type="text"
-                                placeholder="Ou digite manualmente..."
-                                className="w-full p-2 border rounded mb-4 bg-white text-slate-900"
+                                placeholder="Ou digite o SKU manualmente..."
+                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-center placeholder:text-slate-300"
                                 autoFocus
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value);
-                                }}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                            <button onClick={() => setIsCameraOpen(false)} className="w-full bg-slate-200 p-2 rounded text-slate-700">Fechar</button>
                         </div>
+
+                        <button
+                            onClick={() => setIsCameraOpen(false)}
+                            className="w-full py-4 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+                        >
+                            Interromper Leitura
+                        </button>
                     </div>
-                )
-            }
+                </div>
+            )}
 
             {/* Purchase Order Modal */}
-            {
-                isPurchaseModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-xl">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> Sugestão de Pedido de Compra</h3>
-                            <p className="text-sm text-slate-500 mb-4">Itens abaixo do estoque mínimo que precisam de reposição.</p>
+            {isPurchaseModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 w-full max-w-3xl shadow-2xl border border-slate-100 dark:border-slate-700">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-primary/10 rounded-2xl">
+                                    <ShoppingCart className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase">ORDEM DE REPOSIÇÃO</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-xs font-medium italic">Sugestão automática baseada no estoque mínimo configurado.</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsPurchaseModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
 
-                            <div className="max-h-96 overflow-y-auto border rounded-lg">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-slate-50">
-                                        <tr>
-                                            <th className="p-3">SKU</th>
-                                            <th className="p-3">Produto</th>
-                                            <th className="p-3 text-center">Atual</th>
-                                            <th className="p-3 text-center">Mínimo</th>
-                                            <th className="p-3 text-right">Sugestão Compra</th>
+                        <div className="max-h-[50vh] overflow-y-auto no-scrollbar rounded-3xl border border-slate-100 dark:border-slate-700">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-black tracking-widest sticky top-0">
+                                    <tr>
+                                        <th className="px-6 py-4">SKU / Identificação</th>
+                                        <th className="px-6 py-4">Nome do Produto</th>
+                                        <th className="px-6 py-4 text-center">Físico</th>
+                                        <th className="px-6 py-4 text-center">Mínimo</th>
+                                        <th className="px-6 py-4 text-right">Necessário</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                                    {lowStockItems.map(p => (
+                                        <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-primary/5 transition-colors">
+                                            <td className="px-6 py-4 font-mono text-xs font-bold text-slate-400 dark:text-slate-500">{p.sku}</td>
+                                            <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">{p.name}</td>
+                                            <td className="px-6 py-4 text-center"><span className="px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-black text-xs">{p.quantity}</span></td>
+                                            <td className="px-6 py-4 text-center font-bold text-slate-400">{p.minStock}</td>
+                                            <td className="px-6 py-4 text-right">
+                                                <span className="text-primary font-black text-sm">
+                                                    {Math.max(10, p.minStock * 2) - p.quantity} <small className="text-[10px] uppercase opacity-50">UN</small>
+                                                </span>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {lowStockItems.map(p => (
-                                            <tr key={p.id} className="border-b">
-                                                <td className="p-3 font-mono text-xs">{p.sku}</td>
-                                                <td className="p-3">{p.name}</td>
-                                                <td className="p-3 text-center text-red-600 font-bold">{p.quantity}</td>
-                                                <td className="p-3 text-center">{p.minStock}</td>
-                                                <td className="p-3 text-right font-bold text-blue-600">
-                                                    {Math.max(10, p.minStock * 2) - p.quantity} un
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {lowStockItems.length === 0 && (
-                                            <tr><td colSpan={5} className="p-6 text-center text-green-600 font-medium">Estoque saudável! Nada a comprar.</td></tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div className="mt-6 flex justify-end gap-3">
-                                <button onClick={() => setIsPurchaseModalOpen(false)} className="px-4 py-2 border rounded hover:bg-slate-50 text-slate-900 bg-white">Fechar</button>
-                                <button onClick={() => window.print()} className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 flex items-center gap-2">
-                                    <Printer className="w-4 h-4" /> Imprimir Lista
-                                </button>
-                            </div>
+                                    ))}
+                                    {lowStockItems.length === 0 && (
+                                        <tr><td colSpan={5} className="px-6 py-20 text-center text-emerald-500 font-black uppercase text-[10px] tracking-widest">Estoque saudável! Nada a comprar.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="mt-10 flex justify-end gap-4">
+                            <button
+                                onClick={() => setIsPurchaseModalOpen(false)}
+                                className="px-8 py-3.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-black text-[10px] uppercase tracking-widest transition-all"
+                            >
+                                Fechar
+                            </button>
+                            <button
+                                onClick={() => window.print()}
+                                className="px-10 py-3.5 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/25 hover:opacity-90 active:scale-95 transition-all flex items-center gap-2"
+                            >
+                                <Printer className="w-5 h-5" />
+                                Imprimir Ordem de Compra
+                            </button>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
 
-            {/* New Part Modal */}
-            {
-                isPartModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl">
-                            <h3 className="text-lg font-bold mb-4">Cadastrar Nova Peça</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="col-span-2">
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Nome da Peça</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.name || ''}
-                                        onChange={e => setNewPart({ ...newPart, name: e.target.value })}
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Fabricante</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.manufacturer || ''}
-                                        placeholder="Ex: Mercury"
-                                        onChange={e => setNewPart({ ...newPart, manufacturer: e.target.value })}
-                                    />
+            {/* New / Edit Part Modal */}
+            {(isPartModalOpen || (isEditModalOpen && editingPart)) && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-slate-100 dark:border-slate-700">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-primary/10 rounded-2xl">
+                                    <Plus className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Grupo (Família)</label>
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase">
+                                        {isEditModalOpen ? 'EDITAR INFORMAÇÕES' : 'NOVO ITEM DE ESTOQUE'}
+                                    </h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-xs font-medium italic">
+                                        Preencha as informações detalhadas da peça abaixo.
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => { setIsPartModalOpen(false); setIsEditModalOpen(false); setEditingPart(null); }} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto no-scrollbar pr-2">
+                            <div className="col-span-2">
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Nome Completo da Peça</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.name : newPart.name || ''}
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, name: e.target.value }) : setNewPart({ ...newPart, name: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Fabricante (Brand)</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.manufacturer || '' : newPart.manufacturer || ''}
+                                    placeholder="Ex: Mercury"
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, manufacturer: e.target.value }) : setNewPart({ ...newPart, manufacturer: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">SKU / Part Number</label>
+                                <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.group || ''}
-                                        placeholder="Ex: Filtragem"
-                                        onChange={e => setNewPart({ ...newPart, group: e.target.value })}
+                                        className="flex-1 px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                        value={isEditModalOpen ? editingPart?.sku : newPart.sku || ''}
+                                        onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, sku: e.target.value }) : setNewPart({ ...newPart, sku: e.target.value })}
                                     />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Subgrupo</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.subgroup || ''}
-                                        placeholder="Ex: Filtro de Óleo"
-                                        onChange={e => setNewPart({ ...newPart, subgroup: e.target.value })}
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Compatibilidade (Modelos)</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.compatibility ? newPart.compatibility.join(', ') : ''}
-                                        placeholder="Ex: Verado V8, ProXS, 150hp (Separar por vírgula)"
-                                        onChange={e => setNewPart({ ...newPart, compatibility: e.target.value.split(',').map(s => s.trim()) })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">SKU (Código Interno)</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            className="flex-1 p-2 border rounded bg-white text-slate-900"
-                                            value={newPart.sku || ''}
-                                            onChange={e => setNewPart({ ...newPart, sku: e.target.value })}
-                                            onBlur={() => { }} // Optional: auto search on blur? better explicit button
-                                            placeholder="Ex: 8M000000"
-                                        />
+                                    {!isEditModalOpen && (
                                         <button
                                             onClick={autoFillFromMercury}
                                             disabled={isLoadingMercury || !newPart.sku}
-                                            className="p-2 bg-slate-100 text-slate-600 rounded hover:bg-slate-200"
-                                            title="Buscar dados no Mercury"
+                                            className="p-4 bg-white dark:bg-slate-900 text-primary border border-slate-100 dark:border-slate-700 rounded-2xl hover:shadow-lg transition-all disabled:opacity-30"
+                                            title="Sincronizar com Mercury"
                                         >
-                                            {isLoadingMercury ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                                            {isLoadingMercury ? <RefreshCw className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
                                         </button>
-                                    </div>
+                                    )}
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Código de Barras (EAN)</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.barcode || ''}
-                                        onChange={e => setNewPart({ ...newPart, barcode: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Qtd. Inicial</label>
-                                    <input
-                                        type="number"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.quantity || ''}
-                                        onChange={e => setNewPart({ ...newPart, quantity: Number(e.target.value) })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Localização (Estante)</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.location || ''}
-                                        onChange={e => setNewPart({ ...newPart, location: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Preço Custo</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900 font-bold"
-                                        placeholder="R$ 0,00"
-                                        value={formatCurrencyInput(newPart.cost || 0)}
-                                        onChange={e => setNewPart({ ...newPart, cost: parseCurrencyInput(e.target.value) })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Preço Venda</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2 border rounded bg-white text-slate-900 font-bold text-cyan-600"
-                                        placeholder="R$ 0,00"
-                                        value={formatCurrencyInput(newPart.price || 0)}
-                                        onChange={e => setNewPart({ ...newPart, price: parseCurrencyInput(e.target.value) })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Estoque Mínimo</label>
-                                    <input
-                                        type="number"
-                                        className="w-full p-2 border rounded bg-white text-slate-900"
-                                        value={newPart.minStock || ''}
-                                        onChange={e => setNewPart({ ...newPart, minStock: Number(e.target.value) })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="mt-6 flex justify-end gap-3">
-                                <button
-                                    onClick={() => setIsPartModalOpen(false)}
-                                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleSavePart}
-                                    className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
-                                >
-                                    Salvar Peça
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-            {/* Mercury Search Modal */}
-            {
-                isMercuryModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-4xl shadow-xl h-[80vh] flex flex-col">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold flex items-center gap-2">
-                                    <RefreshCw className="w-6 h-6 text-slate-800" />
-                                    Consulta Portal Mercury
-                                </h3>
-                                <button onClick={() => setIsMercuryModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X className="w-6 h-6" /></button>
                             </div>
 
-                            <div className="flex gap-2 mb-6">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Família / Grupo</label>
                                 <input
                                     type="text"
-                                    className="flex-1 p-3 border rounded-lg bg-white text-slate-900 focus:ring-2 ring-cyan-500 outline-none"
-                                    placeholder="Digite o código da peça (Ex: 8M0123456)..."
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.group || '' : newPart.group || ''}
+                                    placeholder="Ex: Filtragem"
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, group: e.target.value }) : setNewPart({ ...newPart, group: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Subgrupo</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.subgroup || '' : newPart.subgroup || ''}
+                                    placeholder="Ex: Filtro Óleo"
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, subgroup: e.target.value }) : setNewPart({ ...newPart, subgroup: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="col-span-2">
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Modelos Compatíveis (Separar por vírgula)</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-[11px] placeholder:font-normal"
+                                    value={isEditModalOpen ? editingPart?.compatibility?.join(', ') : newPart.compatibility ? newPart.compatibility.join(', ') : ''}
+                                    placeholder="Verado V8, ProXS, SeaPro, Mercruiser 4.5L..."
+                                    onChange={e => {
+                                        const values = e.target.value.split(',').map(s => s.trim());
+                                        isEditModalOpen ? setEditingPart({ ...editingPart!, compatibility: values }) : setNewPart({ ...newPart, compatibility: values });
+                                    }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Código de Barras (EAN)</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.barcode || '' : newPart.barcode || ''}
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, barcode: e.target.value }) : setNewPart({ ...newPart, barcode: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Localização no Estoque</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.location || '' : newPart.location || ''}
+                                    placeholder="Ex: Estante A1 - Nível 2"
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, location: e.target.value }) : setNewPart({ ...newPart, location: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-2">Custo Atual (R$)</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-white dark:bg-slate-900 border-2 border-primary/20 rounded-2xl text-slate-900 dark:text-white font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                                    value={formatCurrencyInput(isEditModalOpen ? editingPart?.cost || 0 : newPart.cost || 0)}
+                                    onChange={e => {
+                                        const val = parseCurrencyInput(e.target.value);
+                                        isEditModalOpen ? setEditingPart({ ...editingPart!, cost: val }) : setNewPart({ ...newPart, cost: val });
+                                    }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Preço de Venda (R$)</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-white dark:bg-slate-900 border-2 border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 font-black text-lg focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner"
+                                    value={formatCurrencyInput(isEditModalOpen ? editingPart?.price || 0 : newPart.price || 0)}
+                                    onChange={e => {
+                                        const val = parseCurrencyInput(e.target.value);
+                                        isEditModalOpen ? setEditingPart({ ...editingPart!, price: val }) : setNewPart({ ...newPart, price: val });
+                                    }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Saldo Inicial</label>
+                                <input
+                                    type="number"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.quantity : newPart.quantity || ''}
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, quantity: Number(e.target.value) }) : setNewPart({ ...newPart, quantity: Number(e.target.value) })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-red-400 dark:text-red-500 uppercase tracking-widest mb-2">Estoque de Alerta (Mínimo)</label>
+                                <input
+                                    type="number"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={isEditModalOpen ? editingPart?.minStock : newPart.minStock || ''}
+                                    onChange={e => isEditModalOpen ? setEditingPart({ ...editingPart!, minStock: Number(e.target.value) }) : setNewPart({ ...newPart, minStock: Number(e.target.value) })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-10 flex border-t border-slate-100 dark:border-slate-700 pt-8 gap-4">
+                            <button
+                                onClick={() => { setIsPartModalOpen(false); setIsEditModalOpen(false); setEditingPart(null); }}
+                                className="flex-1 py-4 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-black text-[10px] uppercase tracking-widest transition-all"
+                            >
+                                Descartar Alterações
+                            </button>
+                            <button
+                                onClick={isEditModalOpen ? handleSaveEditedPart : handleSavePart}
+                                className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/25 hover:opacity-90 active:scale-95 transition-all"
+                            >
+                                {isEditModalOpen ? 'Atualizar Registro' : 'Confirmar Cadastro'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mercury Search Modal */}
+            {isMercuryModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[3rem] p-10 w-full max-w-5xl shadow-2xl border border-slate-100 dark:border-slate-700 h-[85vh] flex flex-col">
+                        <div className="flex justify-between items-center mb-10">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-slate-900 dark:bg-slate-100 rounded-2xl shadow-xl">
+                                    <RefreshCw className="w-8 h-8 text-white dark:text-slate-900" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Portal de Preços Mercury</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium italic">Consulte tabelas oficiais e disponibilidade em tempo real.</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsMercuryModalOpen(false)} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                                <X className="w-8 h-8" />
+                            </button>
+                        </div>
+
+                        <div className="flex gap-4 mb-10">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    className="w-full pl-14 pr-6 py-5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-300"
+                                    placeholder="Digite o código (Ex: 8M0123456)..."
                                     value={mercurySearchTerm}
                                     onChange={(e) => setMercurySearchTerm(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleMercurySearch(mercurySearchTerm)}
                                 />
-                                <button
-                                    onClick={() => handleMercurySearch(mercurySearchTerm)}
-                                    disabled={isLoadingMercury}
-                                    className="bg-cyan-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-cyan-700 disabled:opacity-50 flex items-center gap-2"
-                                >
-                                    {isLoadingMercury ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                                    Pesquisar
-                                </button>
                             </div>
+                            <button
+                                onClick={() => handleMercurySearch(mercurySearchTerm)}
+                                disabled={isLoadingMercury}
+                                className="bg-primary text-white px-10 rounded-2xl font-black text-[12px] uppercase tracking-[0.1em] shadow-xl shadow-primary/25 hover:opacity-90 active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50"
+                            >
+                                {isLoadingMercury ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
+                                Consultar
+                            </button>
+                        </div>
 
-                            <div className="flex-1 overflow-y-auto border rounded-lg">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-slate-50 sticky top-0">
+                        <div className="flex-1 overflow-x-auto no-scrollbar rounded-[2.5rem] border border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30">
+                            <table className="w-full text-left text-sm min-w-[1000px]">
+                                <thead className="bg-slate-100 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-black tracking-[0.2em] sticky top-0 z-10 backdrop-blur-md">
+                                    <tr>
+                                        <th className="px-8 py-6">Part Number</th>
+                                        <th className="px-8 py-6">Descrição Oficial Mercury</th>
+                                        <th className="px-8 py-6 text-center">Disp. Portal</th>
+                                        <th className="px-8 py-6 text-right">Custo Líquido</th>
+                                        <th className="px-8 py-6 text-right">Sugestão Venda</th>
+                                        <th className="px-8 py-6 text-center">Ações Rápidas</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {mercuryResults.map((item, idx) => {
+                                        const inStock = parts.some(p => p.sku === item.codigo);
+                                        return (
+                                            <tr key={idx} className="hover:bg-white dark:hover:bg-slate-800/50 transition-colors group">
+                                                <td className="px-8 py-6 font-mono font-black text-slate-800 dark:text-slate-200">{item.codigo}</td>
+                                                <td className="px-8 py-6 font-bold text-slate-600 dark:text-slate-400 line-clamp-1 group-hover:line-clamp-none transition-all">{item.descricao}</td>
+                                                <td className="px-8 py-6 text-center">
+                                                    <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${item.qtdaEst.includes('+')
+                                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                                                        : 'bg-slate-100 dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-700'}`}>
+                                                        {item.qtdaEst}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-6 text-right text-slate-400 dark:text-slate-500 italic font-medium">{item.valorCusto}</td>
+                                                <td className="px-8 py-6 text-right font-black text-slate-900 dark:text-white text-base tracking-tighter">{item.valorVenda}</td>
+                                                <td className="px-8 py-6 text-center">
+                                                    <button
+                                                        onClick={() => handleUpdateFromMercury(item)}
+                                                        className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all border ${inStock
+                                                            ? 'bg-amber-500 text-white border-amber-600 hover:bg-amber-600'
+                                                            : 'bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700'
+                                                            }`}
+                                                    >
+                                                        {inStock ? 'Sincronizar Já' : 'Cadastrar novo'}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {mercuryResults.length === 0 && !isLoadingMercury && (
+                                        <tr><td colSpan={6} className="px-8 py-32 text-center text-slate-300 dark:text-slate-600 font-black uppercase text-[10px] tracking-widest italic opacity-50">Inicie uma busca por SKU acima para consultar o Portal.</td></tr>
+                                    )}
+                                    {isLoadingMercury && (
                                         <tr>
-                                            <th className="p-4">Código</th>
-                                            <th className="p-4">Descrição</th>
-                                            <th className="p-4 text-center">Disp. Mercury</th>
-                                            <th className="p-4 text-right">Custo Mercury</th>
-                                            <th className="p-4 text-right">Venda Tabelada</th>
-                                            <th className="p-4 text-center">Ações</th>
+                                            <td colSpan={6} className="px-8 py-32 text-center">
+                                                <RefreshCw className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+                                                <p className="text-slate-400 dark:text-slate-500 font-black uppercase text-[10px] tracking-widest">Consultando API Mercury Marine...</p>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {mercuryResults.map((item, idx) => {
-                                            const inStock = parts.some(p => p.sku === item.codigo);
-                                            return (
-                                                <tr key={idx} className="hover:bg-slate-50">
-                                                    <td className="p-4 font-mono font-bold text-slate-700">{item.codigo}</td>
-                                                    <td className="p-4">{item.descricao}</td>
-                                                    <td className="p-4 text-center">
-                                                        <span className={`px-2 py-1 rounded text-xs font-bold ${item.qtdaEst.includes('+') ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                                            {item.qtdaEst}
-                                                        </span>
-                                                    </td>
-                                                    <td className="p-4 text-right text-slate-600">{item.valorCusto}</td>
-                                                    <td className="p-4 text-right font-medium">{item.valorVenda}</td>
-                                                    <td className="p-4 text-center">
-                                                        <button
-                                                            onClick={() => handleUpdateFromMercury(item)}
-                                                            className={`px-3 py-1.5 rounded text-xs font-bold shadow-sm transition-colors ${inStock
-                                                                ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-200'
-                                                                : 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200'
-                                                                }`}
-                                                        >
-                                                            {inStock ? 'Atualizar Estoque' : 'Cadastrar Peça'}
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                        {mercuryResults.length === 0 && !isLoadingMercury && (
-                                            <tr><td colSpan={6} className="p-12 text-center text-slate-400">Nenhum resultado para exibir.</td></tr>
-                                        )}
-                                        {isLoadingMercury && (
-                                            <tr><td colSpan={6} className="p-12 text-center text-slate-500">Buscando informações no portal...</td></tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
 
             {/* Edit Part Modal */}
             {isEditModalOpen && editingPart && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl">
-                        <h3 className="text-lg font-bold mb-4">Editar Peça: {editingPart.name}</h3>
-                        <div className="grid grid-cols-2 gap-4">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-slate-100 dark:border-slate-700">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-primary/10 rounded-2xl">
+                                    <Plus className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase">
+                                        EDITAR INFORMAÇÕES
+                                    </h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-xs font-medium italic">
+                                        Preencha as informações detalhadas da peça abaixo.
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => { setIsPartModalOpen(false); setIsEditModalOpen(false); setEditingPart(null); }} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto no-scrollbar pr-2">
                             <div className="col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Nome</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Nome Completo da Peça</label>
                                 <input
                                     type="text"
-                                    className="w-full p-2 border rounded bg-white text-slate-900"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                     value={editingPart.name}
                                     onChange={e => setEditingPart({ ...editingPart, name: e.target.value })}
                                 />
                             </div>
-                            <div className="col-span-1">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Fabricante</label>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Fabricante (Brand)</label>
                                 <input
                                     type="text"
-                                    className="w-full p-2 border rounded bg-white text-slate-900"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                     value={editingPart.manufacturer || ''}
                                     placeholder="Ex: Mercury"
                                     onChange={e => setEditingPart({ ...editingPart, manufacturer: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">SKU / Part Number</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">SKU / Part Number</label>
                                 <input
                                     type="text"
-                                    className="w-full p-2 border rounded bg-white text-slate-900 font-mono text-sm"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                     value={editingPart.sku}
                                     onChange={e => setEditingPart({ ...editingPart, sku: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Código de Barras</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Código de Barras (EAN)</label>
                                 <input
                                     type="text"
-                                    className="w-full p-2 border rounded bg-white text-slate-900 font-mono text-sm"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-mono font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                     value={editingPart.barcode || ''}
                                     onChange={e => setEditingPart({ ...editingPart, barcode: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Custo (R$)</label>
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Localização no Estoque</label>
                                 <input
                                     type="text"
-                                    className="w-full p-2 border rounded bg-white text-slate-900 font-bold"
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                                    value={editingPart.location || ''}
+                                    onChange={e => setEditingPart({ ...editingPart, location: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-primary uppercase tracking-widest mb-2">Custo Atual (R$)</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-5 py-4 bg-white dark:bg-slate-900 border-2 border-primary/20 rounded-2xl text-slate-900 dark:text-white font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                                     value={formatCurrencyInput(editingPart.cost)}
                                     onChange={e => setEditingPart({ ...editingPart, cost: parseCurrencyInput(e.target.value) })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Preço Venda (R$)</label>
+                                <label className="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Preço de Venda (R$)</label>
                                 <input
                                     type="text"
-                                    className="w-full p-2 border rounded bg-white text-slate-900 font-bold text-cyan-600"
+                                    className="w-full px-5 py-4 bg-white dark:bg-slate-900 border-2 border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 font-black text-lg focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner"
                                     value={formatCurrencyInput(editingPart.price)}
                                     onChange={e => setEditingPart({ ...editingPart, price: parseCurrencyInput(e.target.value) })}
                                 />
                             </div>
-                            <div className="col-span-2 bg-blue-50 p-3 rounded text-sm text-blue-800">
-                                <strong>💡 Dica:</strong> Se custo e preço forem iguais, será aplicado +60% automaticamente no preço.
-                                <div className="mt-1 text-xs">
-                                    Markup Atual: <strong>{editingPart.cost > 0 ? ((editingPart.price / editingPart.cost - 1) * 100).toFixed(0) : '0'}%</strong>
+                            <div className="col-span-2 bg-primary/5 dark:bg-primary/10 border border-primary/20 p-6 rounded-3xl text-sm text-primary-900 dark:text-primary-200">
+                                <strong className="font-black text-primary">💡 Dica:</strong> Se custo e preço forem iguais, será aplicado +60% automaticamente no preço.
+                                <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                                    Markup Atual: <strong className="font-black text-slate-800 dark:text-white">{editingPart.cost > 0 ? ((editingPart.price / editingPart.cost - 1) * 100).toFixed(0) : '0'}%</strong>
                                 </div>
                             </div>
                         </div>
-                        <div className="mt-6 flex gap-3">
+                        <div className="mt-10 flex border-t border-slate-100 dark:border-slate-700 pt-8 gap-4">
                             <button
                                 onClick={() => {
                                     setIsEditModalOpen(false);
                                     setEditingPart(null);
                                 }}
-                                className="flex-1 px-4 py-2 border rounded hover:bg-slate-50 text-slate-900"
+                                className="flex-1 py-4 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-black text-[10px] uppercase tracking-widest transition-all"
                             >
-                                Cancelar
+                                Descartar Alterações
                             </button>
                             <button
                                 onClick={handleSaveEditedPart}
-                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/25 hover:opacity-90 active:scale-95 transition-all"
                             >
-                                Salvar Alterações
+                                Atualizar Registro
                             </button>
                         </div>
                     </div>
@@ -1453,38 +1614,46 @@ export const InventoryView: React.FC = () => {
 
             {/* Bulk Price Update Modal */}
             {isBulkPriceModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-                        <h3 className="text-lg font-bold mb-4 text-green-700">🔄 Sincronizar Preços com Mercury</h3>
-                        <p className="text-sm text-slate-600 mb-4">
-                            Consulta a <strong>API Mercury Marine</strong> para atualizar custo e preço de venda de todas as peças do estoque.
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[110] p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-700">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl">
+                                <RefreshCw className="w-8 h-8 text-emerald-600" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Sincronização em Massa</h3>
+                        </div>
+
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 font-medium leading-relaxed">
+                            O sistema irá consultar o <strong>Portal Mercury Marine</strong> para todas as <span className="font-black text-slate-900 dark:text-white">{parts.length} peças</span> do seu estoque e atualizar os preços automaticamente.
                         </p>
 
-                        <div className="bg-blue-50 border border-blue-200 p-4 rounded text-sm text-blue-900 mb-4">
-                            <strong>📋 Como funciona:</strong>
-                            <ul className="list-disc ml-5 mt-2 space-y-1">
-                                <li>Busca cada peça pelo SKU na API Mercury</li>
-                                <li>Atualiza <strong>Custo</strong> e <strong>Preço</strong></li>
-                                <li>Se <strong>Custo = Tabela</strong>, aplica <strong>+60% automaticamente</strong></li>
-                            </ul>
+                        <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 p-6 rounded-3xl mb-8 space-y-3">
+                            <div className="flex items-start gap-3">
+                                <div className="p-1 bg-primary text-white rounded-md mt-1"><CheckCircle className="w-3 h-3" /></div>
+                                <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Atualiza custo base oficial</p>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="p-1 bg-primary text-white rounded-md mt-1"><CheckCircle className="w-3 h-3" /></div>
+                                <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Aplica markup de +60% automaticamente</p>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="p-1 bg-primary text-white rounded-md mt-1"><CheckCircle className="w-3 h-3" /></div>
+                                <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Gera logs de movimentação financeira</p>
+                            </div>
                         </div>
 
-                        <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-900 mb-4">
-                            <strong>⚠️ Atenção:</strong> Esta ação irá consultar e atualizar <strong>{parts.length} peças</strong>. Pode levar alguns minutos.
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setIsBulkPriceModalOpen(false)}
-                                className="flex-1 px-4 py-2 border rounded hover:bg-slate-50 text-slate-900"
-                            >
-                                Cancelar
-                            </button>
+                        <div className="flex flex-col gap-4">
                             <button
                                 onClick={handleUpdatePricesFromMercury}
-                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-bold"
+                                className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-emerald-200 dark:shadow-black/20 hover:opacity-90 active:scale-95 transition-all"
                             >
-                                Sincronizar Agora
+                                Iniciar Sincronização Agora
+                            </button>
+                            <button
+                                onClick={() => setIsBulkPriceModalOpen(false)}
+                                className="w-full py-4 text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-white font-black text-[10px] uppercase tracking-widest transition-all"
+                            >
+                                Cancelar e Voltar
                             </button>
                         </div>
                     </div>

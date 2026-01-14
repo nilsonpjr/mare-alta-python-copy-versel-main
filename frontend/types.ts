@@ -28,6 +28,7 @@ export interface User {
   email: string;
   role: UserRole;
   clientId?: number;
+  tenantPlan?: string;
   preferences?: Record<string, any>;
 }
 
@@ -46,6 +47,7 @@ export interface Client {
   phone?: string;
   email?: string;
   address?: string;
+  zip?: string;
   type?: string;
 }
 
@@ -55,6 +57,7 @@ export interface ClientCreate {
   phone?: string;
   email?: string;
   address?: string;
+  zip?: string;
   type?: string;
 }
 
@@ -64,6 +67,7 @@ export interface ClientUpdate {
   phone?: string;
   email?: string;
   address?: string;
+  zip?: string;
   type?: string;
 }
 
