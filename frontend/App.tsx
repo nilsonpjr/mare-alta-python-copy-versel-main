@@ -25,7 +25,7 @@ import { FiscalView } from './components/FiscalView';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { UserRole, User } from './types';
 import { Menu, Anchor } from 'lucide-react';
-import { StorageService } from './services/storage';
+import { ApiService } from './services/api';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { WorkshopView } from './components/WorkshopView';
 import { EstimatorView } from './components/EstimatorView';
@@ -45,7 +45,6 @@ function App() {
 
   // Initialize storage with seed data on first load
   useEffect(() => {
-    StorageService.initialize();
     checkSession();
   }, []);
 

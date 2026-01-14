@@ -95,19 +95,23 @@ def read_users_me(current_user: schemas.User = Depends(auth.get_current_active_u
 @router.post("/register", response_model=schemas.User)
 def register(
     user: schemas.UserCreate, # Dados do usuário para registro.
-    db: Session = Depends(get_db) # Injeta a sessão do banco de dados.
+    db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
+    current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
     """
-    Endpoint para registrar um novo usuário.
-    Apenas um usuário com permissão de Administrador (que o crie) pode usar isso no fluxo atual.
+    Endpoint para registrar um novo usuário vinculado ao tenant do administrador logado.
     """
+    # Verifica permissão
+    if current_user.role != models.UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Apenas administradores podem criar novos usuários.")
+
     # Verifica se o email já está registrado.
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
         # Se o email já existe, levanta uma exceção HTTP 400 Bad Request.
         raise HTTPException(status_code=400, detail="Email já registrado")
-    # Cria o usuário no banco de dados e o retorna.
-    return crud.create_user(db=db, user=user)
+    # Cria o usuário no banco de dados vinculado ao tenant do admin e o retorna.
+    return crud.create_user(db=db, user=user, tenant_id=current_user.tenant_id)
 
 @router.post("/signup", response_model=schemas.Token)
 def signup(

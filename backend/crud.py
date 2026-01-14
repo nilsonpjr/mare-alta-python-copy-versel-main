@@ -6,8 +6,8 @@ uma operação específica em um modelo SQLAlchemy, utilizando uma sessão de ba
 
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc
-from datetime import datetime
-from typing import List, Optional
+from datetime import datetime, timedelta
+from typing import List, Optional, Dict, Any
 
 from backend import models
 from backend import schemas
@@ -69,27 +69,22 @@ def get_user_by_email(db: Session, email: str):
     """
     return db.query(models.User).filter(models.User.email == email).first()
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: schemas.UserCreate, tenant_id: int):
     """
-    Cria um novo usuário no banco de dados.
-    Args:
-        db (Session): Sessão do banco de dados.
-        user (schemas.UserCreate): Dados do usuário para criação, incluindo senha em texto plano.
-    Returns:
-        models.User: O objeto usuário recém-criado.
+    Cria um novo usuário no banco de dados vinculado ao tenant.
     """
-    hashed_password = get_password_hash(user.password) # Gera o hash da senha antes de armazenar.
+    hashed_password = get_password_hash(user.password)
     db_user = models.User(
         email=user.email,
         name=user.name,
         hashed_password=hashed_password,
         role=user.role,
         client_id=user.client_id,
-        tenant_id=1 # Default tenant for new users
+        tenant_id=tenant_id
     )
-    db.add(db_user) # Adiciona o novo usuário à sessão.
-    db.commit() # Confirma a transação no banco de dados.
-    db.refresh(db_user) # Atualiza o objeto com os dados do banco (ex: ID gerado).
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
     return db_user
 
 # --- CLIENT CRUD ---
@@ -848,6 +843,8 @@ def get_tenant_subscription(db: Session, tenant_id: int):
         "status": "Ativo" if tenant.is_active else "Inativo",
         "next_billing_date": (datetime.now() + timedelta(days=30)).strftime("%d/%m/%Y")
     }
+    
+def create_maintenance_kit(db: Session, kit: schemas.MaintenanceKitCreate, tenant_id: int):
     """
     Cria um novo kit de manutenção e seus itens.
     """

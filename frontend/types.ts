@@ -217,7 +217,7 @@ export interface ServiceItem {
   unitCost: number;
   unitPrice: number;
   total: number;
-  orderId: string;
+  orderId: number;
 }
 
 export interface ServiceItemCreate {
@@ -232,7 +232,7 @@ export interface ServiceItemCreate {
 
 export interface OrderNote {
   id: number;
-  orderId: string;
+  orderId: number;
   text: string;
   userName?: string;
   createdAt: string;
@@ -276,7 +276,7 @@ export interface CompanyInfo {
 }
 
 export interface ServiceOrder {
-  id: string;
+  id: number;
   boatId: number;
   engineId?: number;
   description: string;
@@ -345,7 +345,7 @@ export interface Transaction {
   amount: number;
   date: string;
   status: string;
-  orderId?: string;
+  orderId?: number;
   documentNumber?: string;
 }
 
