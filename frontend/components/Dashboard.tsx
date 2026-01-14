@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { ServiceOrder, OSStatus, Part } from '../types';
+import { ServiceOrder, OSStatus, Part, Transaction } from '../types';
 import { ApiService } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Wallet, AlertCircle, Wrench, Package, ArrowUpRight } from 'lucide-react';
@@ -11,6 +11,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [inventory, setInventory] = useState<Part[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,12 +21,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [ordersData, partsData] = await Promise.all([
+      const [ordersData, partsData, transactionsData] = await Promise.all([
         ApiService.getOrders(),
-        ApiService.getParts()
+        ApiService.getParts(),
+        ApiService.getTransactions()
       ]);
       setOrders(ordersData);
       setInventory(partsData);
+      setTransactions(transactionsData);
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
     } finally {
@@ -34,16 +37,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
   };
 
   const kpi = useMemo(() => {
-    const totalRevenue = orders
-      .filter(o => o.status === OSStatus.COMPLETED || o.status === OSStatus.APPROVED)
-      .reduce((acc, curr) => acc + curr.totalValue, 0);
+    // Para bater com o Financeiro, usamos as transações de entrada (INCOME)
+    const totalRevenue = transactions
+      .filter(t => t.type === 'INCOME')
+      .reduce((acc, curr) => acc + curr.amount, 0);
 
     const pendingOrders = orders.filter(o => o.status === OSStatus.PENDING).length;
     const activeOrders = orders.filter(o => o.status === OSStatus.IN_PROGRESS).length;
     const lowStock = inventory.filter(p => p.quantity <= p.minStock).length;
 
     return { totalRevenue, pendingOrders, activeOrders, lowStock };
-  }, [orders, inventory]);
+  }, [orders, inventory, transactions]);
 
   const chartData = [
     { name: 'Pendente', value: orders.filter(o => o.status === OSStatus.PENDING).length, color: '#f59e0b' },
@@ -109,7 +113,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
         ) : (
           <>
             <KPICard
-              label="Receita Aprovada"
+              label="Receita Total"
               value={`R$ ${kpi.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
               icon={Wallet}
               colorClass="bg-emerald-50 text-emerald-600"
