@@ -103,15 +103,13 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                     setNfeData(prev => ({
                         ...prev,
                         destinatario: client?.name || '',
-                        docDestinatario: client?.cpf || client?.cnpj || '',
+                        docDestinatario: client?.cpf || client?.cnpj || client?.doc || '',
                         items: parts.map((p: any) => ({
-                            id: p.id,
-                            description: p.description,
-                            quantity: p.quantity,
-                            unitPrice: p.unitPrice,
-                            total: p.total,
-                            ncm: '00000000', // Default placeholder
-                            cfop: '5102'     // Default placeholder
+                            code: p.id.toString(),
+                            desc: p.description,
+                            qty: p.quantity,
+                            price: p.unitPrice,
+                            total: p.total
                         }))
                     }));
                 }
@@ -122,7 +120,7 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                     setNfseData(prev => ({
                         ...prev,
                         tomador: client?.name || '',
-                        docTomador: client?.cpf || client?.cnpj || '',
+                        docTomador: client?.cpf || client?.cnpj || client?.doc || '',
                         valorServico: totalLabor,
                         discriminacao: `Serviços ref. OS #${order.id} - ${order.description}`
                     }));
@@ -376,87 +374,87 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
     };
 
     return (
-        <div className="p-8 h-full flex flex-col">
+        <div className="p-8 h-full flex flex-col bg-slate-50 dark:bg-slate-900">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <FileText className="w-6 h-6 text-cyan-600" /> Módulo Fiscal
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <FileText className="w-6 h-6 text-cyan-600 dark:text-cyan-400" /> Módulo Fiscal
                     </h2>
-                    <p className="text-slate-500 text-sm">Emissão de NF-e e NFS-e</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Emissão de NF-e e NFS-e</p>
                 </div>
                 <div className="flex gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${issuer.environment === 'production' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${issuer.environment === 'production' ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800' : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800'}`}>
                         Ambiente: {issuer.environment === 'production' ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}
                     </span>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 border-b border-slate-200 mb-6">
-                <button onClick={() => setActiveTab('nfe')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'nfe' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+            <div className="flex gap-1 border-b border-slate-200 dark:border-slate-700 mb-6">
+                <button onClick={() => setActiveTab('nfe')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'nfe' ? 'border-cyan-600 text-cyan-600 dark:text-cyan-400 dark:border-cyan-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
                     <FileDigit className="w-4 h-4" /> Emitir NF-e (Produto)
                 </button>
-                <button onClick={() => setActiveTab('nfse')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'nfse' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+                <button onClick={() => setActiveTab('nfse')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'nfse' ? 'border-cyan-600 text-cyan-600 dark:text-cyan-400 dark:border-cyan-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
                     <FileText className="w-4 h-4" /> Emitir NFS-e (Serviço)
                 </button>
-                <button onClick={() => setActiveTab('history')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'history' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+                <button onClick={() => setActiveTab('history')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'history' ? 'border-cyan-600 text-cyan-600 dark:text-cyan-400 dark:border-cyan-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
                     <History className="w-4 h-4" /> Histórico
                 </button>
-                <button onClick={() => setActiveTab('config')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'config' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+                <button onClick={() => setActiveTab('config')} className={`px-6 py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'config' ? 'border-cyan-600 text-cyan-600 dark:text-cyan-400 dark:border-cyan-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
                     <Settings className="w-4 h-4" /> Configurações
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
 
                 {/* NF-e TAB */}
                 {activeTab === 'nfe' && (
                     <div className="max-w-4xl mx-auto">
-                        <h3 className="text-lg font-bold text-slate-800 mb-6 border-b pb-2">Nova Nota Fiscal Eletrônica (NF-e)</h3>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-6 border-b dark:border-slate-700 pb-2">Nova Nota Fiscal Eletrônica (NF-e)</h3>
 
                         <div className="grid grid-cols-2 gap-6 mb-6">
                             <div className="col-span-2">
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Natureza da Operação</label>
-                                <select className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50" value={nfeData.naturezaOperacao} onChange={e => setNfeData({ ...nfeData, naturezaOperacao: e.target.value })}>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Natureza da Operação</label>
+                                <select className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100" value={nfeData.naturezaOperacao} onChange={e => setNfeData({ ...nfeData, naturezaOperacao: e.target.value })}>
                                     <option>Venda de Mercadoria</option>
                                     <option>Devolução de Mercadoria</option>
                                     <option>Remessa para Conserto</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Destinatário (Nome/Razão Social)</label>
-                                <input type="text" className="w-full p-3 border border-slate-200 rounded-lg" value={nfeData.destinatario} onChange={e => setNfeData({ ...nfeData, destinatario: e.target.value })} placeholder="Ex: João da Silva" />
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Destinatário (Nome/Razão Social)</label>
+                                <input type="text" className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100" value={nfeData.destinatario} onChange={e => setNfeData({ ...nfeData, destinatario: e.target.value })} placeholder="Ex: João da Silva" />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">CPF / CNPJ</label>
-                                <input type="text" className="w-full p-3 border border-slate-200 rounded-lg" value={nfeData.docDestinatario} onChange={e => setNfeData({ ...nfeData, docDestinatario: e.target.value })} placeholder="000.000.000-00" />
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">CPF / CNPJ</label>
+                                <input type="text" className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100" value={nfeData.docDestinatario} onChange={e => setNfeData({ ...nfeData, docDestinatario: e.target.value })} placeholder="000.000.000-00" />
                             </div>
                         </div>
 
                         <div className="mb-6">
-                            <h4 className="font-bold text-slate-700 mb-3">Itens da Nota</h4>
-                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 className="font-bold text-slate-700 dark:text-slate-300 mb-3">Itens da Nota</h4>
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                                 {nfeData.items.map((item, idx) => (
                                     <div key={idx} className="grid grid-cols-12 gap-3 mb-3 items-end">
                                         <div className="col-span-2">
-                                            <label className="block text-xs text-slate-400 mb-1">Código</label>
-                                            <input type="text" className="w-full p-2 border rounded" value={item.code} onChange={e => {
+                                            <label className="block text-xs text-slate-400 dark:text-slate-500 mb-1">Código</label>
+                                            <input type="text" className="w-full p-2 border dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100" value={item.code} onChange={e => {
                                                 const newItems = [...nfeData.items];
                                                 newItems[idx].code = e.target.value;
                                                 setNfeData({ ...nfeData, items: newItems });
                                             }} />
                                         </div>
                                         <div className="col-span-5">
-                                            <label className="block text-xs text-slate-400 mb-1">Descrição</label>
-                                            <input type="text" className="w-full p-2 border rounded" value={item.desc} onChange={e => {
+                                            <label className="block text-xs text-slate-400 dark:text-slate-500 mb-1">Descrição</label>
+                                            <input type="text" className="w-full p-2 border dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100" value={item.desc} onChange={e => {
                                                 const newItems = [...nfeData.items];
                                                 newItems[idx].desc = e.target.value;
                                                 setNfeData({ ...nfeData, items: newItems });
                                             }} />
                                         </div>
                                         <div className="col-span-1">
-                                            <label className="block text-xs text-slate-400 mb-1">Qtd</label>
-                                            <input type="number" className="w-full p-2 border rounded" value={item.qty} onChange={e => {
+                                            <label className="block text-xs text-slate-400 dark:text-slate-500 mb-1">Qtd</label>
+                                            <input type="number" className="w-full p-2 border dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100" value={item.qty} onChange={e => {
                                                 const newItems = [...nfeData.items];
                                                 newItems[idx].qty = Number(e.target.value);
                                                 newItems[idx].total = newItems[idx].qty * newItems[idx].price;
@@ -464,8 +462,8 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                                             }} />
                                         </div>
                                         <div className="col-span-2">
-                                            <label className="block text-xs text-slate-400 mb-1">Unitário</label>
-                                            <input type="number" className="w-full p-2 border rounded" value={item.price} onChange={e => {
+                                            <label className="block text-xs text-slate-400 dark:text-slate-500 mb-1">Unitário</label>
+                                            <input type="number" className="w-full p-2 border dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100" value={item.price} onChange={e => {
                                                 const newItems = [...nfeData.items];
                                                 newItems[idx].price = Number(e.target.value);
                                                 newItems[idx].total = newItems[idx].qty * newItems[idx].price;
@@ -473,21 +471,21 @@ export const FiscalView: React.FC<FiscalViewProps> = ({ initialData }) => {
                                             }} />
                                         </div>
                                         <div className="col-span-2">
-                                            <label className="block text-xs text-slate-400 mb-1">Total</label>
-                                            <input type="number" className="w-full p-2 border rounded bg-slate-100" value={item.total} disabled />
+                                            <label className="block text-xs text-slate-400 dark:text-slate-500 mb-1">Total</label>
+                                            <input type="number" className="w-full p-2 border dark:border-slate-700 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100" value={item.total} disabled />
                                         </div>
                                     </div>
                                 ))}
-                                <button className="text-sm text-cyan-600 font-bold hover:underline">+ Adicionar Item</button>
+                                <button className="text-sm text-cyan-600 dark:text-cyan-400 font-bold hover:underline">+ Adicionar Item</button>
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-3 mt-8">
-                            <button className="px-6 py-3 border border-slate-300 text-slate-600 rounded-lg font-bold hover:bg-slate-50">Salvar Rascunho</button>
+                            <button className="px-6 py-3 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-slate-800">Salvar Rascunho</button>
                             <button
                                 onClick={() => handleTransmit(FiscalDocType.NFE)}
                                 disabled={isLoading}
-                                className="px-8 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 shadow-lg shadow-cyan-200 flex items-center gap-2"
+                                className="px-8 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 shadow-lg shadow-cyan-200 dark:shadow-none flex items-center gap-2"
                             >
                                 {isLoading ? 'Transmitindo...' : <><Send className="w-4 h-4" /> Transmitir NF-e</>}
                             </button>

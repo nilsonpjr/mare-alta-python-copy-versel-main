@@ -19,6 +19,7 @@ import { WarrantyLookupView } from './components/WarrantyLookupView';
 import { PartnersView } from './components/PartnersView';
 import { InspectionView } from './components/InspectionView';
 import { QuickSaleView } from './components/QuickSaleView';
+import PrintOrderView from './components/PrintOrderView';
 import { OnboardingProvider } from './context/OnboardingContext';
 import { GlobalTour } from './components/GlobalTour';
 import { FiscalView } from './components/FiscalView';
@@ -102,7 +103,7 @@ function App() {
       case 'marinas':
         return <MarinasView />;
       case 'orders':
-        return <OrdersView role={UserRole.ADMIN} />;
+        return <OrdersView role={UserRole.ADMIN} onNavigate={handleSetView} />;
       case 'inventory':
         return <InventoryView />;
       case 'crm':
@@ -126,11 +127,11 @@ function App() {
 
       // Technician Views
       case 'tech-orders':
-        return <OrdersView role={UserRole.TECHNICIAN} />;
+        return <OrdersView role={UserRole.TECHNICIAN} onNavigate={handleSetView} />;
 
       // Client Views
       case 'client-portal':
-        return <OrdersView role={UserRole.CLIENT} />;
+        return <OrdersView role={UserRole.CLIENT} onNavigate={handleSetView} />;
       case 'client-fleet':
         return <FleetView />;
 
@@ -148,6 +149,15 @@ function App() {
         return <InspectionView />;
       case 'quick-sale':
         return <QuickSaleView currentUser={currentUser} />;
+      case 'print-order':
+        return (
+          <PrintOrderView
+            order={viewData?.order}
+            client={viewData?.client}
+            boat={viewData?.boat}
+            onBack={() => handleSetView('orders')}
+          />
+        );
       default:
         return <Dashboard setView={handleSetView} />;
     }

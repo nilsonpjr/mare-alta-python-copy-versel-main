@@ -1084,7 +1084,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
                                             <MessageCircle className="w-5 h-5" />
                                         </button>
                                         {!isTechnician && (
-                                            <button onClick={() => window.print()} className="p-3 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 rounded-2xl border border-slate-100 dark:border-slate-700 hover:scale-110 transition-all shadow-sm">
+                                            <button onClick={onPrintOrder} className="p-3 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 rounded-2xl border border-slate-100 dark:border-slate-700 hover:scale-110 transition-all shadow-sm">
                                                 <Printer className="w-5 h-5" />
                                             </button>
                                         )}

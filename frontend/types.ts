@@ -107,6 +107,7 @@ export interface Boat {
   hullId: string;
   usageType?: string;
   model?: string;
+  year?: number;
   engines?: Engine[];
 }
 
@@ -415,11 +416,12 @@ export interface FiscalInvoice {
 }
 
 export interface FiscalDataPayload {
-  type: 'nfe' | 'nfse';
-  client: { name: string; doc: string };
-  items?: { code: string; desc: string; qty: number; price: number; total: number }[]; // For NF-e
-  serviceValue?: number; // For NFS-e
-  serviceDesc?: string; // For NFS-e
+  type: 'nfe' | 'nfse' | 'from_order';
+  client: any;
+  items?: any[];
+  order?: any;
+  serviceValue?: number;
+  serviceDesc?: string;
 }
 
 export interface SystemConfig {

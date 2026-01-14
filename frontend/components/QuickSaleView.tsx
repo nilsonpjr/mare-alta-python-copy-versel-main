@@ -127,11 +127,11 @@ export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
     };
 
     return (
-        <div className="flex h-screen bg-slate-50 overflow-hidden">
+        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
             {/* Left Column: Product Search & List */}
-            <div className="w-1/2 p-6 flex flex-col border-r border-slate-200">
-                <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <Search className="w-6 h-6 text-cyan-600" />
+            <div className="w-1/2 p-6 flex flex-col border-r border-slate-200 dark:border-slate-700">
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+                    <Search className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
                     Buscar Produtos
                 </h2>
 
@@ -141,7 +141,7 @@ export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
                         placeholder="Digite SKU, Nome ou Código de Barras..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full p-4 pl-12 text-lg border-2 border-slate-300 rounded-xl focus:border-cyan-500 focus:outline-none shadow-sm"
+                        className="w-full p-4 pl-12 text-lg border-2 border-slate-300 dark:border-slate-700 rounded-xl focus:border-cyan-500 focus:outline-none shadow-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
                         autoFocus
                     />
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-6 h-6" />
@@ -154,22 +154,22 @@ export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
                                 <button
                                     key={part.id}
                                     onClick={() => addToCart(part)}
-                                    className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-cyan-400 hover:shadow-md transition-all text-left group"
+                                    className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-cyan-400 dark:hover:border-cyan-500 hover:shadow-md transition-all text-left group"
                                 >
                                     <div>
-                                        <div className="font-bold text-slate-800 group-hover:text-cyan-700">{part.name}</div>
-                                        <div className="text-xs text-slate-500 font-mono">SKU: {part.sku}</div>
+                                        <div className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-700 dark:group-hover:text-cyan-400">{part.name}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">SKU: {part.sku}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="font-bold text-green-600">R$ {part.price.toFixed(2)}</div>
-                                        <div className="text-xs text-slate-400">Estoque: {part.quantity}</div>
+                                        <div className="font-bold text-green-600 dark:text-green-400">R$ {part.price.toFixed(2)}</div>
+                                        <div className="text-xs text-slate-400 dark:text-slate-500">Estoque: {part.quantity}</div>
                                     </div>
-                                    <Plus className="w-5 h-5 text-slate-300 group-hover:text-cyan-500" />
+                                    <Plus className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-cyan-500" />
                                 </button>
                             ))}
                         </div>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-50">
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 opacity-50">
                             <Package className="w-16 h-16 mb-4" />
                             <p>Digite para buscar produtos...</p>
                         </div>
@@ -178,24 +178,24 @@ export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
             </div>
 
             {/* Right Column: Carrinho / Checkout */}
-            <div className="w-1/2 bg-white flex flex-col shadow-xl z-10">
-                <div className="p-6 bg-slate-800 text-white flex justify-between items-center shadow-md">
+            <div className="w-1/2 bg-white dark:bg-slate-800 flex flex-col shadow-xl z-10">
+                <div className="p-6 bg-slate-800 dark:bg-slate-950 text-white flex justify-between items-center shadow-md">
                     <div className="flex items-center gap-3">
                         <ShoppingCart className="w-8 h-8 text-cyan-400" />
                         <div>
                             <h2 className="text-xl font-bold">Carrinho de Vendas</h2>
-                            <p className="text-xs text-slate-400">PDV - Venda Direta</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">PDV - Venda Direta</p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <div className="text-xs text-slate-400">Total a Pagar</div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500">Total a Pagar</div>
                         <div className="text-3xl font-bold text-green-400">R$ {calculateTotal().toFixed(2)}</div>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
+                <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-900/50">
                     {cart.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-600">
                             <ShoppingCart className="w-16 h-16 mb-4 opacity-20" />
                             <p>O carrinho está vazio.</p>
                         </div>
@@ -205,45 +205,45 @@ export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
                                 const unitPrice = item.price * (1 - item.discountPercent / 100);
                                 const totalItem = unitPrice * item.cartQuantity;
                                 return (
-                                    <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                                    <div key={item.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-4">
                                         <div className="flex-1">
-                                            <div className="font-bold text-slate-800">{item.name}</div>
-                                            <div className="text-xs text-slate-500 font-mono">{item.sku}</div>
+                                            <div className="font-bold text-slate-800 dark:text-slate-100">{item.name}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{item.sku}</div>
                                         </div>
 
                                         <div className="flex flex-col items-end gap-1">
                                             <div className="flex items-center gap-2">
-                                                <label className="text-[10px] text-slate-400 uppercase font-bold">Qtd</label>
+                                                <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold">Qtd</label>
                                                 <input
                                                     type="number"
                                                     min="1"
                                                     max={item.quantity}
                                                     value={item.cartQuantity}
                                                     onChange={e => updateQuantity(item.id, parseInt(e.target.value))}
-                                                    className="w-16 p-1 text-center border rounded text-sm font-bold"
+                                                    className="w-16 p-1 text-center border dark:border-slate-700 rounded text-sm font-bold bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
                                                 />
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <label className="text-[10px] text-slate-400 uppercase font-bold">Desc %</label>
+                                                <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold">Desc %</label>
                                                 <input
                                                     type="number"
                                                     min="0"
                                                     max="100"
                                                     value={item.discountPercent}
                                                     onChange={e => updateDiscount(item.id, parseFloat(e.target.value))}
-                                                    className="w-16 p-1 text-center border rounded text-sm text-red-500 font-bold"
+                                                    className="w-16 p-1 text-center border dark:border-slate-700 rounded text-sm text-red-500 font-bold bg-white dark:bg-slate-900"
                                                 />
                                             </div>
                                         </div>
 
                                         <div className="text-right min-w-[80px]">
-                                            <div className="font-bold text-slate-800">R$ {totalItem.toFixed(2)}</div>
+                                            <div className="font-bold text-slate-800 dark:text-slate-100">R$ {totalItem.toFixed(2)}</div>
                                             {item.discountPercent > 0 && <div className="text-[10px] text-red-500">-{item.discountPercent}%</div>}
                                         </div>
 
                                         <button
                                             onClick={() => removeFromCart(item.id)}
-                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </button>
@@ -254,12 +254,12 @@ export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
                     )}
                 </div>
 
-                <div className="p-6 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+                <div className="p-6 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Forma de Pagamento</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Forma de Pagamento</label>
                             <select
-                                className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50 font-medium"
+                                className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-medium"
                                 value={paymentMethod}
                                 onChange={e => setPaymentMethod(e.target.value)}
                             >
@@ -270,10 +270,10 @@ export const QuickSaleView: React.FC<QuickSaleProps> = ({ currentUser }) => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Observações</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Observações</label>
                             <input
                                 type="text"
-                                className="w-full p-3 border border-slate-200 rounded-lg bg-slate-50"
+                                className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100"
                                 placeholder="Recibo, Cliente, etc."
                                 value={notes}
                                 onChange={e => setNotes(e.target.value)}
