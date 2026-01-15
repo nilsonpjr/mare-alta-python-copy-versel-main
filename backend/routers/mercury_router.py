@@ -352,7 +352,7 @@ async def sync_part_price_mercury(
     Atualiza Custo e Preço se encontrado.
     """
     from datetime import datetime
-    import models
+    from backend import models
     
     # 1. Fetch credentials
     company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
@@ -417,7 +417,7 @@ async def batch_sync_part_prices(
     Sincroniza precos de multiplas pecas em uma unica sessao de navegador.
     Muito mais rapido que chamadas individuais.
     """
-    import models
+    from backend import models
     from datetime import datetime
     
     # 1. Fetch credentials
