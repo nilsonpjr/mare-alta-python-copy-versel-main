@@ -64,7 +64,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
           <div className="w-20 h-20 bg-gradient-to-tr from-cyan-600 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-900/50 rotate-3 transform hover:rotate-6 transition-transform">
             <Anchor className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-wide">VIVERDI NAUTICA</h1>
+          <h1 className="text-3xl font-bold text-white tracking-wide">VIVERDI NÁUTICA</h1>
           <p className="text-cyan-200 text-sm font-medium mt-1">Gestão Náutica Especializada</p>
         </div>
 
@@ -186,7 +186,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onGoToSignup }) =
       </div>
 
       <div className="absolute bottom-4 text-slate-500 text-xs opacity-60">
-        © {new Date().getFullYear()} Viverdi Nautica - v2.5.0
+        © {new Date().getFullYear()} Viverdi Náutica - v2.5.0
       </div>
     </div>
   );

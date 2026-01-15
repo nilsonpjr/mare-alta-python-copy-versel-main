@@ -122,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, currentU
               <Anchor className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-wide">MARE ALTA</h1>
+              <h1 className="font-bold text-lg tracking-wide">VIVERDI NÁUTICA</h1>
               <p className="text-[10px] text-primary font-medium tracking-wider uppercase">Manager System</p>
             </div>
           </div>
