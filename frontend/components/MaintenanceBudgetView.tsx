@@ -5,7 +5,7 @@ import { MaintenanceKit, calculateKitTotal } from '../types/maintenance';
 import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle, Plus, Save, Trash2, X, Search } from 'lucide-react';
 
 import { StorageService } from '../services/storage';
-import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType, ApiMaintenanceKit, Manufacturer } from '../types';
+import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType, ApiMaintenanceKit, Manufacturer, CompanyInfo } from '../types';
 import { MaintenanceKitManager } from './MaintenanceKitManager';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,7 +19,8 @@ export const MaintenanceBudgetView: React.FC = () => {
     // Data State
     const [boats, setBoats] = useState<Boat[]>([]);
     const [savedKits, setSavedKits] = useState<MaintenanceKit[]>([]);
-    const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]); // New State
+    const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+    const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null); // New State
 
     // Modal State
     const [isPreOrderModalOpen, setIsPreOrderModalOpen] = useState(false);
@@ -62,16 +63,18 @@ export const MaintenanceBudgetView: React.FC = () => {
 
     const loadData = async () => {
         try {
-            const [boatsData, partsData, kitsData, manufData] = await Promise.all([
+            const [boatsData, partsData, kitsData, manufData, companyData] = await Promise.all([
                 ApiService.getBoats(),
                 ApiService.getParts(),
                 ApiService.getMaintenanceKits(),
-                ApiService.getManufacturers('ENGINE')
+                ApiService.getManufacturers('ENGINE'),
+                ApiService.getCompanyInfo()
             ]);
             setBoats(boatsData);
             setPartsInventory(partsData);
             setSavedKits(kitsData.map(transformApiKitToFrontend));
             setManufacturers(manufData);
+            if (companyData) setCompanyInfo(companyData);
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
         }
@@ -336,7 +339,8 @@ export const MaintenanceBudgetView: React.FC = () => {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
-        doc.text('MARE ALTA NÁUTICA', pageWidth / 2, 15, { align: 'center' });
+        const companyName = companyInfo?.trade_name || companyInfo?.company_name || 'MARE ALTA NÁUTICA';
+        doc.text(companyName.toUpperCase(), pageWidth / 2, 15, { align: 'center' });
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
@@ -434,17 +438,65 @@ export const MaintenanceBudgetView: React.FC = () => {
         doc.setFontSize(14);
         doc.text(formatCurrency(calculateKitTotal(selectedKit as any)), pageWidth - 14, totalY + 8, { align: 'right' });
 
-        // Footer Notes
-        const footerY = totalY + 25;
-        doc.setTextColor(100, 116, 139); // slate-500
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.text('• Este orçamento é válido por 30 dias a partir da data de emissão.', 14, footerY);
-        doc.text('• Peças e serviços baseados nas especificações do fabricante.', 14, footerY + 5);
-        doc.text('• Valores sujeitos a alteração mediante disponibilidade de estoque.', 14, footerY + 10);
+        // CONDIÇÕES GERAIS (Terms & Conditions)
+        const termsY = totalY + 25;
 
-        // Save
-        const filename = `Orcamento_Revisao_${selectedKit.brand}_${selectedKit.intervalHours}h_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.setFillColor(241, 245, 249); // slate-100
+        doc.setDrawColor(203, 213, 225); // slate-300
+        doc.roundedRect(14, termsY, pageWidth - 28, 55, 2, 2, 'FD');
+
+        doc.setFontSize(9);
+        doc.setTextColor(51, 65, 85); // slate-700
+        doc.setFont('helvetica', 'bold');
+        doc.text('CONDIÇÕES GERAIS DE FORNECIMENTO E SERVIÇOS:', 18, termsY + 6);
+
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105); // slate-600
+
+        const rightColumnX = pageWidth / 2 + 5;
+
+        // Coluna Esquerda
+        doc.text([
+            '1. VALIDADE DA PROPOSTA: 10 (dez) dias corridos. Preços e disponibilidade de estoque',
+            '   sujeitos a confirmação no ato do fechamento do pedido.',
+            '',
+            '2. SERVIÇOS EXTRAS: Diagnósticos adicionais, reparos ocultos identificados durante a',
+            '   desmontagem ou itens não listados serão objeto de Orçamento Complementar.',
+            '',
+            '3. PEÇAS: Trabalhamos com peças Genuínas/Originais. Peças de terceiros somente com',
+            '   autorização expressa do cliente e sem garantia da oficina.'
+        ], 18, termsY + 12);
+
+        // Coluna Direita
+        doc.text([
+            '4. GARANTIA: 90 (noventa) dias legais sobre os serviços executados e peças substituídas.',
+            '   Componentes elétricos e eletrônicos estão sujeitos à política de garantia do fabricante.',
+            '',
+            '5. PAGAMENTO: Peças: À vista ou Sinal 50% + Entrega. Serviços: A combinar.',
+            '',
+            '6. APROVAÇÃO: O aceite desta proposta (assinatura/email) autoriza o início imediato',
+            '   dos serviços e a compra irrevogável dos materiais listados.'
+        ], rightColumnX, termsY + 12);
+
+        // Signatures
+        const signY = termsY + 75;
+
+        doc.setDrawColor(148, 163, 184); // slate-400
+        doc.line(20, signY, 90, signY); // Line 1
+        doc.line(pageWidth - 90, signY, pageWidth - 20, signY); // Line 2
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text(companyName.toUpperCase(), 55, signY + 5, { align: 'center' });
+        doc.text('DE ACORDO (CLIENTE)', pageWidth - 55, signY + 5, { align: 'center' });
+
+        // Footer Filename in small text
+        doc.setFontSize(6);
+        doc.setTextColor(150);
+        const filename = `Orcamento_${selectedKit.brand}_${selectedKit.intervalHours}h_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.text(filename, pageWidth - 14, 290, { align: 'right' });
+
         doc.save(filename);
     };
 
