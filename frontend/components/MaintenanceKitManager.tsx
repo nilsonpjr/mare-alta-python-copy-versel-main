@@ -52,10 +52,13 @@ export const MaintenanceKitManager: React.FC<MaintenanceKitManagerProps> = ({ on
         const name = prompt("Nome do Fabricante (Motor):");
         if (!name) return;
         try {
-            const newManuf = await ApiService.createManufacturer({ name, type: 'ENGINE', models: [] } as any);
-            setManufacturers([...manufacturers, { ...newManuf, models: [] }]);
+            await ApiService.createManufacturer({ name, type: 'ENGINE', models: [] } as any);
+            // Reload from DB to ensure it was saved
+            const manufData = await ApiService.getManufacturers('ENGINE');
+            setManufacturers(manufData);
         } catch (e) {
-            alert("Erro ao criar fabricante");
+            console.error(e);
+            alert("Erro ao criar fabricante. Verifique o console.");
         }
     };
 
@@ -64,12 +67,19 @@ export const MaintenanceKitManager: React.FC<MaintenanceKitManagerProps> = ({ on
         const name = prompt(`Novo modelo para ${selectedManuf.name}:`);
         if (!name) return;
         try {
-            const newModel = await ApiService.createModel(selectedManuf.id, name);
-            const updatedManuf = { ...selectedManuf, models: [...selectedManuf.models, newModel] };
-            setManufacturers(manufacturers.map(m => m.id === selectedManuf.id ? updatedManuf : m));
-            setSelectedManuf(updatedManuf);
+            await ApiService.createModel(selectedManuf.id, name);
+
+            // Reload from DB to ensure it was saved
+            const manufData = await ApiService.getManufacturers('ENGINE');
+            setManufacturers(manufData);
+
+            // Re-select the updated manufacturer
+            const updatedManuf = manufData.find(m => m.id === selectedManuf.id);
+            if (updatedManuf) setSelectedManuf(updatedManuf);
+
         } catch (e) {
-            alert("Erro ao criar modelo");
+            console.error(e);
+            alert("Erro ao criar modelo. Verifique o console.");
         }
     };
 
