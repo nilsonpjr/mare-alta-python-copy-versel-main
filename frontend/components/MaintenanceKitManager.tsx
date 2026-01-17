@@ -52,13 +52,15 @@ export const MaintenanceKitManager: React.FC<MaintenanceKitManagerProps> = ({ on
         const name = prompt("Nome do Fabricante (Motor):");
         if (!name) return;
         try {
-            await ApiService.createManufacturer({ name, type: 'ENGINE', models: [] } as any);
+            // Correct payload: do not send 'models'
+            await ApiService.createManufacturer({ name, type: 'ENGINE' } as any);
+
             // Reload from DB to ensure it was saved
-            const manufData = await ApiService.getManufacturers('ENGINE');
-            setManufacturers(manufData);
-        } catch (e) {
+            await loadInitialData();
+            alert("Fabricante criado com sucesso!");
+        } catch (e: any) {
             console.error(e);
-            alert("Erro ao criar fabricante. Verifique o console.");
+            alert(`Erro ao criar fabricante: ${e.message || 'Erro desconhecido'}`);
         }
     };
 
@@ -69,17 +71,28 @@ export const MaintenanceKitManager: React.FC<MaintenanceKitManagerProps> = ({ on
         try {
             await ApiService.createModel(selectedManuf.id, name);
 
-            // Reload from DB to ensure it was saved
+            // Reload all data to ensure consistency and correct IDs
+            await loadInitialData();
+
+            // NOTE: After reload, we need to find the new manufacturer reference to keep it selected
+            // We'll do this by finding the manufacturer with the same ID in the NEW data
+            // But verify first if loadInitialData updates state synchronously or we need to await the promise
+            // which we did await. However, React state updates are scheduled.
+            // So we can assume loadInitialData sets state, but we can't read 'manufacturers' state immediately here
+            // because it's stale. 
+            // Better strategy: fetch specific manufacturer again or just trust the user to re-select if needed,
+            // OR reuse the logic from previous fix but correctly.
+
             const manufData = await ApiService.getManufacturers('ENGINE');
             setManufacturers(manufData);
 
-            // Re-select the updated manufacturer
             const updatedManuf = manufData.find(m => m.id === selectedManuf.id);
             if (updatedManuf) setSelectedManuf(updatedManuf);
 
-        } catch (e) {
+            alert("Modelo criado com sucesso!");
+        } catch (e: any) {
             console.error(e);
-            alert("Erro ao criar modelo. Verifique o console.");
+            alert(`Erro ao criar modelo: ${e.message || 'Erro desconhecido'}`);
         }
     };
 
@@ -118,6 +131,10 @@ export const MaintenanceKitManager: React.FC<MaintenanceKitManagerProps> = ({ on
         });
 
         const [itemSearch, setItemSearch] = useState('');
+        const [saving, setSaving] = useState(false);
+        const [successMessage, setSuccessMessage] = useState<string | null>(null);
+        const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 
         const handleAddItem = (type: ItemType, part?: Part) => {
             const newItem = {
@@ -133,7 +150,15 @@ export const MaintenanceKitManager: React.FC<MaintenanceKitManagerProps> = ({ on
         };
 
         const handleSave = async () => {
-            if (!selectedManuf || !selectedModel) return;
+            setSaving(true);
+            setSuccessMessage(null);
+            setErrorMessage(null);
+
+            if (!selectedManuf || !selectedModel) {
+                alert("Selecione um fabricante e modelo.");
+                setSaving(false);
+                return;
+            }
 
             try {
                 const payload = {
@@ -144,26 +169,24 @@ export const MaintenanceKitManager: React.FC<MaintenanceKitManagerProps> = ({ on
                     description: formData.description,
                     items: formData.items.map(i => ({
                         type: i.type,
-                        partId: i.partId,
+                        partId: i.partId, // Can be undefined, which is fine
                         itemDescription: i.description,
                         quantity: Number(i.quantity),
                         unitPrice: Number(i.unitPrice)
                     }))
                 };
 
-                // Note: Current API only supports Create, not Update directly for Kits in this implementation
-                // If editing, we might need to delete old and create new, or add update endpoint.
-                // Assuming create for now or "Save as New" behavior.
-                // Or if ID exists, we try to update (but API method might be missing, checking...)
-
                 await ApiService.createMaintenanceKit(payload);
 
                 alert("Kit salvo com sucesso!");
-                loadInitialData(); // Reload all
-                setIsKitFormOpen(false);
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao salvar kit");
+                await loadInitialData(); // Reload all data
+                setIsKitFormOpen(false); // Close modal
+
+            } catch (e: any) {
+                console.error("Erro ao salvar kit:", e);
+                alert(`Erro ao salvar kit: ${e.response?.data?.detail || e.message || 'Erro desconhecido'}`);
+            } finally {
+                setSaving(false);
             }
         };
 
