@@ -5,7 +5,8 @@ import { MaintenanceKit, calculateKitTotal } from '../types/maintenance';
 import { Settings, FileText, CheckCircle, PenTool, Printer, ChevronRight, Calculator, AlertCircle, Plus, Save, Trash2, X, Search } from 'lucide-react';
 
 import { StorageService } from '../services/storage';
-import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType, ApiMaintenanceKit } from '../types';
+import { Boat, ServiceOrder, ServiceItem, OSStatus, ItemType, ApiMaintenanceKit, Manufacturer } from '../types';
+import { MaintenanceKitManager } from './MaintenanceKitManager';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -18,6 +19,7 @@ export const MaintenanceBudgetView: React.FC = () => {
     // Data State
     const [boats, setBoats] = useState<Boat[]>([]);
     const [savedKits, setSavedKits] = useState<MaintenanceKit[]>([]);
+    const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]); // New State
 
     // Modal State
     const [isPreOrderModalOpen, setIsPreOrderModalOpen] = useState(false);
@@ -60,14 +62,16 @@ export const MaintenanceBudgetView: React.FC = () => {
 
     const loadData = async () => {
         try {
-            const [boatsData, partsData, kitsData] = await Promise.all([
+            const [boatsData, partsData, kitsData, manufData] = await Promise.all([
                 ApiService.getBoats(),
                 ApiService.getParts(),
-                ApiService.getMaintenanceKits()
+                ApiService.getMaintenanceKits(),
+                ApiService.getManufacturers('ENGINE')
             ]);
             setBoats(boatsData);
             setPartsInventory(partsData);
             setSavedKits(kitsData.map(transformApiKitToFrontend));
+            setManufacturers(manufData);
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
         }
@@ -76,7 +80,13 @@ export const MaintenanceBudgetView: React.FC = () => {
     const allKits = savedKits;
 
     // Filter Logic
-    const availableBrands = Array.from(new Set(allKits.map(k => k.brand)));
+    // Use Manufacturers from DB combined with any legacy string-only brands
+    const dbBrands = manufacturers.map(m => m.name);
+    const existingKitBrands = Array.from(new Set(allKits.map(k => k.brand)));
+    const availableBrands = Array.from(new Set([...dbBrands, ...existingKitBrands])).sort();
+
+    // New Manager State
+    const [isManagerOpen, setIsManagerOpen] = useState(false);
 
     const availableModels = selectedBrand
         ? Array.from(new Set(allKits
@@ -445,13 +455,26 @@ export const MaintenanceBudgetView: React.FC = () => {
 
     return (
         <div className="p-4 md:p-8 max-w-7xl mx-auto bg-slate-50 dark:bg-slate-900 min-h-full transition-colors">
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <Calculator className="w-6 h-6 text-primary" />
-                    Orçador de Revisões Padronizadas
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400">Gere orçamentos técnicos de revisão em segundos baseados nos kits de fábrica.</p>
+            <div className="mb-6 flex justify-between items-end">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <Calculator className="w-6 h-6 text-primary" />
+                        Orçador de Revisões Padronizadas
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400">Gere orçamentos técnicos de revisão em segundos baseados nos kits de fábrica.</p>
+                </div>
+                <button
+                    onClick={() => setIsManagerOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg text-sm font-bold hover:opacity-90 transition shadow-lg"
+                >
+                    <Settings className="w-4 h-4" />
+                    Gerenciar Kits
+                </button>
             </div>
+
+            {isManagerOpen && (
+                <MaintenanceKitManager onClose={() => { setIsManagerOpen(false); loadData(); }} />
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

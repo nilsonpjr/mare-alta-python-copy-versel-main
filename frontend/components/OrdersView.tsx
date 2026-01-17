@@ -29,6 +29,9 @@ import {
     Target
 } from 'lucide-react';
 import { TechnicalDeliveryForm } from './TechnicalDeliveryForm';
+import { QuickClientModal } from './QuickClientModal';
+import { QuickBoatModal } from './QuickBoatModal';
+import { QuickMarinaModal } from './QuickMarinaModal';
 
 interface OrdersViewProps {
     role: UserRole;
@@ -102,6 +105,30 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
     const [editingItemId, setEditingItemId] = useState<string | number | null>(null);
     const [editQty, setEditQty] = useState(0);
     const [editPrice, setEditPrice] = useState(0);
+
+    // Quick Actions State
+    const [isQuickClientOpen, setIsQuickClientOpen] = useState(false);
+    const [isQuickBoatOpen, setIsQuickBoatOpen] = useState(false);
+    const [isQuickMarinaOpen, setIsQuickMarinaOpen] = useState(false);
+    const [preSelectedClientId, setPreSelectedClientId] = useState<number | undefined>(undefined);
+    const [newlyCreatedBoatId, setNewlyCreatedBoatId] = useState<string>('');
+
+    const handleQuickClientSuccess = (client: Client) => {
+        setClients(prev => [...prev, client]);
+        setPreSelectedClientId(client.id);
+        setIsQuickClientOpen(false);
+    };
+
+    const handleQuickBoatSuccess = (boat: Boat) => {
+        setBoats(prev => [...prev, boat]);
+        setNewlyCreatedBoatId(String(boat.id));
+        setIsQuickBoatOpen(false);
+    };
+
+    const handleQuickMarinaSuccess = (marina: Marina) => {
+        setMarinas(prev => [...prev, marina]);
+        setIsQuickMarinaOpen(false);
+    };
 
     useEffect(() => {
         refreshData();
@@ -697,11 +724,14 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
         const [boatId, setBoatId] = useState('');
         const [duration, setDuration] = useState(2);
 
+        // Sync with newly created boat
         useEffect(() => {
-            if (boats.length > 0 && !boatId) {
+            if (newlyCreatedBoatId) {
+                setBoatId(newlyCreatedBoatId);
+            } else if (boats.length > 0 && !boatId) {
                 setBoatId(String(boats[0].id));
             }
-        }, [boats]);
+        }, [boats, newlyCreatedBoatId]);
 
         return (
             <div className="w-full animate-fade-in">
@@ -716,8 +746,15 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
                         <select
                             className="w-full px-5 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-100 font-bold focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
                             value={boatId}
-                            onChange={(e) => setBoatId(e.target.value)}
+                            onChange={(e) => {
+                                if (e.target.value === 'new_boat') {
+                                    setIsQuickBoatOpen(true);
+                                } else {
+                                    setBoatId(e.target.value);
+                                }
+                            }}
                         >
+                            <option value="new_boat" className="font-bold text-primary">+ Nova Embarcação</option>
                             {boats.map(b => (
                                 <option key={b.id} value={b.id}>{b.name} ({b.model})</option>
                             ))}
