@@ -5,7 +5,7 @@ serialização de saída de dados (respostas) para a API. Eles garantem que
 os dados enviados e recebidos pela API estejam em um formato consistente e válido.
 """
 
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
@@ -517,7 +517,7 @@ class CompanyInfoBase(CamelModel):
     sequence_nfe: Optional[int] = 1
     series_nfe: Optional[int] = 1
     city_code: Optional[str] = "4118204"
-    n8n_webhook_url: Optional[str] = None
+    n8n_webhook_url: Optional[str] = Field(None, alias="n8nWebhookUrl")
 
 class CompanyInfoCreate(CompanyInfoBase):
     """
