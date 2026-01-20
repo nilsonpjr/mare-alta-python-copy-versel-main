@@ -11,10 +11,12 @@ async def trigger_n8n_event(webhook_url: str, event_type: str, data: dict):
     if not webhook_url:
         return
 
+    from datetime import datetime
+    
     payload = {
         "event": event_type,
         "data": data,
-        "timestamp": str(data.get("updated_at") or "")
+        "timestamp": str(data.get("updated_at") or data.get("created_at") or datetime.utcnow().isoformat())
     }
 
     try:

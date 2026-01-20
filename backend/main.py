@@ -194,5 +194,3 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # reload=True para recarregar automaticamente em mudanças.
 
-# Log de inicialização extra para confirmar atualização
-print("🚀 Mare Alta System v2.1 - n8n Integration Active")
