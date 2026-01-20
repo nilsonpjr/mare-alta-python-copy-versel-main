@@ -1,4 +1,63 @@
-"""
+Uncaught (in promise) Error: Frame with ID 0 is showing error pageEntenda o erro
+34Unchecked runtime.lastError: The message port closed before a response was received.Entenda o erro
+29Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Entenda o erro
+Error in event handler: TypeError: Cannot read properties of undefined (reading 'id')
+    at chrome-extension://pejdijmoenmkgeppbflobdenhhabjlaj/background.js:1:67328Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 98 does not exist in tab 1649164895
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 200 does not exist in tab 1649164911
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+17Unchecked runtime.lastError: The page keeping the extension port is moved into back/forward cache, so the message channel is closed.Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 239 does not exist in tab 1649164911
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 359 does not exist in tab 1649164914
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 386 does not exist in tab 1649164912
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 404 does not exist in tab 1649164916
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 415 does not exist in tab 1649164917
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 425 does not exist in tab 1649164917
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+background.js:1 Uncaught (in promise) FrameDoesNotExistError: Frame 436 does not exist in tab 1649164918
+    at DelayedMessageSender.<anonymous> (background.js:1:49079)Entenda o erro
+index-BsyxOBCM.js:591 API_URL: /api
+(índice):1 Error while trying to use the following icon from the Manifest: https://mare-alta-python-copy-versel.onrender.com/android-chrome-192x192.png (Download error or resource isn't a valid image)Entenda o aviso
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+3(índice):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+utils.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+heuristicsRedefinitions.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+extensionState.js:1  Failed to load resource: net::ERR_FILE_NOT_FOUNDEntenda o erro
+index-BsyxOBCM.js:599 The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+lA @ index-BsyxOBCM.js:599Entenda o aviso
+/_vercel/speed-insights/script.js:1 Uncaught SyntaxError: Unexpected token '<'"""
 Este arquivo define os modelos de banco de dados usando SQLAlchemy.
 Cada classe representa uma tabela no banco de dados e seus atributos correspondem às colunas da tabela.
 """
