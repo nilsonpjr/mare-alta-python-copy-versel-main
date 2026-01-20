@@ -2,9 +2,6 @@
 Este arquivo define os modelos de banco de dados usando SQLAlchemy.
 Cada classe representa uma tabela no banco de dados e seus atributos correspondem às colunas da tabela.
 """
-Este arquivo define os modelos de banco de dados usando SQLAlchemy.
-Cada classe representa uma tabela no banco de dados e seus atributos correspondem às colunas da tabela.
-"""
 
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Enum, JSON
 from sqlalchemy.orm import relationship
