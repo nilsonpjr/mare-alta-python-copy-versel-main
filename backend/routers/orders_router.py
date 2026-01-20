@@ -83,6 +83,7 @@ def get_single_service_order(
 @router.post("", response_model=schemas.ServiceOrder)
 def create_new_service_order(
     order: schemas.ServiceOrderCreate, # Dados da nova ordem de serviço para criação.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -91,12 +92,21 @@ def create_new_service_order(
     Requer autenticação.
     """
     # Chama a função CRUD para criar a ordem de serviço.
-    return crud.create_order(db=db, order=order, tenant_id=current_user.tenant_id)
+    new_order = crud.create_order(db=db, order=order, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        order_data = schemas.ServiceOrder.model_validate(new_order).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_created", order_data)
+        
+    return new_order
 
 @router.put("/{order_id}", response_model=schemas.ServiceOrder)
 def update_existing_service_order(
     order_id: int, # ID da ordem de serviço a ser atualizada.
     order_update: schemas.ServiceOrderUpdate, # Dados de atualização para a ordem de serviço.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -110,6 +120,14 @@ def update_existing_service_order(
     if not updated_order:
         # Se a função CRUD retornar None, a ordem não foi encontrada.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ordem de Serviço não encontrada")
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        # Notifica o n8n sobre a atualização (incluindo mudança de status)
+        order_data = schemas.ServiceOrder.model_validate(updated_order).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_updated", order_data)
+        
     return updated_order
 
 @router.post("/{order_id}/items", response_model=schemas.ServiceOrder)
@@ -136,6 +154,7 @@ def add_item_to_service_order(
 def add_note_to_service_order(
     order_id: int, # ID da ordem de serviço à qual a nota será adicionada.
     note: schemas.OrderNoteCreate, # Dados da nota a ser adicionada.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -144,7 +163,15 @@ def add_note_to_service_order(
     Requer autenticação.
     """
     # Chama a função CRUD para adicionar a nota.
-    return crud.add_order_note(db, order_id=order_id, note=note)
+    new_note = crud.add_order_note(db, order_id=order_id, note=note)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        note_data = schemas.OrderNote.model_validate(new_note).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_note_created", note_data)
+        
+    return new_note
 
 
 @router.get("/{order_id}/technical-delivery", response_model=Optional[schemas.TechnicalDelivery])
@@ -160,6 +187,7 @@ def get_technical_delivery(
 def create_technical_delivery(
     order_id: int,
     delivery: schemas.TechnicalDeliveryCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
@@ -175,12 +203,21 @@ def create_technical_delivery(
 
     # Force correct order_id
     delivery.service_order_id = order_id
-    return crud.create_technical_delivery(db, delivery, technician_id=current_user.id, tenant_id=current_user.tenant_id)
+    new_delivery = crud.create_technical_delivery(db, delivery, technician_id=current_user.id, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        delivery_data = schemas.TechnicalDelivery.model_validate(new_delivery).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "technical_delivery_created", delivery_data)
+        
+    return new_delivery
 
 @router.put("/{order_id}/technical-delivery", response_model=schemas.TechnicalDelivery)
 def update_technical_delivery(
     order_id: int,
     delivery_update: schemas.TechnicalDeliveryUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
@@ -188,4 +225,12 @@ def update_technical_delivery(
     if not delivery:
         raise HTTPException(status_code=404, detail="Technical delivery not found")
         
-    return crud.update_technical_delivery(db, delivery_id=delivery.id, delivery_update=delivery_update)
+    updated_delivery = crud.update_technical_delivery(db, delivery_id=delivery.id, delivery_update=delivery_update)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        delivery_data = schemas.TechnicalDelivery.model_validate(updated_delivery).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "technical_delivery_updated", delivery_data)
+        
+    return updated_delivery
