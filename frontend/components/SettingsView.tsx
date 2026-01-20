@@ -384,6 +384,41 @@ export const SettingsView: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* N8N Integration Block */}
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-700 overflow-hidden mt-8">
+                            <div className="bg-gradient-to-r from-pink-500 to-rose-600 p-8 text-white relative">
+                                <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10">
+                                    <Globe className="w-48 h-48" />
+                                </div>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div>
+                                        <h3 className="text-xl font-bold">Automação com n8n</h3>
+                                        <p className="text-pink-100 text-sm">Integração de Webhooks para notificações e fluxos.</p>
+                                    </div>
+                                </div>
+                                <p className="text-pink-100 text-sm leading-relaxed max-w-xl">
+                                    Configure a URL do seu webhook n8n para receber eventos automáticos do sistema (ex: OS Concluída).
+                                </p>
+                            </div>
+                            <div className="p-8 space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Webhook URL (n8n)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="http://localhost:5678/webhook/..."
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-pink-500/20 transition-all font-medium"
+                                        value={companyInfo.n8nWebhookUrl || ''}
+                                        onChange={e => setCompanyInfo({ ...companyInfo, n8nWebhookUrl: e.target.value })}
+                                    />
+                                </div>
+                                <div className="pt-6 flex justify-end">
+                                    <button onClick={handleSaveCompanyInfo} className="bg-pink-600 text-white px-8 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg shadow-pink-600/20 hover:opacity-90 transition-all">
+                                        <Save className="w-5 h-5" /> Salvar Configuração
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 ) : activeTab === 'system' ? (
                     <div className="w-full max-w-3xl mx-auto anime-fade-in h-full overflow-y-auto custom-scrollbar">

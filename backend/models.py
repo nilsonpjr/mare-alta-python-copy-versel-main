@@ -460,6 +460,9 @@ class CompanyInfo(Base):
     sequence_nfe = Column(Integer, default=1) # Sequencial de NFe
     series_nfe = Column(Integer, default=1)   # Série da NFe
     city_code = Column(String(7), default="4118204") # Código IBGE
+    
+    # Integracoes Adicionais
+    n8n_webhook_url = Column(String(500), nullable=True) # URL do Webhook do n8n
 
 
 class MaintenanceKit(Base):

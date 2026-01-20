@@ -517,6 +517,7 @@ class CompanyInfoBase(CamelModel):
     sequence_nfe: Optional[int] = 1
     series_nfe: Optional[int] = 1
     city_code: Optional[str] = "4118204"
+    n8n_webhook_url: Optional[str] = None
 
 class CompanyInfoCreate(CompanyInfoBase):
     """

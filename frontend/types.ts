@@ -278,6 +278,7 @@ export interface CompanyInfo {
   mercuryPassword?: string;
   certFilePath?: string;
   certPassword?: string;
+  n8nWebhookUrl?: string;
 }
 
 export interface ServiceOrder {

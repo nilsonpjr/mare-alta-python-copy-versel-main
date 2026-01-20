@@ -4,7 +4,7 @@ Ele inclui funcionalidades para criar, ler, atualizar e completar ordens,
 bem como adicionar itens e notas a elas.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -12,11 +12,43 @@ from typing import List, Optional
 from backend import schemas
 from backend import crud
 from backend import auth
+from backend import integrations
 from backend.database import get_db # Função de dependência para obter a sessão do banco de dados.
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(prefix="/api/orders", tags=["Ordens de Serviço"])
 
+# ... (omitted get_all_service_orders, get_single_service_order, create_new_service_order, update_existing_service_order, add_item_to_service_order, add_note_to_service_order) ...
+
+@router.put("/{order_id}/complete", response_model=schemas.ServiceOrder)
+def complete_service_order(
+    order_id: int, # ID da ordem de serviço a ser completada.
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
+    current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
+):
+    """
+    Marca uma ordem de serviço como completa.
+    Esta operação também realiza a baixa de estoque das peças utilizadas e gera uma transação de receita.
+    Requer autenticação.
+    Levanta um HTTPException 400 se a ordem não puder ser completada (ex: já completada ou não encontrada).
+    """
+    # Chama a função CRUD para completar a ordem de serviço.
+    order = crud.complete_order(db, order_id=order_id, tenant_id=current_user.tenant_id)
+    if not order:
+        # Se a função CRUD retornar None, a ordem não pode ser completada.
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível completar a Ordem de Serviço (verifique se já está completa ou se existe).")
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        # Prepare safe payload (serialize Pydantic to dict)
+        # Note: 'order' here is an ORM object, but Pydantic schema will ensure response is valid.
+        # For the integration, we should dump it to a dict.
+        order_data = schemas.ServiceOrder.model_validate(order).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_completed", order_data)
+
+    return order
 @router.get("", response_model=List[schemas.ServiceOrder])
 def get_all_service_orders(
     status: Optional[str] = None, # Parâmetro de query opcional para filtrar ordens por status.
@@ -114,24 +146,7 @@ def add_note_to_service_order(
     # Chama a função CRUD para adicionar a nota.
     return crud.add_order_note(db, order_id=order_id, note=note)
 
-@router.put("/{order_id}/complete", response_model=schemas.ServiceOrder)
-def complete_service_order(
-    order_id: int, # ID da ordem de serviço a ser completada.
-    db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
-    current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
-):
-    """
-    Marca uma ordem de serviço como completa.
-    Esta operação também realiza a baixa de estoque das peças utilizadas e gera uma transação de receita.
-    Requer autenticação.
-    Levanta um HTTPException 400 se a ordem não puder ser completada (ex: já completada ou não encontrada).
-    """
-    # Chama a função CRUD para completar a ordem de serviço.
-    order = crud.complete_order(db, order_id=order_id, tenant_id=current_user.tenant_id)
-    if not order:
-        # Se a função CRUD retornar None, a ordem não pode ser completada.
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível completar a Ordem de Serviço (verifique se já está completa ou se existe).")
-    return order
+
 @router.get("/{order_id}/technical-delivery", response_model=Optional[schemas.TechnicalDelivery])
 def get_technical_delivery(
     order_id: int,
