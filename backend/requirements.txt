@@ -64,5 +64,5 @@ httpx==0.27.0
 # Force Cache Rebuild 2025-12-22 V2
 boto3==1.34.0
 pdfplumber==0.10.3
-ofxtools==0.3.21
+ofxtools==0.9.5
 pandas==2.2.0
