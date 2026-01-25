@@ -49,6 +49,30 @@ def complete_service_order(
         background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_completed", order_data)
 
     return order
+
+@router.put("/{order_id}/reopen", response_model=schemas.ServiceOrder)
+def reopen_service_order(
+    order_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Reabre uma Ordem de Serviço que foi concluída.
+    Isso devolve os itens ao estoque e permite novas edições.
+    """
+    order = crud.reopen_order(db, order_id=order_id, tenant_id=current_user.tenant_id)
+    if not order:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível reabrir a Ordem de Serviço (verifique se está concluída ou se existe).")
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        order_data = schemas.ServiceOrder.model_validate(order).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_reopened", order_data)
+
+    return order
+
 @router.get("", response_model=List[schemas.ServiceOrder])
 def get_all_service_orders(
     status: Optional[str] = None, # Parâmetro de query opcional para filtrar ordens por status.

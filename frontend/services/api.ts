@@ -181,6 +181,17 @@ export const ApiService = {
         return response.data;
     },
 
+    /**
+     * Reabre uma ordem de serviço.
+     * @param id O ID da ordem de serviço a ser reaberta.
+     * @returns A ordem de serviço reaberta.
+     */
+    reopenOrder: async (id: number) => {
+        const response = await api.put<ServiceOrder>(`/orders/${id}/reopen`);
+        return response.data;
+    },
+
+
     // --- INVENTORY (Inventário) ---
     /**
      * Obtém uma lista de todas as peças em estoque.

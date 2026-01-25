@@ -578,6 +578,53 @@ def complete_order(db: Session, order_id: int, tenant_id: int):
     db.refresh(db_order)
     return db_order
 
+def reopen_order(db: Session, order_id: int, tenant_id: int):
+    """
+    Reabre uma ordem de serviço concluída:
+    - Muda status de 'Concluído' para 'Em Execução'.
+    - Devolve as peças ao estoque.
+    - Registra movimentos de devolução.
+    - Cancela a transação de receita pendente.
+    """
+    db_order = get_order(db, order_id)
+    if not db_order or db_order.status != models.OSStatus.COMPLETED:
+        return None
+    
+    # Muda status de volta para Em Execução
+    db_order.status = models.OSStatus.IN_PROGRESS
+    
+    # Devolve estoque das peças utilizadas
+    for item in db_order.items:
+        if item.type == models.ItemType.PART and item.part_id:
+            part = get_part(db, item.part_id)
+            if part:
+                part.quantity += item.quantity
+                
+                # Registra o movimento de retorno no estoque
+                movement = models.StockMovement(
+                    tenant_id=tenant_id,
+                    part_id=part.id,
+                    type=models.MovementType.RETURN_OS,
+                    quantity=item.quantity,
+                    description=f"Retorno OS #{order_id} (Reabertura)",
+                    reference_id=str(order_id),
+                    user="Sistema"
+                )
+                db.add(movement)
+                
+    # Remove as transações financeiras vinculadas que ainda estão pendentes
+    # Isso evita duplicidade quando a OS for concluída novamente
+    db.query(models.Transaction).filter(
+        models.Transaction.order_id == order_id,
+        models.Transaction.status == "PENDING",
+        models.Transaction.type == "INCOME"
+    ).delete()
+
+    db.commit()
+    db.refresh(db_order)
+    return db_order
+
+
 # --- TRANSACTION CRUD ---
 # Funções para operações CRUD na tabela de transações (models.Transaction).
 

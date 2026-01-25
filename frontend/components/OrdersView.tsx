@@ -350,9 +350,23 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
         }
     };
 
-    const handleReopenOrder = (id: number) => {
-        alert("Funcionalidade de Reabrir OS ainda não implementada no Backend.");
+    const handleReopenOrder = async (id: number) => {
+        try {
+            if (!window.confirm("CONFIRMAÇÃO DE REABERTURA:\n\n1. O estoque será devolvido.\n2. A receita pendente será cancelada.\n3. A OS voltará para status 'Em Execução'.\n\nDeseja reabrir esta ordem?")) return;
+
+            await ApiService.reopenOrder(id);
+            alert("Ordem reaberta com sucesso!");
+            refreshData();
+            // Optional: Update selected order specifically
+            const updated = await ApiService.getOrder(id);
+            setSelectedOrder(updated);
+
+        } catch (error) {
+            console.error("Erro ao reabrir ordem:", error);
+            alert("Falha ao reabrir ordem de serviço. Verifique se ela pode ser reaberta.");
+        }
     };
+
 
     const handleCreateOrder = async (boatId: string, description: string, duration?: number) => {
         if (!boatId || !description) {

@@ -309,6 +309,19 @@ class ServiceOrder(Base):
     # Relacionamento com TechnicalDelivery. Entrega técnica.
     technical_delivery = relationship("TechnicalDelivery", back_populates="service_order", uselist=False, cascade="all, delete-orphan")
 
+    @property
+    def boat_name(self):
+        return self.boat.name if self.boat else None
+
+    @property
+    def client_name(self):
+        return self.boat.owner.name if self.boat and self.boat.owner else None
+
+    @property
+    def client_phone(self):
+        return self.boat.owner.phone if self.boat and self.boat.owner else None
+
+
 class ServiceItem(Base):
     """
     Modelo para a tabela 'service_items'. Detalha os itens (peças ou serviços) de uma Ordem de Serviço.
