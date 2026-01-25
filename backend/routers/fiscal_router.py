@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Adiciona o diretório pai (backend) ao sys.path para permitir importações relativas.
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -181,7 +181,7 @@ async def emit_invoice(
             total_value=invoice.totalValue,
             net_value=invoice.totalValue, 
             status=InvoiceStatus.PROCESSING,
-            issue_date=datetime.utcnow()
+            issue_date=datetime.now(timezone.utc)
         )
         db.add(fiscal_invoice)
         db.commit()
@@ -196,7 +196,7 @@ async def emit_invoice(
             fiscal_invoice.status = InvoiceStatus.AUTHORIZED
             fiscal_invoice.authorization_protocol = result.get('protocol')
             fiscal_invoice.xml_content = result.get('xml')
-            fiscal_invoice.authorization_date = datetime.utcnow()
+            fiscal_invoice.authorization_date = datetime.now(timezone.utc)
             
             company.sequence_nfe = next_seq
             

@@ -363,6 +363,9 @@ class ServiceOrderBase(CamelModel):
     scheduled_at: Optional[datetime] = None # Data agendada.
     estimated_duration: Optional[int] = None # Duração estimada em horas.
     checklist: Optional[List[Dict[str, Any]]] = [] # Checklist de itens
+    boat_name: Optional[str] = None
+    client_name: Optional[str] = None
+    client_phone: Optional[str] = None
 
 class ServiceOrderCreate(ServiceOrderBase):
     """

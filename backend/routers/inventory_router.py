@@ -12,6 +12,7 @@ from typing import List, Optional
 from backend import schemas
 from backend import crud
 from backend import auth
+from datetime import datetime, timezone
 from backend.database import get_db # Função de dependência para obter a sessão do banco de dados.
 from backend import models
 from backend.models import UserRole
@@ -157,7 +158,6 @@ def process_quick_sale(
     2. Deduz quantidades (MovementType.SALE_DIRECT).
     3. Gera Transação de Entrada (Receita).
     """
-    from datetime import datetime
     
     total_sale_value = 0.0
     items_summary = []
@@ -212,7 +212,7 @@ def process_quick_sale(
                 amount=total_sale_value,
                 type="INCOME", # Receita
                 category="VENDAS_PECAS",
-                date=datetime.utcnow()
+                date=datetime.now(timezone.utc)
             )
             db.add(transaction)
             db.commit()

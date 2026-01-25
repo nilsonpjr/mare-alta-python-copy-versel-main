@@ -1,4 +1,6 @@
-
+from sqlalchemy.orm import Session
+from datetime import datetime, timezone
+from backend import models, schemas
 
 # --- PARTNER CRUD ---
 # Funções para operações CRUD na tabela de parceiros.
@@ -176,9 +178,9 @@ def update_partner_quote(db: Session, quote_id: int, quote_update: schemas.Partn
     
     # Se foi respondido, atualiza data
     if quote_update.quoted_value and not db_quote.response_date:
-        from datetime import datetime
-        db_quote.response_date = datetime.utcnow()
+        db_quote.response_date = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(db_quote)
     return db_quote
+

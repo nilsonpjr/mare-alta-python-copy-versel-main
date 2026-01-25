@@ -12,6 +12,7 @@ import requests # Biblioteca para fazer requisições HTTP.
 import asyncio # Para rodar funções síncronas em um threadpool.
 from bs4 import BeautifulSoup # Biblioteca para parsing de HTML (web scraping).
 import re # Módulo para expressões regulares.
+from datetime import datetime, timezone
 from backend import auth
 from backend import schemas
 
@@ -351,7 +352,6 @@ async def sync_part_price_mercury(
     Sincroniza o preço de uma peça específica com o portal Mercury.
     Atualiza Custo e Preço se encontrado.
     """
-    from datetime import datetime
     from backend import models
     
     # 1. Fetch credentials
@@ -396,7 +396,7 @@ async def sync_part_price_mercury(
     
     updated_part = crud.update_part(db, part_id, part_update)
     
-    updated_part.last_price_updated_at = datetime.utcnow()
+    updated_part.last_price_updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(updated_part)
     
@@ -418,7 +418,6 @@ async def batch_sync_part_prices(
     Muito mais rapido que chamadas individuais.
     """
     from backend import models
-    from datetime import datetime
     
     # 1. Fetch credentials
     company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
@@ -513,7 +512,7 @@ async def batch_sync_part_prices(
                             # Atualiza DB
                             part.cost = cost
                             part.price = price
-                            part.last_price_updated_at = datetime.utcnow()
+                            part.last_price_updated_at = datetime.now(timezone.utc)
                             db.add(part)
                             # Commit a cada item ou em lotes? Commit a cada 5? Vamos commitar no loop para segurança.
                             db.commit()

@@ -6,7 +6,7 @@ uma operação específica em um modelo SQLAlchemy, utilizando uma sessão de ba
 
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 
 from backend import models
@@ -568,7 +568,7 @@ def complete_order(db: Session, order_id: int, tenant_id: int):
         category="Serviços", # Categoria padrão, pode ser mais granular.
         description=f"Recebimento OS #{order_id}",
         amount=db_order.total_value,
-        date=datetime.utcnow(),
+        date=datetime.now(timezone.utc),
         status="PENDING", # Status inicial da receita (pendente de recebimento).
         order_id=order_id
     )
@@ -1052,8 +1052,7 @@ def update_partner_quote(db: Session, quote_id: int, quote_update: schemas.Partn
     
     # Se foi respondido, atualiza data
     if quote_update.quoted_value and not db_quote.response_date:
-        from datetime import datetime
-        db_quote.response_date = datetime.utcnow()
+        db_quote.response_date = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(db_quote)

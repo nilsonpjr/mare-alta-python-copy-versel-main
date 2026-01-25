@@ -2,7 +2,7 @@
 Este módulo define as rotas da API para gerenciamento de embarcações.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -10,6 +10,7 @@ from typing import List, Optional
 from backend import schemas
 from backend import crud
 from backend import auth
+from backend import integrations
 from backend.database import get_db # Função de dependência para obter a sessão do banco de dados.
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
@@ -31,6 +32,7 @@ def get_all_boats(
 @router.post("", response_model=schemas.Boat)
 def create_new_boat(
     boat: schemas.BoatCreate, # Dados da nova embarcação, incluindo motores.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -39,7 +41,15 @@ def create_new_boat(
     Requer autenticação.
     """
     # Chama a função CRUD para criar a embarcação no banco de dados.
-    return crud.create_boat(db, boat, tenant_id=current_user.tenant_id)
+    new_boat = crud.create_boat(db, boat, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        boat_data = schemas.Boat.model_validate(new_boat).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "boat_created", boat_data)
+        
+    return new_boat
 
 @router.get("/{boat_id}", response_model=schemas.Boat)
 def get_single_boat(
@@ -60,6 +70,7 @@ def get_single_boat(
 def update_existing_boat(
     boat_id: int, # ID da embarcação a ser atualizada, passado como parâmetro de caminho.
     boat: schemas.BoatUpdate, # Dados de atualização para a embarcação e seus motores.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -73,6 +84,13 @@ def update_existing_boat(
     if db_boat is None:
         # Se a função CRUD retornar None, a embarcação não foi encontrada.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Embarcação não encontrada")
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        boat_data = schemas.Boat.model_validate(db_boat).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "boat_updated", boat_data)
+        
     return db_boat
 
 @router.delete("/{boat_id}", status_code=status.HTTP_204_NO_CONTENT)

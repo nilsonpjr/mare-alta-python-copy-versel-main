@@ -6,7 +6,7 @@ Cada classe representa uma tabela no banco de dados e seus atributos corresponde
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Enum, JSON
 from sqlalchemy.orm import relationship
 from backend.database import Base # Importa a classe Base do SQLAlchemy declarada em database.py
-from datetime import datetime
+from datetime import datetime, timezone
 import enum # Usado para definir enums Python que serão mapeados para o banco de dados
 
 # --- ENUMS ---
@@ -140,7 +140,7 @@ class Tenant(Base):
     subdomain = Column(String(100), unique=True) # Subdomínio único (ex: marealta.app.com)
     plan = Column(String(50), default="START") # Plano contratado (START, PRO, ENTERPRISE)
     is_active = Column(Boolean, default=True) # Se o tenant está ativo
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     users = relationship("User", back_populates="tenant")
 
 class User(Base):
@@ -291,7 +291,7 @@ class ServiceOrder(Base):
     diagnosis = Column(Text) # Diagnóstico realizado
     status = Column(Enum(OSStatus), default=OSStatus.PENDING) # Status atual da OS
     total_value = Column(Float, default=0) # Valor total da OS
-    created_at = Column(DateTime, default=datetime.utcnow) # Data e hora de criação da OS
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc)) # Data e hora de criação da OS
     requester = Column(String(200)) # Nome do solicitante do serviço
     technician_name = Column(String(200)) # Nome do técnico responsável
     scheduled_at = Column(DateTime, nullable=True) # Data e hora agendada para o serviço
@@ -339,7 +339,7 @@ class OrderNote(Base):
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("service_orders.id"), nullable=False) # ID da OS à qual a nota pertence
     text = Column(Text, nullable=False) # Conteúdo da nota
-    created_at = Column(DateTime, default=datetime.utcnow) # Data e hora de criação da nota
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc)) # Data e hora de criação da nota
     user_name = Column(String(200)) # Nome do usuário que adicionou a nota
     
     # Relacionamento com ServiceOrder. A OS desta nota.
@@ -358,7 +358,7 @@ class Invoice(Base):
     date = Column(DateTime, nullable=False) # Data da emissão da nota
     total_value = Column(Float, default=0) # Valor total da nota
     xml_key = Column(String(200), nullable=True) # Chave de acesso do XML da nota fiscal (opcional)
-    imported_at = Column(DateTime, default=datetime.utcnow) # Data e hora de importação da nota para o sistema
+    imported_at = Column(DateTime, default=lambda: datetime.now(timezone.utc)) # Data e hora de importação da nota para o sistema
 
 class StockMovement(Base):
     """
@@ -371,7 +371,7 @@ class StockMovement(Base):
     part_id = Column(Integer, ForeignKey("parts.id"), nullable=False) # ID da peça movimentada
     type = Column(Enum(MovementType), nullable=False) # Tipo de movimento (entrada, saída, ajuste)
     quantity = Column(Float, nullable=False) # Quantidade movimentada
-    date = Column(DateTime, default=datetime.utcnow) # Data e hora do movimento
+    date = Column(DateTime, default=lambda: datetime.now(timezone.utc)) # Data e hora do movimento
     reference_id = Column(String(100)) # Referência do movimento (ex: ID da OS, número da NFe)
     description = Column(String(200), nullable=False) # Descrição do movimento
     user = Column(String(200)) # Usuário responsável pelo movimento
@@ -477,7 +477,7 @@ class MaintenanceKit(Base):
     engine_model = Column(String(100)) # Modelo do Motor
     interval_hours = Column(Integer, nullable=True) # Intervalo em horas
     description = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     items = relationship("MaintenanceKitItem", back_populates="kit", cascade="all, delete-orphan")
 
@@ -530,7 +530,7 @@ class FiscalInvoice(Base):
     
     # Status e controle
     status = Column(Enum(InvoiceStatus), default=InvoiceStatus.DRAFT)
-    issue_date = Column(DateTime, default=datetime.utcnow)
+    issue_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     authorization_date = Column(DateTime, nullable=True)
     
     # Dados da API
@@ -545,8 +545,8 @@ class FiscalInvoice(Base):
     rejection_reason = Column(Text, nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     tenant = relationship("Tenant")
@@ -586,8 +586,8 @@ class Partner(Base):
     notes = Column(Text, nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     tenant = relationship("Tenant")
@@ -617,8 +617,8 @@ class TechnicalInspection(Base):
     general_notes = Column(Text, nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     tenant = relationship("Tenant")
@@ -654,7 +654,7 @@ class InspectionChecklistItem(Base):
     recommended_partner_type = Column(Enum(PartnerType), nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     inspection = relationship("TechnicalInspection", back_populates="checklist_items")
@@ -685,7 +685,7 @@ class PartnerQuote(Base):
     status = Column(Enum(QuoteStatus), default=QuoteStatus.REQUESTED)
     
     # Datas
-    requested_date = Column(DateTime, default=datetime.utcnow)
+    requested_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     response_date = Column(DateTime, nullable=True)
     
     # Notes
@@ -697,8 +697,8 @@ class PartnerQuote(Base):
     rating_comment = Column(Text, nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     tenant = relationship("Tenant")
@@ -727,7 +727,7 @@ class TechnicalDelivery(Base):
     customer_name = Column(String(200)) # Confirmar nome do cliente
     
     # Dados Gerais
-    date = Column(DateTime, default=datetime.utcnow)
+    date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     location = Column(String(200)) # Local da entrega
     
     # O Checklist e Medições JSON
@@ -740,8 +740,8 @@ class TechnicalDelivery(Base):
     customer_signature_url = Column(Text, nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relacionamentos
     tenant = relationship("Tenant")
