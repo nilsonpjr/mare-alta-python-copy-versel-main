@@ -3,7 +3,8 @@ import { Transaction, TransactionCreate } from '../types';
 import { ApiService } from '../services/api';
 import {
   DollarSign, TrendingUp, TrendingDown, Plus,
-  Search, FileText, Calendar, ArrowUpRight, ArrowDownRight, Loader2
+  Search, FileText, Calendar, ArrowUpRight, ArrowDownRight, Loader2,
+  Upload
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useTheme } from '../context/ThemeContext';
@@ -112,6 +113,25 @@ export const FinanceView: React.FC = () => {
     setDisplayAmount(formatCurrencyInput(digits));
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const imported = await ApiService.importTransactions(file);
+      alert(`${imported.length} transações importadas com sucesso!`);
+      loadTransactions();
+    } catch (error: any) {
+      console.error("Erro na importação:", error);
+      alert(error.response?.data?.detail || "Erro ao importar arquivo. Verifique o formato.");
+    } finally {
+      setLoading(false);
+      // Reset input
+      event.target.value = '';
+    }
+  };
+
   const { preferences } = useTheme();
 
   const SkeletonCard = () => (
@@ -142,12 +162,27 @@ export const FinanceView: React.FC = () => {
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white text-lg">Financeiro</h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm">Controle de Entradas e Saídas</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all"
-        >
-          <Plus className="w-4 h-4" /> Lançamento Manual
-        </button>
+        <div className="flex gap-3">
+          <input
+            type="file"
+            id="import-file"
+            className="hidden"
+            accept=".pdf,.csv,.ofx"
+            onChange={handleFileUpload}
+          />
+          <label
+            htmlFor="import-file"
+            className="cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all font-medium"
+          >
+            <Upload className="w-4 h-4" /> Importar Extrato
+          </label>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" /> Lançamento Manual
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}

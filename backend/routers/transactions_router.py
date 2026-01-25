@@ -1,9 +1,4 @@
-"""
-Este módulo define as rotas da API para gerenciamento de transações financeiras
-(receitas e despesas).
-"""
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -12,6 +7,7 @@ from backend import schemas
 from backend import crud
 from backend import auth
 from backend.database import get_db # Função de dependência para obter a sessão do banco de dados.
+from backend.services.finance_import_service import FinanceImportService
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(prefix="/api/transactions", tags=["Transações Financeiras"])
@@ -39,4 +35,50 @@ def create_new_transaction(
     Requer autenticação.
     """
     # Chama a função CRUD para criar a transação no banco de dados.
-    return crud.create_transaction(db=db, transaction=transaction)
+    return crud.create_transaction(db=db, transaction=transaction, tenant_id=current_user.tenant_id)
+
+@router.post("/import", response_model=List[schemas.Transaction])
+async def import_financial_file(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Importa transações de um arquivo PDF, CSV ou OFX.
+    """
+    content = await file.read()
+    filename = file.filename.lower()
+    
+    try:
+        if filename.endswith('.csv'):
+            transactions_data = FinanceImportService.parse_csv(content)
+        elif filename.endswith('.pdf'):
+            transactions_data = FinanceImportService.parse_pdf(content)
+        elif filename.endswith('.ofx'):
+            transactions_data = FinanceImportService.parse_ofx(content)
+        else:
+            raise HTTPException(status_code=400, detail="Formato de arquivo não suportado. Use PDF, CSV ou OFX.")
+
+        imported_transactions = []
+        for txn_data in transactions_data:
+            # Add tenant_id and map to schema
+            txn_create = schemas.TransactionCreate(
+                type=txn_data.get("type", "EXPENSE"),
+                category=txn_data.get("category", "Importado"),
+                description=txn_data.get("description", "Sem descrição"),
+                amount=txn_data.get("amount", 0.0),
+                date=txn_data.get("date"),
+                status=txn_data.get("status", "PAID"),
+                document_number=txn_data.get("document_number")
+            )
+            # Save to DB
+            new_txn = crud.create_transaction(db=db, transaction=txn_create, tenant_id=current_user.tenant_id)
+            imported_transactions.append(new_txn)
+            
+        return imported_transactions
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"Erro na importação: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro interno ao processar importação: {str(e)}")

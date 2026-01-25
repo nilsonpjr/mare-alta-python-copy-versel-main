@@ -639,16 +639,17 @@ def get_transactions(db: Session, tenant_id: int):
     """
     return db.query(models.Transaction).filter(models.Transaction.tenant_id == tenant_id).order_by(desc(models.Transaction.date)).all()
 
-def create_transaction(db: Session, transaction: schemas.TransactionCreate):
+def create_transaction(db: Session, transaction: schemas.TransactionCreate, tenant_id: int):
     """
     Cria uma nova transação financeira no banco de dados.
     Args:
         db (Session): Sessão do banco de dados.
         transaction (schemas.TransactionCreate): Dados da transação para criação.
+        tenant_id (int): ID do tenant.
     Returns:
         models.Transaction: O objeto transação recém-criado.
     """
-    db_transaction = models.Transaction(**transaction.model_dump())
+    db_transaction = models.Transaction(**transaction.model_dump(), tenant_id=tenant_id)
     db.add(db_transaction)
     db.commit()
     db.refresh(db_transaction)

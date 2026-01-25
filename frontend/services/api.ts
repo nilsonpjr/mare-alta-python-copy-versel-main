@@ -439,6 +439,22 @@ export const ApiService = {
         return response.data;
     },
 
+    /**
+     * Importa transações de um arquivo (PDF, CSV, OFX).
+     * @param file O arquivo a ser importado.
+     * @returns Uma lista das transações importadas.
+     */
+    importTransactions: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post<Transaction[]>('/transactions/import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
+
     // --- CONFIGURATION (Configuração) ---
     /**
      * Obtém uma lista de fabricantes.
