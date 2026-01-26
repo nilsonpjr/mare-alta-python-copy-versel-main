@@ -324,6 +324,10 @@ class ServiceOrder(Base):
     def client_phone(self):
         return self.boat.owner.phone if self.boat and self.boat.owner else None
 
+    @property
+    def client_email(self):
+        return self.boat.owner.email if self.boat and self.boat.owner else None
+
 
 class ServiceItem(Base):
     """
