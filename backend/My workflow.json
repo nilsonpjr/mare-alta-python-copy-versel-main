@@ -1,0 +1,206 @@
+{
+  "name": "Mare Alta - Sistema de Aprovação Automática",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order-completed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "webhook_input",
+      "name": "Entrada Mare Alta"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.event }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "order_quotation_ready",
+              "output": 0
+            }
+          ]
+        },
+        "fallbackOutput": 1
+      },
+      "id": "switch_event",
+      "name": "Ação?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Entrada Mare Alta\"].json.body.data.client_telegram_id || \"SEU_CHAT_ID\" }}",
+        "text": "=Olá {{ $node[\"Entrada Mare Alta\"].json.body.data.client_name }}!\n\nSeu orçamento para a embarcação **{{ $node[\"Entrada Mare Alta\"].json.body.data.boat_name }}** está pronto.\n\n💰 **Valor Total: R$ {{ $node[\"Entrada Mare Alta\"].json.body.data.total_value }}**\n\nEscolha uma opção abaixo:",
+        "replyMarkup": "inline_keyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "buttons": [
+                {
+                  "text": "✅ Aprovar Orçamento",
+                  "callback_data": "=approve:{{ $node[\"Entrada Mare Alta\"].json.body.data.id }}"
+                },
+                {
+                  "text": "❌ Recusar",
+                  "callback_data": "=reject:{{ $node[\"Entrada Mare Alta\"].json.body.data.id }}"
+                }
+              ]
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "tg_send_quotation",
+      "name": "Telegram: Enviar Orçamento",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        550,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "id": "tg_trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.callback_query.data.split(':')[0] }}",
+              "value2": "approve"
+            }
+          ]
+        }
+      },
+      "id": "if_approve",
+      "name": "É Aprovação?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        320,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lynetta-unpasteurised-unpiratically.ngrok-free.dev/api/orders/{{ $json.callback_query.data.split(':')[1] }}/approve",
+        "options": {}
+      },
+      "id": "api_approve",
+      "name": "API: Aprovar OS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        550,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.callback_query.message.chat.id }}",
+        "text": "=✅ **Confirmado!**\n\nSua OS #{{ $json.callback_query.data.split(':')[1] }} foi aprovada com sucesso.\n\n📅 **Agendamos automaticamente para amanhã às 09:00 com nossa equipe de mecânicos.**",
+        "replyToMessageId": "={{ $json.callback_query.message.message_id }}"
+      },
+      "id": "tg_reply_ok",
+      "name": "Telegram: Resposta OK",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        780,
+        500
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Entrada Mare Alta": {
+      "main": [
+        [
+          {
+            "node": "Ação?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ação?": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Enviar Orçamento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "É Aprovação?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Aprovação?": {
+      "main": [
+        [
+          {
+            "node": "API: Aprovar OS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API: Aprovar OS": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Resposta OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

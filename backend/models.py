@@ -293,7 +293,8 @@ class ServiceOrder(Base):
     total_value = Column(Float, default=0) # Valor total da OS
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc)) # Data e hora de criação da OS
     requester = Column(String(200)) # Nome do solicitante do serviço
-    technician_name = Column(String(200)) # Nome do técnico responsável
+    technician_name = Column(String(200)) # Nome do técnico responsável (legado)
+    technician_id = Column(Integer, ForeignKey("users.id"), nullable=True) # ID do técnico associado
     scheduled_at = Column(DateTime, nullable=True) # Data e hora agendada para o serviço
     estimated_duration = Column(Integer, nullable=True)  # Duração estimada em horas
     checklist = Column(JSON, default=[]) # Checklist de itens (JSON)
@@ -308,6 +309,8 @@ class ServiceOrder(Base):
     fiscal_invoices = relationship("FiscalInvoice", back_populates="service_order")
     # Relacionamento com TechnicalDelivery. Entrega técnica.
     technical_delivery = relationship("TechnicalDelivery", back_populates="service_order", uselist=False, cascade="all, delete-orphan")
+    # Relacionamento com Tecnico (User)
+    assigned_technician = relationship("User", foreign_keys=[technician_id])
 
     @property
     def boat_name(self):

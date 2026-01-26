@@ -258,3 +258,65 @@ def update_technical_delivery(
         background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "technical_delivery_updated", delivery_data)
         
     return updated_delivery
+
+@router.post("/{order_id}/send-quotation", response_model=schemas.ServiceOrder)
+def send_quotation_for_approval(
+    order_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_active_user)
+):
+    """
+    Dispara o orçamento para aprovação do cliente via n8n (Telegram/Email).
+    """
+    order = crud.get_order(db, order_id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Ordem de Serviço não encontrada")
+
+    # Atualiza status para "Em Orçamento" se já não estiver
+    if order.status != models.OSStatus.QUOTATION:
+        crud.update_order(db, order_id, schemas.ServiceOrderUpdate(status=models.OSStatus.QUOTATION))
+
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        order_data = schemas.ServiceOrder.model_validate(order).model_dump(mode='json')
+        # Incluir detalhes dos itens para o orçamento
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_quotation_ready", order_data, db=db)
+
+    return order
+
+@router.put("/{order_id}/approve", response_model=schemas.ServiceOrder)
+def approve_order_remotely(
+    order_id: int,
+    db: Session = Depends(get_db)
+    # Sem auth para permitir chamada do n8n (em prod usaríamos um token de sistema)
+):
+    """
+    Endpoint chamado pelo n8n para aprovar a OS e agendar automaticamente.
+    """
+    order = crud.get_order(db, order_id=order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="OS não encontrada")
+
+    # Atualiza para Aprovado e Agenda
+    # Simulação de agendamento automático: Amanhã às 09:00
+    from datetime import datetime, timedelta
+    tomorrow = datetime.now() + timedelta(days=1)
+    scheduled_at = tomorrow.replace(hour=9, minute=0, second=0, microsecond=0)
+    
+    # Tenta encontrar o primeiro técnico (role TECHNICIAN)
+    tech = db.query(models.User).filter(
+        models.User.tenant_id == order.tenant_id,
+        models.User.role == models.UserRole.TECHNICIAN
+    ).first()
+
+    update_data = schemas.ServiceOrderUpdate(
+        status=models.OSStatus.APPROVED,
+        scheduled_at=scheduled_at,
+        technician_id=tech.id if tech else None,
+        technician_name=tech.name if tech else "Técnico Automático"
+    )
+    
+    updated_order = crud.update_order(db, order_id=order_id, order_update=update_data)
+    return updated_order
