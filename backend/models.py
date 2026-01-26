@@ -180,6 +180,7 @@ class Client(Base):
     email = Column(String(200)) # Email do cliente
     address = Column(Text) # Endereço completo
     type = Column(String(50))  # Tipo de cliente: PARTICULAR, EMPRESA, GOVERNO
+    telegram_id = Column(String(50), nullable=True) # ID do Telegram para notificações
     
     # Relacionamento com a tabela Boat. Um cliente pode ter múltiplas embarcações.
     boats = relationship("Boat", back_populates="owner")
@@ -327,6 +328,10 @@ class ServiceOrder(Base):
     @property
     def client_email(self):
         return self.boat.owner.email if self.boat and self.boat.owner else None
+
+    @property
+    def client_telegram_id(self):
+        return self.boat.owner.telegram_id if self.boat and self.boat.owner else None
 
 
 class ServiceItem(Base):

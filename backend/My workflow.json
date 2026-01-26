@@ -76,6 +76,7 @@
     {
       "parameters": {
         "updates": [
+          "message",
           "callback_query"
         ],
         "additionalFields": {}
@@ -138,6 +139,121 @@
         780,
         500
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.message.text }}",
+              "value2": "/start"
+            }
+          ]
+        }
+      },
+      "id": "is_start",
+      "name": "É Start?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        320,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "=Olá {{ $json.message.from.first_name }}! Bem-vindo à Maré Alta.\n\nPara receber seus orçamentos aqui, por favor, clique no botão abaixo para validar seu cadastro.",
+        "replyMarkup": "reply_keyboard",
+        "replyKeyboard": {
+          "rows": [
+            {
+              "buttons": [
+                {
+                  "text": "📱 Validar meu Cadastro",
+                  "request_contact": true
+                }
+              ]
+            }
+          ],
+          "one_time_keyboard": true,
+          "resize_keyboard": true
+        }
+      },
+      "id": "tg_ask_contact",
+      "name": "Telegram: Pedir Contato",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        550,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ !!$json.message.contact }}"
+            }
+          ]
+        }
+      },
+      "id": "has_contact",
+      "name": "Recebeu Contato?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        320,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://lynetta-unpasteurised-unpiratically.ngrok-free.dev/api/clients/bind-telegram",
+        "sendQueryParameters": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $json.message.contact.phone_number }}"
+            },
+            {
+              "name": "telegram_id",
+              "value": "={{ $json.message.chat.id.toString() }}"
+            },
+            {
+              "name": "tenant_id",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "api_bind",
+      "name": "API: Vincular Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        550,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "✅ Cadastro validado com sucesso! Agora você receberá seus orçamentos e notificações por aqui.",
+        "replyMarkup": "reply_keyboard_remove"
+      },
+      "id": "tg_confirm_bind",
+      "name": "Telegram: Confirmar Vínculo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        780,
+        960
+      ]
     }
   ],
   "pinData": {},
@@ -172,6 +288,16 @@
             "node": "É Aprovação?",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "is_start",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "has_contact",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -192,6 +318,39 @@
         [
           {
             "node": "Telegram: Resposta OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is_start": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Pedir Contato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "has_contact": {
+      "main": [
+        [
+          {
+            "node": "API: Vincular Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API: Vincular Telegram": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Confirmar Vínculo",
             "type": "main",
             "index": 0
           }

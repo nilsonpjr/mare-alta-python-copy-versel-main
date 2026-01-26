@@ -114,6 +114,15 @@ def get_client(db: Session, client_id: int):
     """
     return db.query(models.Client).filter(models.Client.id == client_id).first()
 
+def get_client_by_phone(db: Session, phone: str, tenant_id: int):
+    """
+    Busca um cliente pelo número de telefone.
+    """
+    return db.query(models.Client).filter(
+        models.Client.phone.like(f"%{phone}%"),
+        models.Client.tenant_id == tenant_id
+    ).first()
+
 def create_client(db: Session, client: schemas.ClientCreate, tenant_id: int):
     """
     Cria um novo cliente no banco de dados.

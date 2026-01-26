@@ -107,6 +107,7 @@ class ClientBase(CamelModel):
     email: Optional[str] = None # Email do cliente.
     address: Optional[str] = None # Endereço completo.
     type: Optional[str] = None  # Tipo de cliente: PARTICULAR, EMPRESA, GOVERNO.
+    telegram_id: Optional[str] = None # ID do Telegram.
 
 class ClientCreate(ClientBase):
     """
@@ -124,6 +125,7 @@ class ClientUpdate(CamelModel):
     email: Optional[str] = None
     address: Optional[str] = None
     type: Optional[str] = None
+    telegram_id: Optional[str] = None
 
 class Client(ClientBase):
     """
@@ -401,6 +403,7 @@ class ServiceOrder(ServiceOrderBase):
     client_name: Optional[str] = None
     client_phone: Optional[str] = None
     client_email: Optional[str] = None
+    client_telegram_id: Optional[str] = None
 
 
 # --- TRANSACTION SCHEMAS ---

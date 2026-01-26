@@ -103,3 +103,25 @@ def delete_existing_client(
     if not deleted_client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente não encontrado")
     return None
+
+@router.put("/bind-telegram", response_model=schemas.Client)
+def bind_telegram_id(
+    phone: str,
+    telegram_id: str,
+    tenant_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Vincula um Telegram ID a um cliente baseado no telefone (chamado pelo n8n).
+    """
+    # Limpa o telefone para busca (apenas números)
+    clean_phone = "".join(filter(str.isdigit, phone))
+    
+    client = crud.get_client_by_phone(db, clean_phone[-8:], tenant_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado com este telefone")
+        
+    client.telegram_id = telegram_id
+    db.commit()
+    db.refresh(client)
+    return client
