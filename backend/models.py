@@ -333,6 +333,14 @@ class ServiceOrder(Base):
     def client_telegram_id(self):
         return self.boat.owner.telegram_id if self.boat and self.boat.owner else None
 
+    @property
+    def email(self):
+        return self.client_email
+
+    @property
+    def phone(self):
+        return self.client_phone
+
 
 class ServiceItem(Base):
     """

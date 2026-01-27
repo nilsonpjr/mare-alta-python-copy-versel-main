@@ -394,9 +394,9 @@ class ServiceOrder(ServiceOrderBase):
     id: int # ID único da OS.
     total_value: float # Valor total da OS.
     created_at: datetime # Data de criação.
-    items: List[ServiceItem] = [] # Lista de itens de serviço.
-    notes: List[OrderNote] = [] # Lista de notas.
-    checklist: List[Dict[str, Any]] = []
+    items: Optional[List[ServiceItem]] = [] # Lista de itens de serviço.
+    notes: Optional[List[OrderNote]] = [] # Lista de notas.
+    checklist: Optional[List[Dict[str, Any]]] = []
     
     # Novos campos para enriquecimento embutidos (calculados)
     boat_name: Optional[str] = None
@@ -404,6 +404,10 @@ class ServiceOrder(ServiceOrderBase):
     client_phone: Optional[str] = None
     client_email: Optional[str] = None
     client_telegram_id: Optional[str] = None
+    
+    # Aliases para compatibilidade com n8n legado
+    email: Optional[str] = None
+    phone: Optional[str] = None
 
 
 # --- TRANSACTION SCHEMAS ---
