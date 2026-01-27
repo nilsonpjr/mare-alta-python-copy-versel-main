@@ -191,6 +191,14 @@ export const ApiService = {
         return response.data;
     },
 
+    /**
+     * Envia o orçamento para aprovação do cliente via n8n.
+     */
+    sendQuotation: async (id: number) => {
+        const response = await api.post<ServiceOrder>(`/orders/${id}/send-quotation`);
+        return response.data;
+    },
+
 
     // --- INVENTORY (Inventário) ---
     /**

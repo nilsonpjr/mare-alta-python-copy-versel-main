@@ -26,7 +26,8 @@ import {
     Info,
     ClipboardCheck,
     ArrowUpRight,
-    Target
+    Target,
+    Send
 } from 'lucide-react';
 import { TechnicalDeliveryForm } from './TechnicalDeliveryForm';
 import { QuickClientModal } from './QuickClientModal';
@@ -347,6 +348,21 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
         } catch (error) {
             console.error("Erro ao mudar status:", error);
             alert("Erro ao atualizar status. Verifique conexao.");
+        }
+    };
+
+    const handleSendQuotation = async (id: number) => {
+        try {
+            if (!window.confirm("Deseja enviar este orçamento para aprovação do cliente via Telegram/E-mail?")) return;
+
+            const updated = await ApiService.sendQuotation(id);
+            alert("Orçamento enviado com sucesso!");
+            setSelectedOrder(updated);
+            refreshData();
+
+        } catch (error) {
+            console.error("Erro ao enviar orçamento:", error);
+            alert("Falha ao enviar orçamento. Verifique a integração com n8n.");
         }
     };
 
@@ -1150,6 +1166,15 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ role, onNavigate }) => {
                                             <FileDigit className="w-4 h-4" />
                                             <span className="hidden sm:inline">Emitir Nota</span>
                                         </button>
+
+                                        {role === UserRole.ADMIN && (selectedOrder.status === OSStatus.PENDING || selectedOrder.status === OSStatus.QUOTATION) && (
+                                            <button
+                                                onClick={() => handleSendQuotation(selectedOrder.id)}
+                                                className="px-6 py-3 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 whitespace-nowrap"
+                                            >
+                                                <Send className="w-4 h-4" /> Enviar Orçamento
+                                            </button>
+                                        )}
 
                                         {role === UserRole.ADMIN && !isReadOnly && (
                                             <button
