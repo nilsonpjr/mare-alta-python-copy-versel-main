@@ -33,7 +33,18 @@ def fix_db():
         else:
             print("technician_id column already exists.")
             
-        # Also check other tables just in case
+        # Check if telegram_id exists in clients
+        result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name = 'clients' AND column_name = 'telegram_id'"))
+        exists_tg = result.fetchone()
+        
+        if not exists_tg:
+            print("Adding telegram_id column to clients table...")
+            conn.execute(text("ALTER TABLE clients ADD COLUMN telegram_id VARCHAR(50)"))
+            conn.commit()
+            print("Column added successfully.")
+        else:
+            print("telegram_id column already exists.")
+
         print("Done.")
 
 if __name__ == "__main__":

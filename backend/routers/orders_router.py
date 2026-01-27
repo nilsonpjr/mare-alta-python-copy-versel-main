@@ -150,7 +150,7 @@ def update_existing_service_order(
     if company and company.n8n_webhook_url:
         # Notifica o n8n sobre a atualização (incluindo mudança de status)
         order_data = schemas.ServiceOrder.model_validate(updated_order).model_dump(mode='json')
-        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_updated", order_data)
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_updated", order_data, db=db)
         
     return updated_order
 
@@ -282,7 +282,7 @@ def send_quotation_for_approval(
     if company and company.n8n_webhook_url:
         order_data = schemas.ServiceOrder.model_validate(order).model_dump(mode='json')
         # Incluir detalhes dos itens para o orçamento
-        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_quotation_ready", order_data, db=db)
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "order_quotation_ready", order_data)
 
     return order
 

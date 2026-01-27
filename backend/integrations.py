@@ -4,26 +4,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-async def trigger_n8n_event(webhook_url: str, event_type: str, data: dict, db=None):
+async def trigger_n8n_event(webhook_url: str, event_type: str, data: dict):
     """
     Dispara um evento para o webhook do n8n configurado.
-    Enriquece os dados com informações do barco e cliente se o banco estiver disponível.
+    O dado já deve vir enriquecido do caller.
     """
     if not webhook_url:
         return
 
     from datetime import datetime, timezone
     
-    # Enrich data if it's an order and we have DB
-    if db and "boat_id" in data:
-        from backend import models
-        boat = db.query(models.Boat).filter(models.Boat.id == data["boat_id"]).first()
-        if boat:
-            data["boat_name"] = boat.name
-            if boat.owner:
-                data["client_name"] = boat.owner.name
-                data["client_phone"] = boat.owner.phone
-
+    # Payload seguro para o n8n
     payload = {
         "event": event_type,
         "data": data,

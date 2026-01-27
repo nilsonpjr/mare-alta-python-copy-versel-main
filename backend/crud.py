@@ -140,7 +140,7 @@ def create_client(db: Session, client: schemas.ClientCreate, tenant_id: int):
     db.refresh(db_client)
     return db_client
 
-def update_client(db: Session, client_id: int, client_update: schemas.ClientCreate): # Usando ClientCreate como update por simplificação, idealmente ClientUpdate
+def update_client(db: Session, client_id: int, client_update: schemas.ClientUpdate):
     """
     Atualiza um cliente existente.
     """
