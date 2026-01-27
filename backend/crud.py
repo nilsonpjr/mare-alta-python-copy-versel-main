@@ -452,9 +452,11 @@ def get_order(db: Session, order_id: int):
     Returns:
         models.ServiceOrder: O objeto ordem de serviço, se encontrado, ou None.
     """
+    from sqlalchemy.orm import joinedload
     return db.query(models.ServiceOrder).options(
         joinedload(models.ServiceOrder.items),
-        joinedload(models.ServiceOrder.notes)
+        joinedload(models.ServiceOrder.notes),
+        joinedload(models.ServiceOrder.boat).joinedload(models.Boat.owner)
     ).filter(models.ServiceOrder.id == order_id).first()
 
 def create_order(db: Session, order: schemas.ServiceOrderCreate, tenant_id: int):

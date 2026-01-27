@@ -275,7 +275,7 @@ def send_quotation_for_approval(
 
     # Atualiza status para "Em Orçamento" se já não estiver
     if order.status != models.OSStatus.QUOTATION:
-        crud.update_order(db, order_id, schemas.ServiceOrderUpdate(status=models.OSStatus.QUOTATION))
+        order = crud.update_order(db, order_id, schemas.ServiceOrderUpdate(status=models.OSStatus.QUOTATION))
 
     # --- N8N INTEGRATION ---
     company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
