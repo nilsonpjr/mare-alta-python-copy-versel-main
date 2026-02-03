@@ -6,6 +6,7 @@ from typing import List
 from backend import schemas
 from backend import crud
 from backend import auth
+from backend.database import get_db
 from backend.services.finance_import_service import FinanceImportService
 from backend import integrations
 

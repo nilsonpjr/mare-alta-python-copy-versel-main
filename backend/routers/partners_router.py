@@ -9,6 +9,7 @@ from typing import List, Optional
 
 from backend import schemas
 from backend import crud
+from backend import auth
 from backend.database import get_db
 from backend import integrations
 
