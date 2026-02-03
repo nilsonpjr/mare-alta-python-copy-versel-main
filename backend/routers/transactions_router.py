@@ -48,8 +48,8 @@ def create_new_transaction(
 
 @router.post("/import", response_model=List[schemas.Transaction])
 async def import_financial_file(
-    file: UploadFile = File(...),
     background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
