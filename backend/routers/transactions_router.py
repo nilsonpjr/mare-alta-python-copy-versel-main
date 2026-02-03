@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -6,8 +6,8 @@ from typing import List
 from backend import schemas
 from backend import crud
 from backend import auth
-from backend.database import get_db # Função de dependência para obter a sessão do banco de dados.
 from backend.services.finance_import_service import FinanceImportService
+from backend import integrations
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(prefix="/api/transactions", tags=["Transações Financeiras"])
@@ -27,6 +27,7 @@ def get_all_transactions(
 @router.post("", response_model=schemas.Transaction)
 def create_new_transaction(
     transaction: schemas.TransactionCreate, # Dados da nova transação para criação.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -35,11 +36,20 @@ def create_new_transaction(
     Requer autenticação.
     """
     # Chama a função CRUD para criar a transação no banco de dados.
-    return crud.create_transaction(db=db, transaction=transaction, tenant_id=current_user.tenant_id)
+    new_txn = crud.create_transaction(db=db, transaction=transaction, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        txn_data = schemas.Transaction.model_validate(new_txn).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "transaction_created", txn_data)
+        
+    return new_txn
 
 @router.post("/import", response_model=List[schemas.Transaction])
 async def import_financial_file(
     file: UploadFile = File(...),
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
@@ -75,6 +85,18 @@ async def import_financial_file(
             new_txn = crud.create_transaction(db=db, transaction=txn_create, tenant_id=current_user.tenant_id)
             imported_transactions.append(new_txn)
             
+        # --- N8N INTEGRATION ---
+        if imported_transactions:
+            company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+            if company and company.n8n_webhook_url:
+                summary_data = {
+                    "count": len(imported_transactions),
+                    "filename": file.filename,
+                    "total_amount": sum(t.amount for t in imported_transactions),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "transactions_imported", summary_data)
+
         return imported_transactions
 
     except ValueError as e:

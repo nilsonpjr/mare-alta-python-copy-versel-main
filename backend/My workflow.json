@@ -42,7 +42,7 @@
     {
       "parameters": {
         "chatId": "={{ $node[\"Entrada Mare Alta\"].json.body.data.client_telegram_id || \"SEU_CHAT_ID\" }}",
-        "text": "=Olá {{ $node[\"Entrada Mare Alta\"].json.body.data.client_name }}!\n\nSeu orçamento para a embarcação **{{ $node[\"Entrada Mare Alta\"].json.body.data.boat_name }}** está pronto.\n\n💰 **Valor Total: R$ {{ $node[\"Entrada Mare Alta\"].json.body.data.total_value }}**\n\nEscolha uma opção abaixo:",
+        "text": "=Olá {{ $node[\"Entrada Mare Alta\"].json.body.data.client_name }}!\n\nSeu orçamento para a embarcação **{{ $node[\"Entrada Mare Alta\"].json.body.data.boat_name }}** está pronto.\n\n🛠 **Itens do Orçamento:**\n{{ $node[\"Entrada Mare Alta\"].json.body.data.items.map(i => `• ${i.description} (${i.quantity}x) - R$ ${i.total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`).join('\\n') }}\n\n💰 **Valor Total: R$ {{ $node[\"Entrada Mare Alta\"].json.body.data.total_value.toLocaleString('pt-BR', {minimumFractionDigits: 2}) }}**\n\nEscolha uma opção abaixo:",
         "replyMarkup": "inline_keyboard",
         "inlineKeyboard": {
           "rows": [

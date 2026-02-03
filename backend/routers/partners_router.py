@@ -3,14 +3,14 @@ Router de API para gerenciamento de parceiros (Fase 3).
 Endpoints para cadastro, consulta, atualização e avaliação de parceiros.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from backend import schemas
 from backend import crud
-from backend import auth
 from backend.database import get_db
+from backend import integrations
 
 router = APIRouter(prefix="/api/partners", tags=["Parceiros"])
 
@@ -44,13 +44,22 @@ def get_single_partner(
 @router.post("", response_model=schemas.Partner)
 def create_new_partner(
     partner: schemas.PartnerCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
     """
     Cria um novo parceiro.
     """
-    return crud.create_partner(db=db, partner=partner, tenant_id=current_user.tenant_id)
+    new_partner = crud.create_partner(db=db, partner=partner, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        partner_data = schemas.Partner.model_validate(new_partner).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "partner_created", partner_data)
+        
+    return new_partner
 
 @router.put("/{partner_id}", response_model=schemas.Partner)
 def update_existing_partner(
@@ -116,13 +125,22 @@ def list_inspections(
 @router.post("/inspections", response_model=schemas.TechnicalInspection)
 def create_new_inspection(
     inspection: schemas.TechnicalInspectionCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
     """
     Cria uma nova inspeção técnica.
     """
-    return crud.create_inspection(db=db, inspection=inspection, tenant_id=current_user.tenant_id)
+    new_insp = crud.create_inspection(db=db, inspection=inspection, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        insp_data = schemas.TechnicalInspection.model_validate(new_insp).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "inspection_created", insp_data)
+        
+    return new_insp
 
 @router.put("/inspections/{inspection_id}", response_model=schemas.TechnicalInspection)
 def update_existing_inspection(
@@ -169,18 +187,28 @@ def list_partner_quotes(
 @router.post("/quotes", response_model=schemas.PartnerQuote)
 def create_new_quote(
     quote: schemas.PartnerQuoteCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
     """
     Solicita orçamento a um parceiro.
     """
-    return crud.create_partner_quote(db=db, quote=quote, tenant_id=current_user.tenant_id)
+    new_quote = crud.create_partner_quote(db=db, quote=quote, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        quote_data = schemas.PartnerQuote.model_validate(new_quote).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "partner_quote_requested", quote_data)
+        
+    return new_quote
 
 @router.put("/quotes/{quote_id}", response_model=schemas.PartnerQuote)
 def update_existing_quote(
     quote_id: int,
     quote_update: schemas.PartnerQuoteUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_active_user)
 ):
@@ -190,4 +218,11 @@ def update_existing_quote(
     updated_quote = crud.update_partner_quote(db, quote_id=quote_id, quote_update=quote_update)
     if not updated_quote:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Orçamento não encontrado")
+        
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        quote_data = schemas.PartnerQuote.model_validate(updated_quote).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "partner_quote_updated", quote_data)
+        
     return updated_quote

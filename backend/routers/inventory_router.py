@@ -14,8 +14,9 @@ from backend import crud
 from backend import auth
 from datetime import datetime, timezone
 from backend.database import get_db # Função de dependência para obter a sessão do banco de dados.
-from backend import models
+from backend import models, integrations
 from backend.models import UserRole
+from fastapi import BackgroundTasks
 
 # Cria uma instância de APIRouter com um prefixo e tags para organização na documentação OpenAPI.
 router = APIRouter(prefix="/api/inventory", tags=["Inventário"])
@@ -56,6 +57,7 @@ def get_single_part(
 @router.post("/parts", response_model=schemas.Part)
 def create_new_part(
     part: schemas.PartCreate, # Dados da nova peça para criação.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -70,12 +72,21 @@ def create_new_part(
         # Se o SKU já existe, levanta uma exceção HTTP 400 Bad Request.
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="SKU já existe")
     # Chama a função CRUD para criar a peça no banco de dados.
-    return crud.create_part(db=db, part=part, tenant_id=current_user.tenant_id)
+    new_part = crud.create_part(db=db, part=part, tenant_id=current_user.tenant_id)
+    
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        part_data = schemas.Part.model_validate(new_part).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "part_created", part_data)
+        
+    return new_part
 
 @router.put("/parts/{part_id}", response_model=schemas.Part)
 def update_existing_part(
     part_id: int, # ID da peça a ser atualizada.
     part_update: schemas.PartUpdate, # Dados de atualização da peça.
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), # Injeta a sessão do banco de dados.
     current_user: schemas.User = Depends(auth.get_current_active_user) # Garante que o usuário esteja autenticado.
 ):
@@ -95,6 +106,17 @@ def update_existing_part(
     if not updated_part:
         # Se a função CRUD retornar None, a peça não foi encontrada.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Peça não encontrada")
+        
+    # --- N8N INTEGRATION ---
+    company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+    if company and company.n8n_webhook_url:
+        part_data = schemas.Part.model_validate(updated_part).model_dump(mode='json')
+        background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "part_updated", part_data)
+        
+        # Alerta de estoque baixo
+        if updated_part.quantity <= updated_part.min_stock:
+            background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "low_stock_alert", part_data)
+            
     return updated_part
 
 @router.delete("/parts/{part_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -149,6 +171,7 @@ def create_stock_movement(
 @router.post("/quick-sale")
 def process_quick_sale(
     sale: schemas.QuickSaleRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(auth.require_role([UserRole.ADMIN, UserRole.TECHNICIAN]))
 ):
@@ -202,6 +225,14 @@ def process_quick_sale(
             )
             crud.create_stock_movement(db, mov, user_name=current_user.name, tenant_id=current_user.tenant_id)
             
+            # Alerta de estoque baixo individual
+            if part.quantity - item.quantity <= part.min_stock:
+                company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+                if company and company.n8n_webhook_url:
+                    part_data = schemas.Part.model_validate(part).model_dump(mode='json')
+                    part_data["quantity"] = part.quantity - item.quantity # Info atualizada
+                    background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "low_stock_alert", part_data)
+
             items_summary.append(f"{item.quantity}x {part.name}")
             
         # Criar Transação Financeira
@@ -216,6 +247,18 @@ def process_quick_sale(
             )
             db.add(transaction)
             db.commit()
+            
+            # --- N8N INTEGRATION ---
+            company = crud.get_company_info(db, tenant_id=current_user.tenant_id)
+            if company and company.n8n_webhook_url:
+                sale_data = {
+                    "total_value": total_sale_value,
+                    "items": items_summary,
+                    "payment_method": sale.payment_method,
+                    "seller": current_user.name,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                background_tasks.add_task(integrations.trigger_n8n_event, company.n8n_webhook_url, "quick_sale_processed", sale_data)
             
         return {"status": "success", "total_value": total_sale_value, "items_count": len(sale.items)}
         
